@@ -1,0 +1,27 @@
+## IranJob
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+*.swp
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+coverage/
+*.log
+
+## Angular
+frontend/iranjob-web/.angular/
+frontend/iranjob-web/dist/
+
+## IDE
+.idea/
+.vscode/*
+!frontend/iranjob-web/.vscode/
+
+## OS
+Thumbs.db
+.DS_Store

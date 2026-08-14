@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+.git/
+.vs/
+node_modules/
+frontend/iranjob-web/dist/
+frontend/iranjob-web/.angular/
+Tests/**/TestResults/

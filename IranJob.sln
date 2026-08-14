@@ -1,0 +1,63 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4959D891-907B-46B0-944E-B4D5A2A1A70B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{2004A7C1-2BFF-4BDB-985A-E46719693457}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IranJob.SharedKernel", "src\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj", "{1D60E784-AEDE-42A8-A2A7-F3257DC4B6D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IranJob.BuildingBlocks.Infrastructure", "src\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj", "{CEA48517-14C7-475C-97D0-05DD13B01589}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Host", "Host", "{12344761-4AA2-4DB8-B306-65451CEA0944}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IranJob.Api", "src\Host\IranJob.Api\IranJob.Api.csproj", "{91B0BA0B-204E-486F-8FE3-2599F61176AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0B3525A4-E808-4420-B920-48BD4DD08870}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IranJob.UnitTests", "Tests\IranJob.UnitTests\IranJob.UnitTests.csproj", "{8CA07D18-A77E-4AE6-8688-63BAC836B4BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IranJob.IntegrationTests", "Tests\IranJob.IntegrationTests\IranJob.IntegrationTests.csproj", "{CD06EB56-3DF9-427B-8DC4-63BCD6E1442A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1D60E784-AEDE-42A8-A2A7-F3257DC4B6D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D60E784-AEDE-42A8-A2A7-F3257DC4B6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D60E784-AEDE-42A8-A2A7-F3257DC4B6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D60E784-AEDE-42A8-A2A7-F3257DC4B6D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEA48517-14C7-475C-97D0-05DD13B01589}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEA48517-14C7-475C-97D0-05DD13B01589}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEA48517-14C7-475C-97D0-05DD13B01589}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEA48517-14C7-475C-97D0-05DD13B01589}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91B0BA0B-204E-486F-8FE3-2599F61176AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91B0BA0B-204E-486F-8FE3-2599F61176AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91B0BA0B-204E-486F-8FE3-2599F61176AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91B0BA0B-204E-486F-8FE3-2599F61176AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CA07D18-A77E-4AE6-8688-63BAC836B4BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CA07D18-A77E-4AE6-8688-63BAC836B4BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CA07D18-A77E-4AE6-8688-63BAC836B4BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CA07D18-A77E-4AE6-8688-63BAC836B4BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD06EB56-3DF9-427B-8DC4-63BCD6E1442A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD06EB56-3DF9-427B-8DC4-63BCD6E1442A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD06EB56-3DF9-427B-8DC4-63BCD6E1442A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD06EB56-3DF9-427B-8DC4-63BCD6E1442A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2004A7C1-2BFF-4BDB-985A-E46719693457} = {4959D891-907B-46B0-944E-B4D5A2A1A70B}
+		{1D60E784-AEDE-42A8-A2A7-F3257DC4B6D2} = {2004A7C1-2BFF-4BDB-985A-E46719693457}
+		{CEA48517-14C7-475C-97D0-05DD13B01589} = {2004A7C1-2BFF-4BDB-985A-E46719693457}
+		{12344761-4AA2-4DB8-B306-65451CEA0944} = {4959D891-907B-46B0-944E-B4D5A2A1A70B}
+		{91B0BA0B-204E-486F-8FE3-2599F61176AC} = {12344761-4AA2-4DB8-B306-65451CEA0944}
+		{8CA07D18-A77E-4AE6-8688-63BAC836B4BD} = {0B3525A4-E808-4420-B920-48BD4DD08870}
+		{CD06EB56-3DF9-427B-8DC4-63BCD6E1442A} = {0B3525A4-E808-4420-B920-48BD4DD08870}
+	EndGlobalSection
+EndGlobal
