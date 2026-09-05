@@ -28,3 +28,14 @@
 .nav a:hover {
   color: #38bdf8;
 }
+
+.nav-button {
+  margin-inline-start: 1rem;
+  background: transparent;
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+}

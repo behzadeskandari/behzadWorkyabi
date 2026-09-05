@@ -1,0 +1,9 @@
+namespace IranJob.SharedKernel.Exceptions;
+
+public sealed class UnauthorizedException : DomainException
+{
+    public UnauthorizedException(string message = "Authentication failed.")
+        : base(message)
+    {
+    }
+}

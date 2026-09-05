@@ -55,6 +55,16 @@ public sealed class GlobalExceptionHandler(
                 "Resource not found",
                 notFoundException.Message,
                 "https://tools.ietf.org/html/rfc9110#section-15.5.5"),
+            UnauthorizedException unauthorizedException => (
+                StatusCodes.Status401Unauthorized,
+                "Authentication failed",
+                unauthorizedException.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.2"),
+            ForbiddenException forbiddenException => (
+                StatusCodes.Status403Forbidden,
+                "Forbidden",
+                forbiddenException.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.4"),
             DomainException domainException => (
                 StatusCodes.Status409Conflict,
                 "Domain rule violation",

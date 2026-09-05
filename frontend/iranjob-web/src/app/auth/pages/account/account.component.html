@@ -1,0 +1,48 @@
+<div class="account-container">
+  <div class="account-card">
+    <h1>حساب کاربری</h1>
+    
+    <div *ngIf="isLoading" class="loading">
+      در حال بارگذاری...
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="userProfile && !isLoading" class="profile-content">
+      <div class="profile-section">
+        <h2>اطلاعات شخصی</h2>
+        <div class="info-row">
+          <span class="label">نام:</span>
+          <span class="value">{{ userProfile.firstName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">نام خانوادگی:</span>
+          <span class="value">{{ userProfile.lastName }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">ایمیل:</span>
+          <span class="value">{{ userProfile.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">شماره موبایل:</span>
+          <span class="value">{{ userProfile.phoneNumber }}</span>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h2>نقش‌ها</h2>
+        <div class="roles-list">
+          <span *ngFor="let role of userProfile.roles" class="role-badge">
+            {{ getRoleName(role) }}
+          </span>
+        </div>
+      </div>
+
+      <button class="btn-logout" (click)="logout()">
+        خروج از حساب
+      </button>
+    </div>
+  </div>
+</div>

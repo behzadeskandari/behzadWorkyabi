@@ -3,6 +3,13 @@
     <a routerLink="/" class="brand">ایران‌جاب</a>
     <nav class="nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">خانه</a>
+      @if (authService.isAuthenticated()) {
+        <a routerLink="/account" routerLinkActive="active">حساب کاربری</a>
+        <button type="button" class="nav-button" (click)="logout()">خروج</button>
+      } @else {
+        <a routerLink="/login" routerLinkActive="active">ورود</a>
+        <a routerLink="/register" routerLinkActive="active">ثبت‌نام</a>
+      }
     </nav>
   </div>
 </header>

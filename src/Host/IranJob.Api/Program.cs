@@ -2,8 +2,14 @@ using Asp.Versioning;
 using IranJob.Api.Services;
 using IranJob.BuildingBlocks.Infrastructure.Extensions;
 using IranJob.BuildingBlocks.Infrastructure.Logging;
+using IranJob.Modules.Identity.Infrastructure.Configuration;
+using IranJob.Modules.Identity.Infrastructure.Extensions;
+using IranJob.Modules.Identity.Presentation.Controllers;
+using Microsoft.OpenApi.Models;
 using Serilog;
-using Serilog.Events;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +28,31 @@ builder.Host.UseSerilog((context, services, configuration) =>
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddIdentityModule(builder.Configuration);
+
+var rateOptions = builder.Configuration.GetSection(IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions.SectionName).Get<IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions>()
+    ?? new IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy(IranJob.Modules.Identity.Infrastructure.Extensions.ServiceCollectionExtensions.AuthRateLimitPolicy, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = rateOptions.PermitLimit,
+                Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds),
+                QueueLimit = 0
+            }));
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
+
 builder.Services.AddScoped<ISystemInfoService, SystemInfoService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddApplicationPart(typeof(AuthController).Assembly);
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
@@ -42,11 +70,36 @@ builder.Services
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "IranJob API",
         Version = "v1",
         Description = "IranJob recruitment platform API"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
     });
 });
 
@@ -56,13 +109,16 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithExposedHeaders("X-CSRF-TOKEN", "X-Correlation-ID");
     });
 });
 
 var app = builder.Build();
 
 await app.ApplyInfrastructureMigrationsAsync();
+await app.ApplyIdentityMigrationsAsync();
 
 if (app.Environment.IsDevelopment())
 {
@@ -76,6 +132,7 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseCors("Frontend");
 app.UseInfrastructureMiddleware();
+app.UseIdentityModule();
 
 app.MapControllers();
 

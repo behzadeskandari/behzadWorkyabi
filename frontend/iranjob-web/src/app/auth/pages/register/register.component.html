@@ -1,0 +1,103 @@
+<div class="register-container">
+  <div class="register-card">
+    <h1>ثبت‌نام در ایران‌جاب</h1>
+    
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">نام</label>
+          <input
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            placeholder="نام"
+            [disabled]="isLoading"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">نام خانوادگی</label>
+          <input
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            placeholder="نام خانوادگی"
+            [disabled]="isLoading"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">ایمیل</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="example@email.com"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="phoneNumber">شماره موبایل</label>
+        <input
+          id="phoneNumber"
+          type="tel"
+          formControlName="phoneNumber"
+          placeholder="09xxxxxxxxx"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">رمز عبور</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="حداقل ۸ کاراکتر"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">تکرار رمز عبور</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="تکرار رمز عبور"
+          [disabled]="isLoading"
+        />
+        <div *ngIf="registerForm.errors?.['passwordMismatch']" class="error-text">
+          رمز عبور و تکرار آن یکسان نیست
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="role">نوع حساب</label>
+        <select id="role" formControlName="role" [disabled]="isLoading">
+          <option value="Candidate">کارجو</option>
+          <option value="Employer">کارفرما</option>
+        </select>
+      </div>
+
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="registerForm.invalid || isLoading"
+      >
+        <span *ngIf="!isLoading">ثبت‌نام</span>
+        <span *ngIf="isLoading">در حال ثبت‌نام...</span>
+      </button>
+    </form>
+
+    <div class="links">
+      <a routerLink="/login">ورود</a>
+    </div>
+  </div>
+</div>
