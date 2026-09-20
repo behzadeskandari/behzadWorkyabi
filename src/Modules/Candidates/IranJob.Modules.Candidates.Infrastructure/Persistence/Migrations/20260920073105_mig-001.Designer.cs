@@ -4,6 +4,7 @@ using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IranJob.Modules.Candidates.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(CandidateDbContext))]
-    partial class CandidateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260920073105_mig-001")]
+    partial class mig001
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -17,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\IranJob.Modules.EmployerProfile.Presentation\IranJob.Modules.EmployerProfile.Presentation.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Identity\IranJob.Modules.Identity.Infrastructure\IranJob.Modules.Identity.Infrastructure.csproj" />
