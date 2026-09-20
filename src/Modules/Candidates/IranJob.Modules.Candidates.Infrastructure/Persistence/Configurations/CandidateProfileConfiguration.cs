@@ -33,11 +33,11 @@ public sealed class CandidateProfileConfiguration : IEntityTypeConfiguration<Can
         builder.Property(profile => profile.Province)
             .HasMaxLength(100);
 
-        builder.Property(profile => profile.Phone)
-            .HasMaxLength(20);
+        //builder.Property(profile => profile.Phone)
+        //    .HasMaxLength(20);
 
-        builder.Property(profile => profile.Email)
-            .HasMaxLength(256);
+        //builder.Property(profile => profile.Email)
+        //    .HasMaxLength(256);
 
         builder.Property(profile => profile.LinkedInUrl)
             .HasMaxLength(500);

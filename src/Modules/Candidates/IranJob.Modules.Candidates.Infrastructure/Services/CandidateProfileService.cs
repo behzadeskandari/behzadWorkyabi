@@ -91,8 +91,8 @@ public sealed class CandidateProfileService(
         profile.Gender = ParseEnum<Gender>(request.Gender);
         profile.City = TrimToNull(request.City);
         profile.Province = TrimToNull(request.Province);
-        profile.Phone = TrimToNull(request.Phone);
-        profile.Email = TrimToNull(request.Email);
+        //profile.Phone = TrimToNull(request.Phone);
+        //profile.Email = TrimToNull(request.Email);
         profile.LinkedInUrl = TrimToNull(request.LinkedInUrl);
         profile.GitHubUrl = TrimToNull(request.GitHubUrl);
         profile.PortfolioUrl = TrimToNull(request.PortfolioUrl);
@@ -128,8 +128,8 @@ public sealed class CandidateProfileService(
             profile.Gender?.ToString(),
             profile.City,
             profile.Province,
-            profile.Phone,
-            profile.Email,
+            //profile.Phone,
+            //profile.Email,
             profile.LinkedInUrl,
             profile.GitHubUrl,
             profile.PortfolioUrl,

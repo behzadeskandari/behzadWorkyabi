@@ -19,9 +19,9 @@ public sealed class CandidateProfile : Entity
 
     public string? Province { get; set; }
 
-    public string? Phone { get; set; }
+    //public string? Phone { get; set; }
 
-    public string? Email { get; set; }
+    //public string? Email { get; set; }
 
     public string? LinkedInUrl { get; set; }
 
