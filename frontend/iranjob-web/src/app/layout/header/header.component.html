@@ -4,6 +4,7 @@
     <nav class="nav">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">خانه</a>
       @if (authService.isAuthenticated()) {
+        <a routerLink="/candidate/profile" routerLinkActive="active">پروفایل کارجو</a>
         <a routerLink="/account" routerLinkActive="active">حساب کاربری</a>
         <button type="button" class="nav-button" (click)="logout()">خروج</button>
       } @else {

@@ -1,0 +1,18 @@
+[33m❯[39m Building...
+[32m✔[39m Building...
+[1mInitial chunk files[22m  [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-6GMCSPNI.js[39m    [2m | [22m[2m-[22m                [2m | [22m[36m279.35 kB[39m[2m | [22m               [36m72.63 kB[39m
+[32mpolyfills-5CFQRCPP.js[39m[2m | [22m[2mpolyfills[22m        [2m | [22m [36m34.59 kB[39m[2m | [22m               [36m11.33 kB[39m
+[32mmain-5LWXBBRS.js[39m     [2m | [22m[2mmain[22m             [2m | [22m [36m27.48 kB[39m[2m | [22m                [36m5.82 kB[39m
+[32mstyles-CAIETIDH.css[39m  [2m | [22m[2mstyles[22m           [2m | [22m[36m255 bytes[39m[2m | [22m              [36m255 bytes[39m
+
+[1m [22m                    [2m | [22m[1mInitial total[22m    [2m | [22m[1m341.66 kB[22m[2m | [22m               [1m90.04 kB[22m
+
+[1mLazy chunk files[22m     [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mchunk-MU7GGJ54.js[39m    [2m | [22m[2mprofile-component[22m[2m | [22m [36m23.30 kB[39m[2m | [22m                [36m4.62 kB[39m
+
+Application bundle generation complete. [2.819 seconds]
+
+Output location: D:\BehzadRepo\KAryabi\behzadWorkyabi\frontend\iranjob-web\dist\iranjob-web
+
+NGBUILD_DONE 

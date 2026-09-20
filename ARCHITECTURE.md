@@ -38,12 +38,26 @@ Composition root for Phase 0:
 
 ### Modules
 
-The `src/Modules` folder is reserved for future bounded contexts. Each module should expose:
+The `src/Modules` folder is reserved for bounded contexts. Each module exposes:
 
 - Domain
 - Application (use cases, validators)
 - Infrastructure (persistence, integrations)
 - Optional module-specific API surface
+
+### Identity module (Phase 1)
+
+`src/Modules/Identity` implements identity, authentication, and authorization:
+
+- **Domain** — `ApplicationUser` (`IdentityUser<Guid>`), `ApplicationRole`, `RefreshToken`,
+  `AuthenticationAuditEntry`, role/permission constants.
+- **Application** — service abstractions and FluentValidation validators (no Web/Angular dependency).
+- **Infrastructure** — ASP.NET Core Identity + EF Core (SQL Server), JWT signing/validation, refresh-token
+  persistence/rotation, authentication audit, request context, HTTP-only-cookie + CSRF helpers, and DI extensions.
+- **Presentation** — `AuthController` and `AdminController` (no business logic).
+
+Identity owns the `identity` database schema (all `AspNet*` tables plus `RefreshTokens` and
+`AuthenticationAuditEntries`). It does not touch other modules' tables.
 
 ## API conventions
 
@@ -54,13 +68,14 @@ The `src/Modules` folder is reserved for future bounded contexts. Each module sh
 | Correlation | `X-Correlation-ID` request/response header |
 | Health | `GET /health` |
 | Logging | Serilog structured console output |
+| Auth | JWT bearer access token; rotating refresh token in HTTP-only cookie |
 
 ## Database
 
 - SQL Server 2022
-- EF Core migrations stored in `IranJob.BuildingBlocks.Infrastructure`
-- Default schema: `infra`
-- No business tables in Phase 0
+- EF Core migrations are stored per module; Building Blocks uses `IranJob.BuildingBlocks.Infrastructure`
+- Default schemas: `infra` (Building Blocks), `identity` (Identity module)
+- No business tables in Phase 0/1 beyond what Identity owns
 
 ## Frontend
 

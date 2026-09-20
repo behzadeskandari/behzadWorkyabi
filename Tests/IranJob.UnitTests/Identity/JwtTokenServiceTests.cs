@@ -44,10 +44,19 @@ public class JwtTokenServiceTests
     [Fact]
     public void ExpiredToken_IsRejected()
     {
-        var service = CreateService(minutes: -5);
-        var token = service.GenerateAccessToken(Guid.NewGuid(), "unused", ["Candidate"], out _);
+        var service = CreateService();
+        var userId = Guid.NewGuid();
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("UNIT_TEST_SECRET_KEY_MUST_BE_LONG_ENOUGH_32"));
+        var expiredJwt = new JwtSecurityToken(
+            issuer: "IranJob",
+            audience: "IranJob.Client",
+            claims: new[] { new Claim(ClaimTypes.Role, "Candidate"), new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()) },
+            notBefore: DateTime.UtcNow.AddMinutes(-10),
+            expires: DateTime.UtcNow.AddMinutes(-5),
+            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        var expiredToken = new JwtSecurityTokenHandler().WriteToken(expiredJwt);
 
-        service.ValidateAccessToken(token).IsValid.Should().BeFalse();
+        service.ValidateAccessToken(expiredToken).IsValid.Should().BeFalse();
     }
 
     [Fact]

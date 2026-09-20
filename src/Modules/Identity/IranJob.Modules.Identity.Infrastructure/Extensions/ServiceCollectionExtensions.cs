@@ -70,7 +70,15 @@ public static class ServiceCollectionExtensions
 
         services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(authenticationOptions =>
+            {
+                authenticationOptions.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                authenticationOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                authenticationOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                authenticationOptions.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme;
+                authenticationOptions.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+                authenticationOptions.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options =>
             {
                 var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();

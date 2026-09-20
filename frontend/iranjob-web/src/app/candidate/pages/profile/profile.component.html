@@ -1,0 +1,183 @@
+<div class="profile-container">
+  <div class="profile-card">
+    <h1>پروفایل کارجو</h1>
+
+    <div *ngIf="isLoading" class="loading">
+      در حال بارگذاری...
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <div *ngIf="!profileExists" class="info-banner">
+        هنوز پروفایلی نساخته‌اید. اطلاعات زیر را تکمیل کنید و پروفایل خود را بسازید.
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="save()">
+        <div class="profile-section">
+          <h2>اطلاعات حرفه‌ای</h2>
+
+          <div class="form-group">
+            <label for="headline">عنوان شغلی</label>
+            <input id="headline" type="text" formControlName="headline"
+              placeholder="مثال: توسعه‌دهنده ارشد بک‌اند" [disabled]="isSaving" />
+            <div *ngIf="hasError('headline')" class="error-text">حداکثر ۲۰۰ کاراکتر مجاز است</div>
+            <div *ngFor="let message of getValidationMessages('Headline')" class="error-text">{{ message }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="biography">درباره من</label>
+            <textarea id="biography" formControlName="biography" rows="5"
+              placeholder="معرفی مهارت‌ها و تجربیات خود" [disabled]="isSaving"></textarea>
+            <div *ngIf="hasError('biography')" class="error-text">حداکثر ۴۰۰۰ کاراکتر مجاز است</div>
+            <div *ngFor="let message of getValidationMessages('Biography')" class="error-text">{{ message }}</div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h2>اطلاعات شخصی</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dateOfBirth">تاریخ تولد</label>
+              <input id="dateOfBirth" type="date" formControlName="dateOfBirth" [disabled]="isSaving" />
+              <div *ngFor="let message of getValidationMessages('DateOfBirth')" class="error-text">{{ message }}</div>
+            </div>
+
+            <div class="form-group">
+              <label for="gender">جنسیت</label>
+              <select id="gender" formControlName="gender" [disabled]="isSaving">
+                <option value="">انتخاب کنید</option>
+                <option *ngFor="let option of genderOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <div *ngFor="let message of getValidationMessages('Gender')" class="error-text">{{ message }}</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="province">استان</label>
+              <input id="province" type="text" formControlName="province" placeholder="مثال: تهران" [disabled]="isSaving" />
+              <div *ngIf="hasError('province')" class="error-text">حداکثر ۱۰۰ کاراکتر مجاز است</div>
+            </div>
+
+            <div class="form-group">
+              <label for="city">شهر</label>
+              <input id="city" type="text" formControlName="city" placeholder="مثال: تهران" [disabled]="isSaving" />
+              <div *ngIf="hasError('city')" class="error-text">حداکثر ۱۰۰ کاراکتر مجاز است</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h2>ارتباطات حرفه‌ای</h2>
+
+          <div class="form-group">
+            <label for="phone">شماره موبایل</label>
+            <input id="phone" type="tel" formControlName="phone" placeholder="09xxxxxxxxx" [disabled]="isSaving" />
+            <div *ngIf="hasError('phone')" class="error-text">شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد</div>
+            <div *ngFor="let message of getValidationMessages('Phone')" class="error-text">{{ message }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">ایمیل</label>
+            <input id="email" type="email" formControlName="email" placeholder="example@email.com" [disabled]="isSaving" />
+            <div *ngIf="hasError('email')" class="error-text">ایمیل معتبر نیست</div>
+            <div *ngFor="let message of getValidationMessages('Email')" class="error-text">{{ message }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="linkedInUrl">لینک لینکدین</label>
+            <input id="linkedInUrl" type="url" formControlName="linkedInUrl"
+              placeholder="https://linkedin.com/in/username" [disabled]="isSaving" />
+            <div *ngIf="hasError('linkedInUrl')" class="error-text">آدرس باید با http یا https شروع شود</div>
+            <div *ngFor="let message of getValidationMessages('LinkedInUrl')" class="error-text">{{ message }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="gitHubUrl">لینک گیت‌هاب</label>
+            <input id="gitHubUrl" type="url" formControlName="gitHubUrl"
+              placeholder="https://github.com/username" [disabled]="isSaving" />
+            <div *ngIf="hasError('gitHubUrl')" class="error-text">آدرس معتبر نیست</div>
+            <div *ngFor="let message of getValidationMessages('GitHubUrl')" class="error-text">{{ message }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="portfolioUrl">لینک نمونه‌کار (پورتفولیو)</label>
+            <input id="portfolioUrl" type="url" formControlName="portfolioUrl"
+              placeholder="https://example.dev" [disabled]="isSaving" />
+            <div *ngIf="hasError('portfolioUrl')" class="error-text">آدرس معتبر نیست</div>
+            <div *ngFor="let message of getValidationMessages('PortfolioUrl')" class="error-text">{{ message }}</div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h2>حقوق مورد انتظار</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="expectedSalary">مبلغ (تومان)</label>
+              <input id="expectedSalary" type="number" formControlName="expectedSalary"
+                placeholder="مثال: 75000000" [disabled]="isSaving" />
+              <div *ngIf="hasError('expectedSalary')" class="error-text">مبلغ باید بین ۰ تا ۱٬۰۰۰٬۰۰۰٬۰۰۰ باشد</div>
+              <div *ngFor="let message of getValidationMessages('ExpectedSalary')" class="error-text">{{ message }}</div>
+            </div>
+
+            <div class="form-group">
+              <label for="salaryType">نوع حقوق</label>
+              <select id="salaryType" formControlName="salaryType" [disabled]="isSaving">
+                <option value="">انتخاب کنید</option>
+                <option *ngFor="let option of salaryTypeOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <div *ngFor="let message of getValidationMessages('SalaryType')" class="error-text">{{ message }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h2>وضعیت شغلی</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="employmentStatus">وضعیت اشتغال</label>
+              <select id="employmentStatus" formControlName="employmentStatus" [disabled]="isSaving">
+                <option value="">انتخاب کنید</option>
+                <option *ngFor="let option of employmentStatusOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <div *ngFor="let message of getValidationMessages('EmploymentStatus')" class="error-text">{{ message }}</div>
+            </div>
+
+            <div class="form-group">
+              <label for="availability">آمادگی برای شروع کار</label>
+              <select id="availability" formControlName="availability" [disabled]="isSaving">
+                <option value="">انتخاب کنید</option>
+                <option *ngFor="let option of availabilityOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <div *ngFor="let message of getValidationMessages('Availability')" class="error-text">{{ message }}</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="militaryStatus">وضعیت نظام وظیفه</label>
+            <select id="militaryStatus" formControlName="militaryStatus" [disabled]="isSaving">
+              <option value="">انتخاب کنید</option>
+              <option *ngFor="let option of militaryStatusOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+            <div *ngFor="let message of getValidationMessages('MilitaryStatus')" class="error-text">{{ message }}</div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-save" [disabled]="profileForm.invalid || isSaving">
+          <span *ngIf="!isSaving">{{ profileExists ? 'ذخیره تغییرات' : 'ایجاد پروفایل' }}</span>
+          <span *ngIf="isSaving">در حال ذخیره...</span>
+        </button>
+      </form>
+    </ng-container>
+  </div>
+</div>

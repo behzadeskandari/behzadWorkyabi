@@ -1,0 +1,143 @@
+﻿Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.UnitTests\bin\Debug\net8.0\IranJob.UnitTests.dll (.NETCoreApp,Version=v8.0)
+Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    35, Skipped:     0, Total:    35, Duration: 759 ms - IranJob.UnitTests.dll (net8.0)
+dotnet : [xUnit.net 00:00:02.25]     IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated [FAIL]
+At line:1 char:1
++ dotnet test IranJob.sln --no-build --nologo 2>&1 | Out-File -Encoding ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...sCreated [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Failed IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated [1 s]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 29
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:02.37]     IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithoutProfile_ReturnsNotFound [FAIL]
+[xUnit.net 00:00:02.47]     IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_IgnoresUserIdFromRequestBody [FAIL]
+[xUnit.net 00:00:02.47]     IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_Twice_ReturnsConflict [FAIL]
+[xUnit.net 00:00:02.57]     IranJob.IntegrationTests.CandidateProfileTests.Profile_OwnershipCannotBeCrossedBetweenUsers [FAIL]
+  Failed IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithoutProfile_ReturnsNotFound [112 ms]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.NotFound {value: 404}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithoutProfile_ReturnsNotFound() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 111
+--- End of stack trace from previous location ---
+  Failed IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_IgnoresUserIdFromRequestBody [102 ms]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_IgnoresUserIdFromRequestBody() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 164
+--- End of stack trace from previous location ---
+  Failed IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_Twice_ReturnsConflict [4 ms]
+  Error Message:
+   Expected registerResponse.StatusCode to be HttpStatusCode.NoContent {value: 204}, but found HttpStatusCode.Conflict {value: 409}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateAuthenticatedClientAsync(String email) in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 224
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_Twice_ReturnsConflict() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 79
+--- End of stack trace from previous location ---
+  Failed IranJob.IntegrationTests.CandidateProfileTests.Profile_OwnershipCannotBeCrossedBetweenUsers [98 ms]
+  Error Message:
+   Expected registerResponse.StatusCode to be HttpStatusCode.NoContent {value: 204}, but found HttpStatusCode.Conflict {value: 409}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateAuthenticatedClientAsync(String email) in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 224
+   at IranJob.IntegrationTests.CandidateProfileTests.Profile_OwnershipCannotBeCrossedBetweenUsers() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 138
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:02.67]     IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithExistingProfile_ReturnsUpdatedProfile [FAIL]
+[xUnit.net 00:00:02.77]     IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithoutProfile_ReturnsNotFound [FAIL]
+[xUnit.net 00:00:02.78]     IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithInvalidData_ReturnsValidationProblem [FAIL]
+  Failed IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithExistingProfile_ReturnsUpdatedProfile [101 ms]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.OK {value: 200}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithExistingProfile_ReturnsUpdatedProfile() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 96
+--- End of stack trace from previous location ---
+  Failed IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithoutProfile_ReturnsNotFound [99 ms]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.NotFound {value: 404}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithoutProfile_ReturnsNotFound() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 53
+--- End of stack trace from previous location ---
+  Failed IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithInvalidData_ReturnsValidationProblem [7 ms]
+  Error Message:
+   Expected registerResponse.StatusCode to be HttpStatusCode.NoContent {value: 204}, but found HttpStatusCode.Conflict {value: 409}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateAuthenticatedClientAsync(String email) in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 224
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithInvalidData_ReturnsValidationProblem() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 117
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:02.90]     IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithExistingProfile_ReturnsOwnProfile [FAIL]
+  Failed IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithExistingProfile_ReturnsOwnProfile [114 ms]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.OK {value: 200}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithExistingProfile_ReturnsOwnProfile() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 40
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     9, Passed:    36, Skipped:     0, Total:    45, Duration: 3 s - IranJob.IntegrationTests.dll (net8.0)

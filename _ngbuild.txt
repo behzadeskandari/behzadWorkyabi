@@ -1,0 +1,30 @@
+﻿
+> iranjob-web@0.0.0 build
+> ng build
+
+[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+Application bundle generation failed. [0.545 seconds]
+
+npm.cmd : [1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mAngular compilation initialization failed.[0m [1m[35m[plugin 
+angular-compiler][0m
+At line:1 char:26
++ cd frontend\iranjob-web; npm.cmd run build 2>&1 | Out-File -Encoding  ...
++                          ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([1m[31m[31mX...r-compiler][0m:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+  Error [ERR_MODULE_NOT_FOUND]: Cannot find module 
+'D:\BehzadRepo\KAryabi\behzadWorkyabi\frontend\iranjob-web\node_modules\@angular\compiler\fesm2022\compiler.mjs' imported from 
+D:\BehzadRepo\KAryabi\behzadWorkyabi\frontend\iranjob-web\node_modules\@angular\compiler-cli\bundles\index.js
+      at finalizeResolution (node:internal/modules/esm/resolve:257:11)
+      at moduleResolve (node:internal/modules/esm/resolve:913:10)
+      at defaultResolve (node:internal/modules/esm/resolve:1037:11)
+      at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:650:12)
+      at #cachedDefaultResolve (node:internal/modules/esm/loader:599:25)
+      at ModuleLoader.resolve (node:internal/modules/esm/loader:582:38)
+      at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:241:38)
+      at ModuleJob._link (node:internal/modules/esm/module_job:132:49)
+
+[39m[22m

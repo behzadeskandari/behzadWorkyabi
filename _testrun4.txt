@@ -1,0 +1,23 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  IranJob.SharedKernel -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\BuildingBlocks\IranJob.SharedKernel\bin\Debug\net8.0\IranJob.SharedKernel.dll
+  IranJob.Modules.Candidates.Domain -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Domain\bin\Debug\net8.0\IranJob.Modules.Candidates.Domain.dll
+  IranJob.Modules.Identity.Domain -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Domain\bin\Debug\net8.0\IranJob.Modules.Identity.Domain.dll
+  IranJob.BuildingBlocks.Infrastructure -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\bin\Debug\net8.0\IranJob.BuildingBlocks.Infrastructure.dll
+  IranJob.Modules.Candidates.Application -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Application\bin\Debug\net8.0\IranJob.Modules.Candidates.Application.dll
+  IranJob.Modules.Identity.Application -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Application\bin\Debug\net8.0\IranJob.Modules.Identity.Application.dll
+  IranJob.Modules.Candidates.Presentation -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Presentation\bin\Debug\net8.0\IranJob.Modules.Candidates.Presentation.dll
+  IranJob.Modules.Candidates.Infrastructure -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Infrastructure\bin\Debug\net8.0\IranJob.Modules.Candidates.Infrastructure.dll
+  IranJob.Modules.Identity.Infrastructure -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Infrastructure\bin\Debug\net8.0\IranJob.Modules.Identity.Infrastructure.dll
+  IranJob.Modules.Identity.Presentation -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Presentation\bin\Debug\net8.0\IranJob.Modules.Identity.Presentation.dll
+  IranJob.UnitTests -> D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.UnitTests\bin\Debug\net8.0\IranJob.UnitTests.dll
+Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.UnitTests\bin\Debug\net8.0\IranJob.UnitTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+  IranJob.Api -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Host\IranJob.Api\bin\Debug\net8.0\IranJob.Api.dll
+  IranJob.IntegrationTests -> D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll
+Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    35, Skipped:     0, Total:    35, Duration: 880 ms - IranJob.UnitTests.dll (net8.0)
+
+Passed!  - Failed:     0, Passed:    45, Skipped:     0, Total:    45, Duration: 2 s - IranJob.IntegrationTests.dll (net8.0)

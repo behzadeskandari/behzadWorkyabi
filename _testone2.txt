@@ -1,0 +1,141 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  IranJob.SharedKernel -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\BuildingBlocks\IranJob.SharedKernel\bin\Debug\net8.0\IranJob.SharedKernel.dll
+  IranJob.Modules.Candidates.Domain -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Domain\bin\Debug\net8.0\IranJob.Modules.Candidates.Domain.dll
+  IranJob.Modules.Identity.Domain -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Domain\bin\Debug\net8.0\IranJob.Modules.Identity.Domain.dll
+  IranJob.BuildingBlocks.Infrastructure -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\bin\Debug\net8.0\IranJob.BuildingBlocks.Infrastructure.dll
+  IranJob.Modules.Candidates.Application -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Application\bin\Debug\net8.0\IranJob.Modules.Candidates.Application.dll
+  IranJob.Modules.Identity.Application -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Application\bin\Debug\net8.0\IranJob.Modules.Identity.Application.dll
+  IranJob.Modules.Candidates.Presentation -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Presentation\bin\Debug\net8.0\IranJob.Modules.Candidates.Presentation.dll
+  IranJob.Modules.Candidates.Infrastructure -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Infrastructure\bin\Debug\net8.0\IranJob.Modules.Candidates.Infrastructure.dll
+  IranJob.Modules.Identity.Infrastructure -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Infrastructure\bin\Debug\net8.0\IranJob.Modules.Identity.Infrastructure.dll
+  IranJob.Modules.Identity.Presentation -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Identity\IranJob.Modules.Identity.Presentation\bin\Debug\net8.0\IranJob.Modules.Identity.Presentation.dll
+  IranJob.Api -> D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Host\IranJob.Api\bin\Debug\net8.0\IranJob.Api.dll
+  IranJob.IntegrationTests -> D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll
+Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.4.5+1caef2f33e (64-bit .NET 8.0.19)
+[xUnit.net 00:00:00.91]   Discovering: IranJob.IntegrationTests
+[xUnit.net 00:00:00.94]   Discovered:  IranJob.IntegrationTests
+[xUnit.net 00:00:00.94]   Starting:    IranJob.IntegrationTests
+[11:09:05 WRN] The entity type 'ApplicationRole' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'ApplicationUser' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'AuthenticationAuditEntry' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'RefreshToken' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityRoleClaim<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserClaim<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserLogin<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserRole<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserToken<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'ApplicationRole' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'ApplicationUser' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'AuthenticationAuditEntry' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'RefreshToken' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityRoleClaim<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserClaim<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserLogin<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserRole<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'IdentityUserToken<Guid>' is configured to use schema 'identity', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:05 WRN] The entity type 'CandidateProfile' is configured to use schema 'candidates', but SQLite does not support schemas. This configuration will be ignored by the SQLite provider. {"EventId": {"Id": 30000, "Name": "Microsoft.EntityFrameworkCore.Model.Validation.SchemaConfiguredWarning"}, "SourceContext": "Microsoft.EntityFrameworkCore.Model.Validation", "EnvironmentName": "Production", "ThreadId": 18, "Application": "IranJob"}
+[11:09:06 ERR] Failed executing DbCommand (1ms) [Parameters=[@__userId_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM "CandidateProfiles" AS "c"
+    WHERE "c"."UserId" = @__userId_0) {"EventId": {"Id": 20102, "Name": "Microsoft.EntityFrameworkCore.Database.Command.CommandError"}, "SourceContext": "Microsoft.EntityFrameworkCore.Database.Command", "ActionId": "66e3b925-12da-490d-addd-d39c869f5fc5", "ActionName": "IranJob.Modules.Candidates.Presentation.Controllers.CandidateProfileController.Create (IranJob.Modules.Candidates.Presentation)", "RequestId": "0HNOB431S4IV6", "RequestPath": "/api/v1/candidates/profile", "CorrelationId": "5715b18b5a974971aa0a5d6dbcbb381f", "EnvironmentName": "Production", "ThreadId": 38, "Application": "IranJob"}
+[11:09:06 ERR] An exception occurred while iterating over the results of a query for context type 'IranJob.Modules.Candidates.Infrastructure.Persistence.CandidateDbContext'.
+Microsoft.Data.Sqlite.SqliteException (0x80004005): SQLite Error 1: 'no such table: CandidateProfiles'.
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteCommand.PrepareAndEnumerateStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteCommand.GetStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync() {"EventId": {"Id": 10100, "Name": "Microsoft.EntityFrameworkCore.Query.QueryIterationFailed"}, "SourceContext": "Microsoft.EntityFrameworkCore.Query", "ActionId": "66e3b925-12da-490d-addd-d39c869f5fc5", "ActionName": "IranJob.Modules.Candidates.Presentation.Controllers.CandidateProfileController.Create (IranJob.Modules.Candidates.Presentation)", "RequestId": "0HNOB431S4IV6", "RequestPath": "/api/v1/candidates/profile", "CorrelationId": "5715b18b5a974971aa0a5d6dbcbb381f", "EnvironmentName": "Production", "ThreadId": 38, "Application": "IranJob"}
+Microsoft.Data.Sqlite.SqliteException (0x80004005): SQLite Error 1: 'no such table: CandidateProfiles'.
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteCommand.PrepareAndEnumerateStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteCommand.GetStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+[11:09:06 ERR] An unhandled exception has occurred while executing the request. {"EventId": {"Id": 1, "Name": "UnhandledException"}, "SourceContext": "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware", "RequestId": "0HNOB431S4IV6", "RequestPath": "/api/v1/candidates/profile", "EnvironmentName": "Production", "ThreadId": 38, "Application": "IranJob"}
+Microsoft.Data.Sqlite.SqliteException (0x80004005): SQLite Error 1: 'no such table: CandidateProfiles'.
+   at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteCommand.PrepareAndEnumerateStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteCommand.GetStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.Data.Sqlite.SqliteCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at IranJob.Modules.Candidates.Infrastructure.Services.CandidateProfileService.CreateProfileAsync(Guid userId, CandidateProfileRequest request, CancellationToken cancellationToken) in D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Infrastructure\Services\CandidateProfileService.cs:line 33
+   at IranJob.Modules.Candidates.Presentation.Controllers.CandidateProfileController.Create(SaveCandidateProfileRequestDto request, CancellationToken cancellationToken) in D:\BehzadRepo\KAryabi\behzadWorkyabi\src\Modules\Candidates\IranJob.Modules.Candidates.Presentation\Controllers\CandidateProfileController.cs:line 38
+   at lambda_method602(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Awaited|12_0(ControllerActionInvoker invoker, ValueTask`1 actionResultValueTask)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.InvokeInnerFilterAsync()
+--- End of stack trace from previous location ---
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Awaited|17_0(ResourceInvoker invoker, Task task, IDisposable scope)
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at IranJob.BuildingBlocks.Infrastructure.Middleware.RequestLoggingMiddleware.InvokeAsync(HttpContext context) in d:\BehzadRepo\KAryabi\behzadWorkyabi\src\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\Middleware\RequestLoggingMiddleware.cs:line 29
+   at IranJob.BuildingBlocks.Infrastructure.Middleware.CorrelationIdMiddleware.InvokeAsync(HttpContext context) in d:\BehzadRepo\KAryabi\behzadWorkyabi\src\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\Middleware\CorrelationIdMiddleware.cs:line 18
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+dotnet : [xUnit.net 00:00:02.16]     
+IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated [FAIL]
+At line:1 char:1
++ dotnet test Tests\IranJob.IntegrationTests\IranJob.IntegrationTests.c ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...sCreated [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:02.16]       Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.InternalServerError {value: 500}.
+[xUnit.net 00:00:02.16]       Stack Trace:
+[xUnit.net 00:00:02.16]            at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+[xUnit.net 00:00:02.16]            at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+[xUnit.net 00:00:02.16]            at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+[xUnit.net 00:00:02.16]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:02.16]            at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+[xUnit.net 00:00:02.16]            at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+[xUnit.net 00:00:02.16]            at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+[xUnit.net 00:00:02.16]         D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs(29,0): at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated()
+[xUnit.net 00:00:02.16]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:02.16]   Finished:    IranJob.IntegrationTests
+  Failed IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated [1 s]
+  Error Message:
+   Expected response.StatusCode to be HttpStatusCode.Created {value: 201}, but found HttpStatusCode.InternalServerError {value: 500}.
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.EnumAssertions`2.Be(TEnum expected, String because, Object[] becauseArgs)
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 29
+--- End of stack trace from previous location ---
+
+Test Run Failed.
+Total tests: 1
+     Failed: 1
+ Total time: 2.6224 Seconds

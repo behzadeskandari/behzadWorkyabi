@@ -2,6 +2,8 @@ using Asp.Versioning;
 using IranJob.Api.Services;
 using IranJob.BuildingBlocks.Infrastructure.Extensions;
 using IranJob.BuildingBlocks.Infrastructure.Logging;
+using IranJob.Modules.Candidates.Infrastructure.Extensions;
+using IranJob.Modules.Candidates.Presentation.Controllers;
 using IranJob.Modules.Identity.Infrastructure.Configuration;
 using IranJob.Modules.Identity.Infrastructure.Extensions;
 using IranJob.Modules.Identity.Presentation.Controllers;
@@ -29,6 +31,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddCandidatesModule(builder.Configuration);
 
 var rateOptions = builder.Configuration.GetSection(IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions.SectionName).Get<IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions>()
     ?? new IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions();
@@ -51,7 +54,8 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddScoped<ISystemInfoService, SystemInfoService>();
 
 builder.Services.AddControllers()
-    .AddApplicationPart(typeof(AuthController).Assembly);
+    .AddApplicationPart(typeof(AuthController).Assembly)
+    .AddApplicationPart(typeof(CandidateProfileController).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -119,6 +123,7 @@ var app = builder.Build();
 
 await app.ApplyInfrastructureMigrationsAsync();
 await app.ApplyIdentityMigrationsAsync();
+await app.ApplyCandidatesMigrationsAsync();
 
 if (app.Environment.IsDevelopment())
 {

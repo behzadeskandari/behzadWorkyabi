@@ -1,0 +1,30 @@
+﻿Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.UnitTests\bin\Debug\net8.0\IranJob.UnitTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+Test run for D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\bin\Debug\net8.0\IranJob.IntegrationTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    35, Skipped:     0, Total:    35, Duration: 776 ms - IranJob.UnitTests.dll (net8.0)
+dotnet : [xUnit.net 00:00:02.28]     
+IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated [FAIL]
+At line:1 char:1
++ dotnet test IranJob.sln --nologo -v q 2>&1 | Out-File -Encoding utf8  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...sCreated [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:02.40]     
+IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithoutProfile_ReturnsNotFound [FAIL]
+[xUnit.net 00:00:02.50]     
+IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_IgnoresUserIdFromRequestBody [FAIL]
+[xUnit.net 00:00:02.60]     IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_Twice_ReturnsConflict 
+[FAIL]
+[xUnit.net 00:00:02.81]     
+IranJob.IntegrationTests.CandidateProfileTests.Profile_OwnershipCannotBeCrossedBetweenUsers [FAIL]
+[xUnit.net 00:00:02.91]     
+IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithExistingProfile_ReturnsUpdatedProfile [FAIL]
+[xUnit.net 00:00:03.01]     
+IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithoutProfile_ReturnsNotFound [FAIL]
+[xUnit.net 00:00:03.23]     
+IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithExistingProfile_ReturnsOwnProfile [FAIL]
+
+Failed!  - Failed:     8, Passed:    37, Skipped:     0, Total:    45, Duration: 2 s - IranJob.IntegrationTests.dll (net8.0)

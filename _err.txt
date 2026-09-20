@@ -1,0 +1,13 @@
+﻿    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...sCreated [FAIL]:String) [], RemoteException
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithAuthenticatedUser_ReturnsCreated() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 29
+   at IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithoutProfile_ReturnsNotFound() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 111
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_IgnoresUserIdFromRequestBody() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 164
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateAuthenticatedClientAsync(String email) in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 224
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_Twice_ReturnsConflict() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 79
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateAuthenticatedClientAsync(String email) in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 224
+   at IranJob.IntegrationTests.CandidateProfileTests.Profile_OwnershipCannotBeCrossedBetweenUsers() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 138
+   at IranJob.IntegrationTests.CandidateProfileTests.UpdateProfile_WithExistingProfile_ReturnsUpdatedProfile() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 96
+   at IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithoutProfile_ReturnsNotFound() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 53
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateAuthenticatedClientAsync(String email) in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 224
+   at IranJob.IntegrationTests.CandidateProfileTests.CreateProfile_WithInvalidData_ReturnsValidationProblem() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 117
+   at IranJob.IntegrationTests.CandidateProfileTests.GetProfile_WithExistingProfile_ReturnsOwnProfile() in D:\BehzadRepo\KAryabi\behzadWorkyabi\Tests\IranJob.IntegrationTests\CandidateProfileTests.cs:line 40

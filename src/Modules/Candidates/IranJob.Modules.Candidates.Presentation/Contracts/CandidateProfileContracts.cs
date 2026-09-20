@@ -1,0 +1,41 @@
+namespace IranJob.Modules.Candidates.Presentation.Contracts;
+
+public sealed record SaveCandidateProfileRequestDto(
+    string? Headline,
+    string? Biography,
+    DateOnly? DateOfBirth,
+    string? Gender,
+    string? City,
+    string? Province,
+    string? Phone,
+    string? Email,
+    string? LinkedInUrl,
+    string? GitHubUrl,
+    string? PortfolioUrl,
+    decimal? ExpectedSalary,
+    string? SalaryType,
+    string? EmploymentStatus,
+    string? Availability,
+    string? MilitaryStatus);
+
+public sealed record CandidateProfileResponseDto(
+    Guid Id,
+    Guid UserId,
+    string? Headline,
+    string? Biography,
+    DateOnly? DateOfBirth,
+    string? Gender,
+    string? City,
+    string? Province,
+    string? Phone,
+    string? Email,
+    string? LinkedInUrl,
+    string? GitHubUrl,
+    string? PortfolioUrl,
+    decimal? ExpectedSalary,
+    string? SalaryType,
+    string? EmploymentStatus,
+    string? Availability,
+    string? MilitaryStatus,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt);

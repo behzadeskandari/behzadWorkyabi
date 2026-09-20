@@ -66,16 +66,7 @@ public sealed class AuthService(
             IsActive = true
         };
 
-        IdentityResult createResult;
-        try
-        {
-            createResult = await userManager.CreateAsync(user, request.Password);
-        }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
-        {
-            throw new DomainException("A user with this email or phone number already exists.");
-        }
-
+        var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
             throw new DomainValidationException(MapIdentityErrors(createResult.Errors));

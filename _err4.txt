@@ -1,0 +1,24 @@
+﻿    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...turns204 [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:02.39]     IranJob.IntegrationTests.Identity.AuthEndpointsTests.Me_Anonymous_Returns401 [FAIL]
+  Error Message:
+   Microsoft.Data.Sqlite.SqliteException : SQLite Error 1: 'table "CandidateProfiles" already exists'.
+  Stack Trace:
+     at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   Microsoft.Data.Sqlite.SqliteException : SQLite Error 1: 'table "CandidateProfiles" already exists'.
+  Stack Trace:
+     at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteCommand.PrepareAndEnumerateStatements()+MoveNext()
+     at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteCommand.PrepareAndEnumerateStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteCommand.GetStatements()+MoveNext()
+   at Microsoft.Data.Sqlite.SqliteDataReader.NextResult()
+  Error Message:
+   Microsoft.Data.Sqlite.SqliteException : SQLite Error 1: 'table "CandidateProfiles" already exists'.
+  Stack Trace:
+     at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   Microsoft.Data.Sqlite.SqliteException : SQLite Error 1: 'table "CandidateProfiles" already exists'.
+  Stack Trace:
+     at Microsoft.Data.Sqlite.SqliteException.ThrowExceptionForRC(Int32 rc, sqlite3 db)
+   at Microsoft.Data.Sqlite.SqliteCommand.PrepareAndEnumerateStatements()+MoveNext()

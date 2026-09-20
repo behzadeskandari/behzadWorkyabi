@@ -51,7 +51,7 @@ set ConnectionStrings__DefaultConnection=Server=...
 
 ## Migrations
 
-Create a migration:
+Create a Building Blocks migration:
 
 ```bash
 dotnet ef migrations add <Name> ^
@@ -60,15 +60,37 @@ dotnet ef migrations add <Name> ^
   --output-dir Persistence/Migrations
 ```
 
-Apply migrations manually:
+Create an Identity migration:
+
+```bash
+dotnet ef migrations add <Name> ^
+  --project src/Modules/Identity/IranJob.Modules.Identity.Infrastructure/IranJob.Modules.Identity.Infrastructure.csproj ^
+  --startup-project src/Host/IranJob.Api/IranJob.Api.csproj ^
+  --output-dir Persistence/Migrations
+```
+
+Apply migrations manually (both are applied automatically on startup when
+`Database:ApplyMigrationsOnStartup` is `true`):
 
 ```bash
 dotnet ef database update ^
-  --project src/BuildingBlocks/IranJob.BuildingBlocks.Infrastructure/IranJob.BuildingBlocks.Infrastructure.csproj ^
+  --project src/Modules/Identity/IranJob.Modules.Identity.Infrastructure/IranJob.Modules.Identity.Infrastructure.csproj ^
   --startup-project src/Host/IranJob.Api/IranJob.Api.csproj
 ```
 
-By default, migrations run automatically on startup when `Database:ApplyMigrationsOnStartup` is `true`.
+## Authentication configuration
+
+The API reads identity configuration from the `Authentication` section in `appsettings.json`.
+In local development the JWT signing key is a placeholder; set a real key via User Secrets or the
+`Authentication__Jwt__SecretKey` environment variable:
+
+```bash
+dotnet user-secrets set "Authentication:Jwt:SecretKey" "your-long-random-signing-key" ^
+  --project src/Host/IranJob.Api/IranJob.Api.csproj
+```
+
+See [docs/architecture/AUTHENTICATION.md](./docs/architecture/AUTHENTICATION.md) for the full
+identity architecture, token-storage strategy, and security decisions.
 
 ## Running the backend
 
