@@ -9,7 +9,6 @@ namespace IranJob.Modules.EmployerProfile.Domain.EmployerProfile
 {
     public class EmployerProfile : Entity
     {
-        public Guid Id { get; set; }
         public Guid UserId { get; set; }
 
         public string JobTitle { get; set; }

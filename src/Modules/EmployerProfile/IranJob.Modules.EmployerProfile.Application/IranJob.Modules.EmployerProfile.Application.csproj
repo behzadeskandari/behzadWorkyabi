@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="IEmployerProfileService\" />
+    <Folder Include="Validators\" />
+  </ItemGroup>
+
 </Project>

@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
+  </ItemGroup>
+
 </Project>

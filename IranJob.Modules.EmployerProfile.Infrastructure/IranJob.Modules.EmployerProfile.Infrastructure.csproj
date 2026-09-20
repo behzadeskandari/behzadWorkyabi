@@ -6,11 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="EmployerDbContext\" />
-    <Folder Include="Configuration\" />
-    <Folder Include="Migration\" />
-    <Folder Include="Service\" />
-  </ItemGroup>
-
 </Project>
