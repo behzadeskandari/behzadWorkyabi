@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IranJob.Modules.Candidates.Application\IranJob.Modules.Candidates.Application.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>

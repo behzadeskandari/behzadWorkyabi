@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
+using IranJob.BuildingBlocks.Infrastructure.CurrentService;
 using IranJob.BuildingBlocks.Infrastructure.Middleware;
 using IranJob.BuildingBlocks.Infrastructure.Persistence;
 
@@ -31,6 +32,9 @@ public static class ServiceCollectionExtensions
         services.AddHealthChecks()
             .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: ["live"])
             .AddDbContextCheck<ApplicationDbContext>("database", tags: ["ready"]);
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();

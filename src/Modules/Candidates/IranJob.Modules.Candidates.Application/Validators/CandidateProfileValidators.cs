@@ -1,6 +1,5 @@
 using FluentValidation;
 using IranJob.Modules.Candidates.Application.Abstractions;
-using IranJob.Modules.Candidates.Application.Constants;
 using IranJob.Modules.Candidates.Domain.Enums;
 
 namespace IranJob.Modules.Candidates.Application.Validators;
@@ -32,19 +31,6 @@ public sealed class CandidateProfileRequestValidator : AbstractValidator<Candida
 
         RuleFor(x => x.Province)
             .MaximumLength(100);
-
-        RuleFor(x => x.Phone)
-            .Matches(CandidateValidationPatterns.IranianMobilePattern)
-            .When(x => !string.IsNullOrWhiteSpace(x.Phone))
-            .WithMessage("Phone number must be a valid Iranian mobile number (09xxxxxxxxx).");
-
-        RuleFor(x => x.Email)
-            .EmailAddress()
-            .When(x => !string.IsNullOrWhiteSpace(x.Email))
-            .WithMessage("Email address is not valid.");
-
-        RuleFor(x => x.Email)
-            .MaximumLength(256);
 
         RuleFor(x => x.LinkedInUrl)
             .Must(BeAValidUrl)

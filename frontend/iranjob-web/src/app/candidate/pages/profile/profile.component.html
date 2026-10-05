@@ -79,20 +79,6 @@
           <h2>ارتباطات حرفه‌ای</h2>
 
           <div class="form-group">
-            <label for="phone">شماره موبایل</label>
-            <input id="phone" type="tel" formControlName="phone" placeholder="09xxxxxxxxx" [disabled]="isSaving" />
-            <div *ngIf="hasError('phone')" class="error-text">شماره موبایل باید با 09 شروع شده و ۱۱ رقم باشد</div>
-            <div *ngFor="let message of getValidationMessages('Phone')" class="error-text">{{ message }}</div>
-          </div>
-
-          <div class="form-group">
-            <label for="email">ایمیل</label>
-            <input id="email" type="email" formControlName="email" placeholder="example@email.com" [disabled]="isSaving" />
-            <div *ngIf="hasError('email')" class="error-text">ایمیل معتبر نیست</div>
-            <div *ngFor="let message of getValidationMessages('Email')" class="error-text">{{ message }}</div>
-          </div>
-
-          <div class="form-group">
             <label for="linkedInUrl">لینک لینکدین</label>
             <input id="linkedInUrl" type="url" formControlName="linkedInUrl"
               placeholder="https://linkedin.com/in/username" [disabled]="isSaving" />

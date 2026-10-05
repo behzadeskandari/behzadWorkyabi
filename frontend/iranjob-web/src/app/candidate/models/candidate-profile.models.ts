@@ -7,8 +7,6 @@ export interface CandidateProfile {
   gender: string | null;
   city: string | null;
   province: string | null;
-  phone: string | null;
-  email: string | null;
   linkedInUrl: string | null;
   gitHubUrl: string | null;
   portfolioUrl: string | null;
@@ -28,8 +26,6 @@ export interface SaveCandidateProfileRequest {
   gender: string | null;
   city: string | null;
   province: string | null;
-  phone: string | null;
-  email: string | null;
   linkedInUrl: string | null;
   gitHubUrl: string | null;
   portfolioUrl: string | null;

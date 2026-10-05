@@ -118,7 +118,6 @@ public class CandidateProfileTests : IClassFixture<CustomWebApplicationFactory>
 
         var invalid = ValidProfileRequest() with
         {
-            Phone = "12345",
             LinkedInUrl = "not-a-url",
             ExpectedSalary = -5m
         };
@@ -175,8 +174,6 @@ public class CandidateProfileTests : IClassFixture<CustomWebApplicationFactory>
         string Gender,
         string City,
         string Province,
-        string Phone,
-        string Email,
         string LinkedInUrl,
         string GitHubUrl,
         string PortfolioUrl,
@@ -193,8 +190,6 @@ public class CandidateProfileTests : IClassFixture<CustomWebApplicationFactory>
         Gender: "Male",
         City: "Tehran",
         Province: "Tehran",
-        Phone: "09121234567",
-        Email: "profile-contact@test.ir",
         LinkedInUrl: "https://linkedin.com/in/test",
         GitHubUrl: "https://github.com/test",
         PortfolioUrl: "https://test.dev",

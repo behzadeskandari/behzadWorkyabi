@@ -1,5 +1,3 @@
-using IranJob.Modules.Candidates.Domain.Enums;
-
 namespace IranJob.Modules.Candidates.Application.Abstractions;
 
 public interface ICandidateProfileService
@@ -13,8 +11,9 @@ public interface ICandidateProfileService
 
 /// <summary>
 /// Payload used by both create (POST) and update (PUT). All fields are optional so a
-/// candidate can build the profile progressively. The owner is always the authenticated
-/// user; the request carries no user identifier by design.
+/// candidate can build the profile progressively. Ownership is always the authenticated
+/// user; the request carries no user identifier.
+/// Account first name, last name, email, and phone belong to Identity and are not stored here.
 /// </summary>
 public sealed record CandidateProfileRequest(
     string? Headline,
@@ -23,8 +22,6 @@ public sealed record CandidateProfileRequest(
     string? Gender,
     string? City,
     string? Province,
-    string? Phone,
-    string? Email,
     string? LinkedInUrl,
     string? GitHubUrl,
     string? PortfolioUrl,
@@ -43,8 +40,6 @@ public sealed record CandidateProfileResult(
     string? Gender,
     string? City,
     string? Province,
-    //string? Phone,
-    //string? Email,
     string? LinkedInUrl,
     string? GitHubUrl,
     string? PortfolioUrl,

@@ -1,3 +1,4 @@
+using System;
 using IranJob.Modules.Candidates.Domain.Enums;
 using IranJob.SharedKernel.Entities;
 
@@ -19,10 +20,6 @@ public sealed class CandidateProfile : Entity
 
     public string? Province { get; set; }
 
-    //public string? Phone { get; set; }
-
-    //public string? Email { get; set; }
-
     public string? LinkedInUrl { get; set; }
 
     public string? GitHubUrl { get; set; }
@@ -39,7 +36,7 @@ public sealed class CandidateProfile : Entity
 
     public MilitaryStatus? MilitaryStatus { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public new DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public new DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

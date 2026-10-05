@@ -1,3 +1,5 @@
+using System;
+
 namespace IranJob.SharedKernel.Entities;
 
 public abstract class Entity

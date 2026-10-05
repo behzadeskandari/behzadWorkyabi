@@ -1,10 +1,11 @@
 using Asp.Versioning;
+using IranJob.BuildingBlocks.Infrastructure.CurrentService;
 using IranJob.Modules.Candidates.Application.Abstractions;
 using IranJob.Modules.Candidates.Presentation.Contracts;
+using IranJob.SharedKernel.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace IranJob.Modules.Candidates.Presentation.Controllers;
 
@@ -12,7 +13,9 @@ namespace IranJob.Modules.Candidates.Presentation.Controllers;
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/candidates/profile")]
 [Authorize]
-public sealed class CandidateProfileController(ICandidateProfileService profileService) : ControllerBase
+public sealed class CandidateProfileController(
+    ICandidateProfileService profileService,
+    ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(typeof(CandidateProfileResponseDto), StatusCodes.Status200OK)]
@@ -20,8 +23,7 @@ public sealed class CandidateProfileController(ICandidateProfileService profileS
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CandidateProfileResponseDto>> Get(CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
-        var profile = await profileService.GetProfileAsync(userId, cancellationToken);
+        var profile = await profileService.GetProfileAsync(GetCurrentUserId(), cancellationToken);
         return Ok(MapResponse(profile));
     }
 
@@ -34,8 +36,7 @@ public sealed class CandidateProfileController(ICandidateProfileService profileS
         [FromBody] SaveCandidateProfileRequestDto request,
         CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
-        var profile = await profileService.CreateProfileAsync(userId, ToRequest(request), cancellationToken);
+        var profile = await profileService.CreateProfileAsync(GetCurrentUserId(), ToRequest(request), cancellationToken);
         return CreatedAtAction(nameof(Get), MapResponse(profile));
     }
 
@@ -48,20 +49,12 @@ public sealed class CandidateProfileController(ICandidateProfileService profileS
         [FromBody] SaveCandidateProfileRequestDto request,
         CancellationToken cancellationToken)
     {
-        var userId = GetCurrentUserId();
-        var profile = await profileService.UpdateProfileAsync(userId, ToRequest(request), cancellationToken);
+        var profile = await profileService.UpdateProfileAsync(GetCurrentUserId(), ToRequest(request), cancellationToken);
         return Ok(MapResponse(profile));
     }
 
-    // Ownership always comes from the authenticated principal, never from the request body.
-    private Guid GetCurrentUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")
-            ?? throw new UnauthorizedAccessException();
-
-        return Guid.Parse(claim);
-    }
+    private Guid GetCurrentUserId() =>
+        currentUser.UserId ?? throw new UnauthorizedException();
 
     private static CandidateProfileRequest ToRequest(SaveCandidateProfileRequestDto request) =>
         new(
@@ -71,8 +64,6 @@ public sealed class CandidateProfileController(ICandidateProfileService profileS
             request.Gender,
             request.City,
             request.Province,
-            request.Phone,
-            request.Email,
             request.LinkedInUrl,
             request.GitHubUrl,
             request.PortfolioUrl,
@@ -92,8 +83,6 @@ public sealed class CandidateProfileController(ICandidateProfileService profileS
             profile.Gender,
             profile.City,
             profile.Province,
-            //profile.Phone,
-            //profile.Email,
             profile.LinkedInUrl,
             profile.GitHubUrl,
             profile.PortfolioUrl,
