@@ -1,0 +1,29 @@
+:host { display: block; }
+.applications-page { max-width: 58rem; margin: 0 auto; color: #163136; }
+.page-heading { margin-bottom: 1.25rem; }
+.page-heading h1 { margin: 0; font-size: clamp(1.5rem, 4vw, 2rem); }
+.eyebrow { margin: 0 0 .25rem; color: #087c79; font-weight: 700; }
+.application-list { display: grid; gap: .85rem; }
+.application-card, .state-card { min-width: 0; padding: 1.1rem; border: 1px solid #dce7e6; border-radius: .9rem; background: #fff; }
+.application-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .85rem; align-items: start; }
+.application-copy { min-width: 0; }
+.application-copy h2 { margin: 0; font-size: 1.15rem; overflow-wrap: anywhere; }
+.application-copy h2 a { color: #163136; text-decoration: none; }
+.company-name, .applied-date { margin: .25rem 0 0; color: #53696a; }
+.status-badge { align-self: start; border-radius: 999px; padding: .3rem .7rem; background: #e6f5ef; color: #17665f; white-space: nowrap; }
+.status-badge--withdrawn { background: #f1f3f3; color: #53696a; }
+.application-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.primary-button, .secondary-button, .text-button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.6rem; padding: .5rem .8rem; border-radius: .55rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.primary-button { border: 1px solid #087c79; background: #087c79; color: #fff; }
+.secondary-button { border: 1px solid #b7ccca; background: #fff; color: #17665f; }
+.text-button { border: 0; background: transparent; color: #a33434; }
+.text-button:disabled { cursor: wait; opacity: .65; }
+.state-card { margin-block: .75rem; text-align: center; color: #53696a; }
+.state-card h2 { margin-top: 0; }
+.error-state { border-color: #f0cdcd; color: #8a2525; }
+@media (max-width: 520px) {
+  .application-card { grid-template-columns: minmax(0, 1fr); }
+  .status-badge { grid-row: 2; }
+  .application-actions { grid-column: 1; }
+  .application-actions > * { flex: 1 1 auto; }
+}

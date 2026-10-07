@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Domain\IranJob.Modules.Candidates.Domain.csproj" />
+    <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Infrastructure\IranJob.Modules.Candidates.Infrastructure.csproj" />
+    <ProjectReference Include="..\IranJob.Modules.JobPostings.Application\IranJob.Modules.JobPostings.Application.csproj" />
+    <ProjectReference Include="..\IranJob.Modules.JobPostings.Domain\IranJob.Modules.JobPostings.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Domain\IranJob.Modules.EmployerProfile.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\ReferenceData\IranJob.Modules.ReferenceData.Domain\IranJob.Modules.ReferenceData.Domain.csproj" />
+    <ProjectReference Include="..\..\ReferenceData\IranJob.Modules.ReferenceData.Infrastructure\IranJob.Modules.ReferenceData.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>

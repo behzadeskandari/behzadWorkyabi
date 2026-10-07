@@ -1,0 +1,11 @@
+<label class="select-field">
+  <span>{{ label }}</span>
+  <select multiple [disabled]="isLoading || !!errorMessage" (change)="onSelectionChange($event)">
+    <option *ngFor="let skill of skills" [value]="skill.id" [selected]="valueIds.includes(skill.id)">{{ skill.name }}</option>
+  </select>
+</label>
+<p *ngIf="isLoading" role="status">در حال بارگذاری...</p>
+<div *ngIf="errorMessage" role="alert" class="load-error">
+  <span>{{ errorMessage }}</span>
+  <button type="button" class="retry-button" (click)="loadSkills()">دوباره تلاش کن</button>
+</div>

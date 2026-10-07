@@ -1,0 +1,203 @@
+<div class="profile-container">
+  <div class="profile-card">
+        <div class="profile-header">
+      <h1>پروفایل کارفرما</h1>
+      <span *ngIf="profileExists && !isEditing && updatedAt" class="created-date">
+        بروزرسانی در {{ formatDate(updatedAt ?? createdAt) }}
+      </span>
+    </div>
+
+    <div *ngIf="isLoading" class="loading">
+      در حال بارگذاری...
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <div *ngIf="!profileExists" class="info-banner">
+        هنوز پروفایلی برای شرکت خود ثبت نکرده‌اید. اطلاعات زیر را تکمیل کنید و پروفایل شرکت را بسازید.
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <!-- VIEW MODE -->
+      <div *ngIf="profileExists && !isEditing">
+                <div class="logo-display-section">
+          <div class="logo-wrapper">
+            <img *ngIf="profileForm.controls.logoUrl.value"
+                 [src]="profileForm.controls.logoUrl.value"
+                 [alt]="'لوگو ' + profileForm.controls.companyName.value"
+                 class="company-logo" />
+            <div *ngIf="!profileForm.controls.logoUrl.value" class="logo-placeholder">
+              بدون لوگو
+            </div>
+          </div>
+          <button class="btn-edit" (click)="enableEditing()">
+            ویرایش پروفایل
+          </button>
+        </div>
+
+        <div class="view-section">
+          <h2>اطلاعات شرکت</h2>
+          <div class="view-row"><span class="view-label">نام شرکت:</span><span class="view-value">{{ profileForm.controls.companyName.value }}</span></div>
+          <div class="view-row"><span class="view-label">صنعت:</span><span class="view-value">{{ industryLabel(profileForm.controls.industry.value) }}</span></div>
+          <div class="view-row"><span class="view-label">اندازه شرکت:</span><span class="view-value">{{ companySizeLabel(profileForm.controls.companySize.value) }}</span></div>
+          <div class="view-row"><span class="view-label">درباره شرکت:</span><span class="view-value">{{ profileForm.controls.companyDescription.value || '—' }}</span></div>
+        </div>
+
+        <div class="view-section">
+          <h2>موقعیت جغرافیایی</h2>
+          <div class="view-row"><span class="view-label">کشور:</span><span class="view-value">ایران</span></div>
+          <div class="view-row"><span class="view-label">استان:</span><span class="view-value">{{ profileForm.controls.province.value }}</span></div>
+          <div class="view-row"><span class="view-label">شهر:</span><span class="view-value">{{ profileForm.controls.city.value }}</span></div>
+          <div class="view-row"><span class="view-label">آدرس:</span><span class="view-value">{{ profileForm.controls.address.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">کدپستی:</span><span class="view-value">{{ profileForm.controls.postalCode.value || '—' }}</span></div>
+          <div class="immutable-note">استان و شهر پس از ثبت اولیه قابل ویرایش نیستند.</div>
+        </div>
+
+        <div class="view-section">
+          <h2>شبکه‌ها و تماس</h2>
+          <div class="view-row"><span class="view-label">وب‌سایت:</span><span class="view-value">{{ profileForm.controls.websiteUrl.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">لینکدین:</span><span class="view-value">{{ profileForm.controls.linkedInUrl.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">سال تأسیس:</span><span class="view-value">{{ profileForm.controls.foundedYear.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">ایمیل تماس:</span><span class="view-value">{{ profileForm.controls.contactEmail.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">تلفن تماس:</span><span class="view-value">{{ profileForm.controls.contactPhone.value || '—' }}</span></div>
+                </div>
+      </div>
+
+      <!-- EDIT / CREATE MODE -->
+      <form *ngIf="isEditing" [formGroup]="profileForm" (ngSubmit)="save()">
+        <div class="logo-upload-section">
+          <label class="logo-upload-label">لوگوی شرکت</label>
+          <div class="logo-upload-area">
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp"
+                   (change)="uploadLogo($event)" [disabled]="isUploadingLogo" />
+            <span *ngIf="isUploadingLogo">در حال آپلود...</span>
+          </div>
+          <img *ngIf="profileForm.controls.logoUrl.value"
+               [src]="profileForm.controls.logoUrl.value"
+               [alt]="'پیش‌نمایش لوگو'" class="logo-preview" />
+        </div>
+
+        <div class="profile-section">
+          <h2>اطلاعات شرکت</h2>
+
+          <div class="form-group">
+            <label for="companyName">نام شرکت</label>
+            <input id="companyName" type="text" formControlName="companyName" placeholder="مثال: ایران‌جاب" [disabled]="isSaving" />
+            <div *ngIf="hasError('companyName')" class="error-text">نام شرکت الزامی است</div>
+            <div *ngFor="let message of getValidationMessages('CompanyName')" class="error-text">{{ message }}</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="industry">صنعت</label>
+              <select id="industry" formControlName="industry" [disabled]="isSaving" class="select-field">
+                <option value="">انتخاب کنید</option>
+                <option *ngFor="let option of industryOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <div *ngIf="hasError('industry')" class="error-text">صنعت الزامی است</div>
+              <div *ngFor="let message of getValidationMessages('Industry')" class="error-text">{{ message }}</div>
+            </div>
+
+            <div class="form-group">
+              <label for="companySize">اندازه شرکت</label>
+              <select id="companySize" formControlName="companySize" [disabled]="isSaving" class="select-field">
+                <option value="">انتخاب کنید</option>
+                <option *ngFor="let option of companySizeOptions" [value]="option.value">{{ option.label }}</option>
+              </select>
+              <div *ngIf="hasError('companySize')" class="error-text">اندازه شرکت الزامی است</div>
+              <div *ngFor="let message of getValidationMessages('CompanySize')" class="error-text">{{ message }}</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="companyDescription">درباره شرکت</label>
+            <textarea id="companyDescription" formControlName="companyDescription" rows="5" placeholder="توضیح مختصر درباره فعالیت و فرهنگ شرکت" [disabled]="isSaving"></textarea>
+            <div *ngIf="hasError('companyDescription')" class="error-text">حداکثر ۲۰۰۰ کاراکتر مجاز است</div>
+                      <div *ngFor="let message of getValidationMessages('CompanyDescription')" class="error-text">{{ message }}</div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h2>موقعیت جغرافیایی</h2>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="province">استان</label>
+                          <input id="province" type="text" formControlName="province" placeholder="مثال: تهران" [disabled]="isSaving || profileExists" />
+              <div class="immutable-field-note">قابل ویرایش نیست — هنگام ساخت اولیه تنظیم می‌شود.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="city">شهر</label>
+              <input id="city" type="text" formControlName="city" placeholder="مثال: تهران" [disabled]="isSaving || profileExists" />
+              <div class="immutable-field-note">قابل ویرایش نیست — هنگام ساخت اولیه تنظیم می‌شود.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h2>شبکه‌ها و تماس</h2>
+
+          <div class="form-group">
+            <label for="websiteUrl">وب‌سایت</label>
+            <input id="websiteUrl" type="url" formControlName="websiteUrl" placeholder="https://example.com" [disabled]="isSaving" />
+            <div *ngIf="hasError('websiteUrl')" class="error-text">آدرس وب‌سایت معتبر نیست</div>
+          </div>
+
+          <div class="form-group">
+            <label for="linkedInUrl">لینکدین</label>
+            <input id="linkedInUrl" type="url" formControlName="linkedInUrl" placeholder="https://linkedin.com/company/example" [disabled]="isSaving" />
+            <div *ngIf="hasError('linkedInUrl')" class="error-text">آدرس معتبر نیست</div>
+          </div>
+
+          <div class="form-group">
+            <label for="contactEmail">ایمیل تماس</label>
+            <input id="contactEmail" type="email" formControlName="contactEmail" placeholder="contact@example.com" [disabled]="isSaving" />
+            <div *ngIf="hasError('contactEmail')" class="error-text">ایمیل معتبر نیست</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="foundedYear">سال تأسیس</label>
+              <input id="foundedYear" type="number" formControlName="foundedYear" min="1800" [max]="currentYear" [disabled]="isSaving" />
+            </div>
+
+            <div class="form-group">
+              <label for="contactPhone">تلفن تماس</label>
+              <input id="contactPhone" type="tel" formControlName="contactPhone" placeholder="+98912..." [disabled]="isSaving" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">آدرس</label>
+            <textarea id="address" formControlName="address" rows="3" placeholder="آدرس دفتر مرکزی یا محل سکونت" [disabled]="isSaving"></textarea>
+            <div *ngIf="hasError('address')" class="error-text">حداکثر ۵۰۰ کاراکتر مجاز است</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="postalCode">کدپستی</label>
+              <input id="postalCode" type="text" formControlName="postalCode" placeholder="مثال: ۱۴۳۱۱۱" [disabled]="isSaving" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancelEditing()" [disabled]="isSaving">
+            انصراف
+          </button>
+          <button type="submit" class="btn-save" [disabled]="profileForm.invalid || isSaving">
+            <span *ngIf="!isSaving">{{ profileExists ? 'ذخیره تغییرات' : 'ایجاد پروفایل' }}</span>
+            <span *ngIf="isSaving">در حال ذخیره...</span>
+          </button>
+        </div>
+            </form>
+    </ng-container>
+  </div>
+</div>

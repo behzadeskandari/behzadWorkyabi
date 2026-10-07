@@ -1,0 +1,21 @@
+:host { display: block; }
+.application-detail { max-width: 48rem; margin: 0 auto; color: #163136; }
+.back-link { display: inline-block; margin-bottom: .85rem; color: #087c79; font-weight: 700; text-decoration: none; }
+.application-card, .state-card { min-width: 0; padding: clamp(1rem, 4vw, 1.5rem); border: 1px solid #dce7e6; border-radius: 1rem; background: #fff; }
+.eyebrow { margin: 0 0 .25rem; color: #087c79; font-weight: 700; }
+h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); overflow-wrap: anywhere; }
+.company-name { color: #53696a; }
+dl { display: grid; gap: .8rem; margin-block: 1.2rem; }
+dl > div { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding-bottom: .6rem; border-bottom: 1px solid #e1eae9; }
+dt { color: #728282; }
+dd { margin: 0; font-weight: 700; }
+.status-badge { display: inline-block; border-radius: 999px; padding: .25rem .7rem; background: #e6f5ef; color: #17665f; }
+.status-badge--withdrawn { background: #f1f3f3; color: #53696a; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.secondary-button, .text-button { min-height: 2.6rem; padding: .5rem .8rem; border-radius: .55rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.secondary-button { display: inline-flex; align-items: center; border: 1px solid #b7ccca; color: #17665f; }
+.text-button { border: 0; background: transparent; color: #a33434; }
+.text-button:disabled { cursor: wait; opacity: .65; }
+.state-card { margin-top: .75rem; text-align: center; }
+.error-state { border-color: #f0cdcd; color: #8a2525; }
+@media (max-width: 480px) { .actions > * { flex: 1 1 100%; justify-content: center; } }

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Router } from '@angular/router';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { RegisterComponent } from './register.component';
 import { AuthService } from '../../services/auth.service';
 
@@ -38,7 +38,7 @@ describe('RegisterComponent', () => {
 
   it('should only offer Candidate and Employer account types', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const options = Array.from(compiled.querySelectorAll('select#role option'));
+    const options = Array.from(compiled.querySelectorAll('select#role option')) as HTMLOptionElement[];
     const values = options.map(option => option.value);
 
     expect(values).toEqual(['Candidate', 'Employer']);
@@ -105,7 +105,7 @@ describe('RegisterComponent', () => {
   });
 
   it('should submit a valid Candidate registration and navigate to /login', () => {
-    authServiceSpy.register.and.returnValue(undefined as never);
+    authServiceSpy.register.and.returnValue(of(void 0));
 
     component.registerForm.patchValue({
       firstName: 'Behzad',

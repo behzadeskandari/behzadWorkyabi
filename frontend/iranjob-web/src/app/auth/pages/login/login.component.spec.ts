@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Router } from '@angular/router';
-import { throwError } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
 import { AuthResponse, UserProfile } from '../../models/auth.models';
@@ -56,11 +56,11 @@ describe('LoginComponent', () => {
   });
 
   it('should navigate to /account after a successful login', () => {
-    authServiceSpy.login.and.returnValue({
+    authServiceSpy.login.and.returnValue(of({
       accessToken: 'token',
       expiresAt: new Date().toISOString(),
       user: mockUser
-    } as AuthResponse);
+    } as AuthResponse));
 
     component.loginForm.patchValue({ identifier: 'test@example.com', password: 'Password123!' });
     component.onSubmit();

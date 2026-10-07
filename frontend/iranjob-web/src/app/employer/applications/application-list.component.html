@@ -1,0 +1,38 @@
+<section class="applications-page" dir="rtl">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">حساب کاربری شما</p>
+      <h1>درخواست‌های دریافتی</h1>
+    </div>
+    <a class="primary-action" routerLink="/employer/jobs">بازگشت به آگهی‌ها</a>
+  </header>
+
+  <p *ngIf="isLoading" class="state-card" role="status">در حال بارگذاری درخواست‌ها…</p>
+  <div *ngIf="errorMessage" class="state-card error-state" role="alert">
+    <p>{{ errorMessage }}</p>
+    <button type="button" class="secondary-button" (click)="load()">تلاش دوباره</button>
+  </div>
+  <div *ngIf="!isLoading && !errorMessage && applications.length === 0" class="state-card empty-state">
+    <h2>درخواستی دریافت نشده است</h2>
+    <p>وقتی کارجویی رزومه خود را برای آگهی شما ارسال می‌کند، در اینجا نمایش داده می‌شود.</p>
+    <a class="primary-button" routerLink="/jobs">فرصت‌های شغلی</a>
+  </div>
+
+  <div *ngIf="!isLoading && applications.length" class="application-list">
+    <article *ngFor="let application of applications" class="application-card">
+      <div class="application-copy">
+        <h2><a [routerLink]="['/employer/applications', application.id]">{{ application.jobTitle }}</a></h2>
+        <p class="candidate-name">{{ application.candidateHeadline ?? 'بدون عنوان' }}</p>
+        <p class="candidate-location">{{ application.candidateCity ?? '---' }}</p>
+        <p class="applied-date">تاریخ درخواست: {{ formatDate(application.appliedAt) }}</p>
+      </div>
+      <span class="status-badge" [ngClass]="statusClass(application.status)">
+        {{ statusLabel(application.status) }}
+      </span>
+      <div class="application-actions">
+        <a class="secondary-button" [routerLink]="['/jobs', application.jobId]">مشاهده موقعیت</a>
+        <a class="secondary-button" [routerLink]="['/employer/applications', application.id]">بررسی درخواست</a>
+      </div>
+    </article>
+  </div>
+</section>

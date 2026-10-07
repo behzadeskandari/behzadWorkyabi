@@ -1,0 +1,31 @@
+:host { display: block; }
+.application-detail { max-width: 48rem; margin: 0 auto; color: #163136; }
+.back-link { display: inline-block; margin-bottom: 0.85rem; color: #087c7c; font-weight: 700; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.application-card, .state-card { min-width: 0; padding: clamp(1rem, 4vw, 1.5rem); border: 1px solid #dce7e6; border-radius: 1rem; background: #fff; }
+.eyebrow { margin: 0 0 0.25rem; color: #087c7c; font-weight: 700; }
+h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2rem); overflow-wrap: anywhere; }
+.status-section { margin: 0.5rem 0 1rem; }
+.status-badge { display: inline-block; border-radius: 999px; padding: 0.25rem 0.7rem; font-weight: 700; white-space: nowrap; }
+.status-badge--active { background: #e6f5ef; color: #17665f; }
+.status-badge--inactive { background: #f1f3f3; color: #53696a; }
+.status-badge--accepted { background: #e8f7ee; color: #1e7a44; }
+dl { display: grid; gap: 0.8rem; margin-block: 1.2rem; }
+dl > div { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid #e1eae9; }
+dt { color: #728282; }
+dd { margin: 0; font-weight: 700; }
+.section { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #e1eae9; }
+.section h2 { margin: 0 0 0.5rem; font-size: 1.1rem; color: #087c7c; font-weight: 700; }
+.no-data { color: #728282; font-style: italic; }
+.secondary-button, .text-button, .primary-button { min-height: 2.6rem; padding: 0.5rem 0.8rem; border-radius: 0.55rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.secondary-button { display: inline-flex; align-items: center; border: 1px solid #b7ccca; background: #fff; color: #17665f; margin-top: 0.5rem; }
+.secondary-button:hover { background: #f0f7f6; }
+.primary-button { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #087c7c; background: #087c7c; color: #fff; }
+.primary-button:hover:not(:disabled) { opacity: 0.9; }
+.text-button { border: 0; background: transparent; color: #a33434; }
+.text-button:hover:not(:disabled) { text-decoration: underline; }
+button:disabled { cursor: wait; opacity: 0.65; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+.state-card { margin-top: 0.75rem; text-align: center; }
+.error-state { border-color: #f0cdcd; color: #8a2525; }
+@media (max-width: 480px) { .actions > * { flex: 1 1 100%; justify-content: center; } }

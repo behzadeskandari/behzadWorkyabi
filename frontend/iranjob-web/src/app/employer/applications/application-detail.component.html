@@ -1,0 +1,55 @@
+<main class="application-detail" dir="rtl">
+  <a routerLink="/employer/applications" class="back-link">بازگشت به درخواست‌های دریافتی</a>
+  <p *ngIf="isLoading" class="state-card" role="status">در حال بارگذاری درخواست…</p>
+  <section *ngIf="errorMessage" class="state-card error-state" role="alert">{{ errorMessage }}</section>
+  <article *ngIf="application as item" class="application-card">
+    <p class="eyebrow">جزئیات درخواست همکاری</p>
+    <h1>{{ item.jobTitle }}</h1>
+
+    <div class="status-section">
+      <span class="status-badge" [ngClass]="statusClass(item.status)">{{ statusLabel(item.status) }}</span>
+    </div>
+
+    <dl>
+      <div><dt>تاریخ درخواست</dt><dd>{{ formatDate(item.appliedAt) }}</dd></div>
+      <div *ngIf="item.updatedAt"><dt>به‌روزرسانی شده</dt><dd>{{ formatDate(item.updatedAt) }}</dd></div>
+    </dl>
+
+    <div class="section">
+      <h2>درباره موقعیت شغلی</h2>
+      <p *ngIf="item.jobDescription; else noDesc">{{ item.jobDescription }}</p>
+      <ng-template #noDesc><p class="no-data">بدون شرح شغلی.</p></ng-template>
+      <a class="secondary-button" [routerLink]="['/jobs', item.jobId]">مشاهده فرصت شغلی</a>
+    </div>
+
+    <div class="section">
+      <h2>پروفایل کارجو</h2>
+      <dl>
+        <div *ngIf="item.candidateHeadline"><dt>عنوان شغلی</dt><dd>{{ item.candidateHeadline }}</dd></div>
+        <div *ngIf="item.candidateCity"><dt>شهر</dt><dd>{{ item.candidateCity }}</dd></div>
+        <div *ngIf="item.candidateProvince"><dt>استان</dt><dd>{{ item.candidateProvince }}</dd></div>
+        <div *ngIf="item.candidateBiography"><dt>درباره کارجو</dt><dd>{{ item.candidateBiography }}</dd></div>
+        <div *ngIf="item.candidateLinkedInUrl"><dt>لینکدین</dt><dd><a [href]="item.candidateLinkedInUrl" target="_blank" rel="noopener">پروفایل لینکدین</a></dd></div>
+        <div *ngIf="item.candidateGitHubUrl"><dt>گیت‌هاب</dt><dd><a [href]="item.candidateGitHubUrl" target="_blank" rel="noopener">پروفایل گیت‌هاب</a></dd></div>
+        <div *ngIf="item.candidatePortfolioUrl"><dt>پرتفو</dt><dd><a [href]="item.candidatePortfolioUrl" target="_blank" rel="noopener">نمونه کارها</a></dd></div>
+        <div *ngIf="item.candidateExpectedSalary"><dt>حقوق مورد انتظار</dt><dd>{{ item.candidateExpectedSalary | number }} تومان</dd></div>
+        <div *ngIf="item.candidateSalaryType"><dt>نوع حقوق</dt><dd>{{ item.candidateSalaryType }}</dd></div>
+        <div *ngIf="item.candidateEmploymentStatus"><dt>وضعیت شغلی</dt><dd>{{ item.candidateEmploymentStatus }}</dd></div>
+        <div *ngIf="item.candidateAvailability"><dt>آمادگی برای شروع</dt><dd>{{ item.candidateAvailability }}</dd></div>
+        <div *ngIf="item.candidateMilitaryStatus"><dt>وضعیت نظام وظیفه</dt><dd>{{ item.candidateMilitaryStatus }}</dd></div>
+      </dl>
+    </div>
+
+    <div class="actions">
+      <button *ngIf="canReview(item.status)" type="button" class="secondary-button" [disabled]="isUpdating" (click)="updateStatus('review')">
+        {{ isUpdating ? 'در حال بررسی…' : 'بررسی شده' }}
+      </button>
+      <button *ngIf="canAccept(item.status)" type="button" class="primary-button" [disabled]="isUpdating" (click)="updateStatus('accept')">
+        {{ isUpdating ? 'در حال پذیرش…' : 'پذیرفتن' }}
+      </button>
+      <button *ngIf="canReject(item.status)" type="button" class="text-button" [disabled]="isUpdating" (click)="updateStatus('reject')">
+        {{ isUpdating ? 'در حال رد…' : 'رد' }}
+      </button>
+    </div>
+  </article>
+</main>

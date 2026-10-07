@@ -1,0 +1,87 @@
+<main class="job-form-page">
+  <header class="page-heading">
+    <div>
+      <h1>{{ jobId ? 'ویرایش آگهی' : 'ایجاد آگهی شغلی' }}</h1>
+      <p *ngIf="currentStatus">وضعیت: {{ currentStatus }}</p>
+    </div>
+    <a routerLink="/employer/jobs">بازگشت به آگهی‌ها</a>
+  </header>
+
+  <p *ngIf="isLoading" role="status">در حال بارگذاری آگهی...</p>
+  <p *ngIf="!isLoading && currentStatus === 'Closed'" class="empty-state">این آگهی بسته شده و فقط قابل مشاهده است.</p>
+  <form *ngIf="!isLoading && currentStatus !== 'Closed'" [formGroup]="jobForm" (ngSubmit)="saveDraft()" novalidate>
+    <div class="form-grid">
+      <label class="field field--wide">
+        <span>عنوان شغلی</span>
+        <input type="text" formControlName="title" maxlength="200" autocomplete="off" />
+        <small *ngIf="hasError('title')">عنوان الزامی است و حداکثر ۲۰۰ نویسه دارد.</small>
+        <small *ngFor="let message of messagesFor('Title')">{{ message }}</small>
+      </label>
+
+      <app-job-category-select class="field" [value]="jobForm.controls.categoryId.value" label="دسته‌بندی شغلی" (valueChange)="jobForm.controls.categoryId.setValue($event ?? '')" />
+      <small *ngIf="hasError('categoryId')" class="field-error">انتخاب دسته‌بندی الزامی است.</small>
+
+      <label class="field">
+        <span>نوع همکاری</span>
+        <select formControlName="employmentType" class="select-field">
+          <option *ngFor="let type of employmentTypes" [value]="type.value">{{ type.label }}</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>نحوه انجام کار</span>
+        <select formControlName="workArrangement" class="select-field">
+          <option *ngFor="let arrangement of workArrangements" [value]="arrangement.value">{{ arrangement.label }}</option>
+        </select>
+      </label>
+
+      <app-skill-select class="field field--wide" [valueIds]="jobForm.controls.skillIds.value" label="مهارت‌های موردنیاز" (valueIdsChange)="jobForm.controls.skillIds.setValue($event)" />
+      <small *ngIf="hasError('skillIds')" class="field-error">انتخاب دست‌کم یک مهارت الزامی است.</small>
+
+      <app-location-select class="field field--wide" [cityId]="jobForm.controls.cityId.value" labelPrefix="محل کار" (cityIdChange)="jobForm.controls.cityId.setValue($event)" />
+      <small *ngIf="jobForm.errors?.['missingCity']" class="field-error">انتخاب شهر برای همه آگهی‌ها الزامی است.</small>
+
+      <label class="field field--wide">
+        <span>شرح شغل</span>
+        <textarea rows="9" formControlName="description" maxlength="10000"></textarea>
+        <small *ngIf="hasError('description')">شرح شغل الزامی است.</small>
+        <small *ngFor="let message of messagesFor('Description')">{{ message }}</small>
+      </label>
+
+      <fieldset class="field field--wide salary-fields">
+        <legend>حقوق (اختیاری)</legend>
+        <label><span>حداقل</span><input type="number" min="0" formControlName="salaryMinimum" /></label>
+        <label><span>حداکثر</span><input type="number" min="0" formControlName="salaryMaximum" /></label>
+        <label><span>واحد پولی</span><select formControlName="salaryCurrency" class="select-field">
+          <option *ngFor="let currency of currencyOptions" [value]="currency.value">{{ currency.label }}</option>
+        </select></label>
+        <label>
+          <span>دوره</span>
+          <select formControlName="salaryPeriod" class="select-field">
+            <option value="">انتخاب کنید</option>
+            <option *ngFor="let period of salaryPeriods" [value]="period.value">{{ period.label }}</option>
+          </select>
+        </label>
+        <small *ngIf="jobForm.errors?.['invalidSalaryRange']">حداقل و حداکثر حقوق را با ترتیب معتبر وارد کنید.</small>
+        <small *ngIf="jobForm.errors?.['incompleteSalaryDetails']">برای ثبت حقوق، هر دو مبلغ، واحد پولی سه‌حرفی و دوره حقوق را تکمیل کنید.</small>
+        <small *ngFor="let message of messagesFor('SalaryCurrency')">{{ message }}</small>
+      </fieldset>
+
+      <label class="field">
+        <span>آخرین مهلت دریافت درخواست</span>
+        <app-jalali-datepicker [value]="jobForm.controls.closingAt.value || null"
+          (valueChange)="jobForm.controls.closingAt.setValue($event)" />
+        <small *ngIf="jobForm.errors?.['invalidClosingDate']">مهلت دریافت درخواست باید در آینده باشد.</small>
+        <small *ngFor="let message of messagesFor('ClosingAt')">{{ message }}</small>
+      </label>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message" role="alert">{{ errorMessage }}</div>
+    <p *ngIf="successMessage" class="success-message" role="status">{{ successMessage }}</p>
+    <div class="form-actions">
+      <button type="submit" [disabled]="isSaving">{{ currentStatus === 'Published' ? 'ذخیره تغییرات' : 'ذخیره پیش‌نویس' }}</button>
+      <button *ngIf="!currentStatus || currentStatus === 'Draft'" type="button" class="primary-action" [disabled]="isSaving" (click)="publish()">ذخیره و انتشار</button>
+      <span *ngIf="isSaving" role="status">در حال ذخیره...</span>
+    </div>
+  </form>
+</main>

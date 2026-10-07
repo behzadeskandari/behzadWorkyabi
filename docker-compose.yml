@@ -30,6 +30,8 @@ services:
       Database__ApplyMigrationsOnStartup: "true"
     ports:
       - "5158:8080"
+    volumes:
+      - iranjob-api-uploads:/app/uploads
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -48,3 +50,5 @@ services:
 
 volumes:
   iranjob-sqlserver-data:
+  iranjob-api-uploads:
+

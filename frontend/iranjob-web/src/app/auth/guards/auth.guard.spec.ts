@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, provideRouter } from '@angular/router';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { authGuard, roleGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 import { UserProfile } from '../models/auth.models';
@@ -24,6 +25,7 @@ describe('AuthGuard & RoleGuard', () => {
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [provideRouter([])]
     });
   });
@@ -44,7 +46,7 @@ describe('AuthGuard & RoleGuard', () => {
     });
 
     it('should redirect anonymous users to /login with a returnUrl', () => {
-      const result = runGuard(authGuard, fakeRoute, state('/account')) as URL;
+      const result = runGuard(authGuard, fakeRoute, state('/account')) as any;
 
       expect(result.toString()).toBe('/login?returnUrl=%2Faccount');
     });
@@ -56,7 +58,7 @@ describe('AuthGuard & RoleGuard', () => {
       (service as unknown as { currentUserSignal: { set: (v: UserProfile | null) => void } })
         .currentUserSignal.set(mockUser);
 
-      const route = { data: { roles: ['Candidate', 'Employer'] } } as ActivatedRouteSnapshot;
+      const route = { data: { roles: ['Candidate', 'Employer'] } } as any;
       const result = runGuard(roleGuard, route, state('/account'));
       expect(result).toBeTrue();
     });
@@ -75,14 +77,14 @@ describe('AuthGuard & RoleGuard', () => {
       (service as unknown as { currentUserSignal: { set: (v: UserProfile | null) => void } })
         .currentUserSignal.set(mockUser);
 
-      const route = { data: { roles: ['Admin'] } } as ActivatedRouteSnapshot;
+      const route = { data: { roles: ['Admin'] } } as any;
       const result = runGuard(roleGuard, route, state('/account'));
       expect(result.toString()).toBe('/');
     });
 
     it('should redirect anonymous users to /login', () => {
-      const route = { data: { roles: ['Admin'] } } as ActivatedRouteSnapshot;
-      const result = runGuard(roleGuard, route, state('/account')) as URL;
+      const route = { data: { roles: ['Admin'] } } as any;
+      const result = runGuard(roleGuard, route, state('/account')) as any;
 
       expect(result.toString()).toBe('/login?returnUrl=%2Faccount');
     });

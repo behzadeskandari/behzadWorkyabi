@@ -123,8 +123,8 @@ h1 {
 }
 
 .btn-save {
-  width: 100%;
-  padding: 14px;
+  flex: 1;
+  padding: 0.6rem 1rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -141,5 +141,104 @@ h1 {
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+}
+
+.view-section {
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+
+  h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 15px;
+  }
+}
+
+.view-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.view-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.view-value {
+  color: #333;
+  font-weight: 600;
+  text-align: left;
+  max-width: 60%;
+}
+
+.btn-edit {
+  background: #087c79;
+  color: white;
+  border: 1px solid #087c79;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background: #075f62;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-cancel {
+  flex: 1;
+  background: #fff;
+  color: #087c79;
+  border: 1px solid #087c79;
+  border-radius: 6px;
+  padding: 0.6rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #e9f5f2;
+}
+
+.select-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  &:disabled {
+    background: #f5f5f5;
   }
 }

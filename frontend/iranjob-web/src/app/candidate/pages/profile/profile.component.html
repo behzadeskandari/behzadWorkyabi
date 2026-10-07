@@ -1,14 +1,16 @@
 <div class="profile-container">
   <div class="profile-card">
-    <h1>پروفایل کارجو</h1>
+    <div class="profile-header">
+      <h1>پروفایل کارجو</h1>
+    </div>
 
     <div *ngIf="isLoading" class="loading">
       در حال بارگذاری...
     </div>
 
     <ng-container *ngIf="!isLoading">
-      <div *ngIf="!profileExists" class="info-banner">
-        هنوز پروفایلی نساخته‌اید. اطلاعات زیر را تکمیل کنید و پروفایل خود را بسازید.
+      <div *ngIf="!profileExists && !isEditing" class="info-banner">
+                هنوز پروفایلی نساخته‌اید. اطلاعات زیر را تکمیل کنید و پروفایل خود را بسازید.
       </div>
 
       <div *ngIf="errorMessage" class="error-message">
@@ -19,7 +21,51 @@
         {{ successMessage }}
       </div>
 
-      <form [formGroup]="profileForm" (ngSubmit)="save()">
+      <!-- VIEW MODE -->
+            <div *ngIf="profileExists && !isEditing">
+        <div class="view-section">
+          <h2>اطلاعات حرفه‌ای</h2>
+          <div class="view-row"><span class="view-label">عنوان شغلی:</span><span class="view-value">{{ profileForm.controls.headline.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">درباره من:</span><span class="view-value">{{ profileForm.controls.biography.value || '—' }}</span></div>
+        </div>
+
+        <div class="view-section">
+          <h2>اطلاعات شخصی</h2>
+          <div class="view-row"><span class="view-label">تاریخ تولد:</span><span class="view-value">{{ formatDate(profileForm.controls.dateOfBirth.value || '') }}</span></div>
+          <div class="view-row"><span class="view-label">جنسیت:</span><span class="view-value">{{ genderLabel(profileForm.controls.gender.value) || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">استان:</span><span class="view-value">{{ profileForm.controls.province.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">شهر:</span><span class="view-value">{{ profileForm.controls.city.value || '—' }}</span></div>
+        </div>
+
+        <div class="view-section">
+          <h2>ارتباطات حرفه‌ای</h2>
+          <div class="view-row"><span class="view-label">لینکدین:</span><span class="view-value">{{ profileForm.controls.linkedInUrl.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">گیت‌هاب:</span><span class="view-value">{{ profileForm.controls.gitHubUrl.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">پورتفولیو:</span><span class="view-value">{{ profileForm.controls.portfolioUrl.value || '—' }}</span></div>
+        </div>
+
+        <div class="view-section">
+          <h2>حقوق مورد انتظار</h2>
+          <div class="view-row"><span class="view-label">مبلغ (تومان):</span><span class="view-value">{{ profileForm.controls.expectedSalary.value || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">نوع حقوق:</span><span class="view-value">{{ salaryTypeLabel(profileForm.controls.salaryType.value) || '—' }}</span></div>
+        </div>
+
+        <div class="view-section">
+          <h2>وضعیت شغلی</h2>
+          <div class="view-row"><span class="view-label">وضعیت اشتغال:</span><span class="view-value">{{ employmentStatusLabel(profileForm.controls.employmentStatus.value) || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">آمادگی برای شروع:</span><span class="view-value">{{ availabilityLabel(profileForm.controls.availability.value) || '—' }}</span></div>
+          <div class="view-row"><span class="view-label">وضعیت نظام وظیفه:</span><span class="view-value">{{ militaryStatusLabel(profileForm.controls.militaryStatus.value) || '—' }}</span></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-edit" (click)="enableEditing()">
+            ویرایش پروفایل
+                    </button>
+        </div>
+      </div>
+
+      <!-- EDIT / CREATE MODE -->
+      <form *ngIf="isEditing" [formGroup]="profileForm" (ngSubmit)="save()">
         <div class="profile-section">
           <h2>اطلاعات حرفه‌ای</h2>
 
@@ -46,17 +92,16 @@
           <div class="form-row">
             <div class="form-group">
               <label for="dateOfBirth">تاریخ تولد</label>
-              <input id="dateOfBirth" type="date" formControlName="dateOfBirth" [disabled]="isSaving" />
-              <div *ngFor="let message of getValidationMessages('DateOfBirth')" class="error-text">{{ message }}</div>
+                            <app-jalali-datepicker [value]="profileForm.controls.dateOfBirth.value || null"
+                (valueChange)="profileForm.controls.dateOfBirth.setValue($event || '')" />
             </div>
 
             <div class="form-group">
               <label for="gender">جنسیت</label>
-              <select id="gender" formControlName="gender" [disabled]="isSaving">
+              <select id="gender" formControlName="gender" [disabled]="isSaving" class="select-field">
                 <option value="">انتخاب کنید</option>
                 <option *ngFor="let option of genderOptions" [value]="option.value">{{ option.label }}</option>
               </select>
-              <div *ngFor="let message of getValidationMessages('Gender')" class="error-text">{{ message }}</div>
             </div>
           </div>
 
@@ -64,13 +109,12 @@
             <div class="form-group">
               <label for="province">استان</label>
               <input id="province" type="text" formControlName="province" placeholder="مثال: تهران" [disabled]="isSaving" />
-              <div *ngIf="hasError('province')" class="error-text">حداکثر ۱۰۰ کاراکتر مجاز است</div>
             </div>
 
             <div class="form-group">
               <label for="city">شهر</label>
+              <label for="city">شهر</label>
               <input id="city" type="text" formControlName="city" placeholder="مثال: تهران" [disabled]="isSaving" />
-              <div *ngIf="hasError('city')" class="error-text">حداکثر ۱۰۰ کاراکتر مجاز است</div>
             </div>
           </div>
         </div>
@@ -80,44 +124,41 @@
 
           <div class="form-group">
             <label for="linkedInUrl">لینک لینکدین</label>
-            <input id="linkedInUrl" type="url" formControlName="linkedInUrl"
-              placeholder="https://linkedin.com/in/username" [disabled]="isSaving" />
-            <div *ngIf="hasError('linkedInUrl')" class="error-text">آدرس باید با http یا https شروع شود</div>
+            <input id="linkedInUrl" type="url" formControlName="linkedInUrl" placeholder="https://linkedin.com/in/example" [disabled]="isSaving" />
+            <div *ngIf="hasError('linkedInUrl')" class="error-text">آدرس معتبر نیست</div>
             <div *ngFor="let message of getValidationMessages('LinkedInUrl')" class="error-text">{{ message }}</div>
           </div>
 
           <div class="form-group">
-            <label for="gitHubUrl">لینک گیت‌هاب</label>
-            <input id="gitHubUrl" type="url" formControlName="gitHubUrl"
-              placeholder="https://github.com/username" [disabled]="isSaving" />
+            <label for="gitHubUrl">گیت‌هاب</label>
+            <input id="gitHubUrl" type="url" formControlName="gitHubUrl" placeholder="https://github.com/username" [disabled]="isSaving" />
             <div *ngIf="hasError('gitHubUrl')" class="error-text">آدرس معتبر نیست</div>
             <div *ngFor="let message of getValidationMessages('GitHubUrl')" class="error-text">{{ message }}</div>
           </div>
 
           <div class="form-group">
-            <label for="portfolioUrl">لینک نمونه‌کار (پورتفولیو)</label>
-            <input id="portfolioUrl" type="url" formControlName="portfolioUrl"
-              placeholder="https://example.dev" [disabled]="isSaving" />
+            <label for="portfolioUrl">پورتفولیو</label>
+            <input id="portfolioUrl" type="url" formControlName="portfolioUrl" placeholder="https://example.dev" [disabled]="isSaving" />
             <div *ngIf="hasError('portfolioUrl')" class="error-text">آدرس معتبر نیست</div>
-            <div *ngFor="let message of getValidationMessages('PortfolioUrl')" class="error-text">{{ message }}</div>
-          </div>
+                        <div *ngFor="let message of getValidationMessages('PortfolioUrl')" class="error-text">{{ message }}</div>
+                    </div>
         </div>
 
-        <div class="profile-section">
+                <div class="profile-section">
           <h2>حقوق مورد انتظار</h2>
 
           <div class="form-row">
             <div class="form-group">
               <label for="expectedSalary">مبلغ (تومان)</label>
               <input id="expectedSalary" type="number" formControlName="expectedSalary"
-                placeholder="مثال: 75000000" [disabled]="isSaving" />
+                placeholder="مثال: ۷۵۰۰۰۰۰۰" [disabled]="isSaving" />
               <div *ngIf="hasError('expectedSalary')" class="error-text">مبلغ باید بین ۰ تا ۱٬۰۰۰٬۰۰۰٬۰۰۰ باشد</div>
               <div *ngFor="let message of getValidationMessages('ExpectedSalary')" class="error-text">{{ message }}</div>
             </div>
 
             <div class="form-group">
               <label for="salaryType">نوع حقوق</label>
-              <select id="salaryType" formControlName="salaryType" [disabled]="isSaving">
+              <select id="salaryType" formControlName="salaryType" [disabled]="isSaving" class="select-field">
                 <option value="">انتخاب کنید</option>
                 <option *ngFor="let option of salaryTypeOptions" [value]="option.value">{{ option.label }}</option>
               </select>
@@ -132,7 +173,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="employmentStatus">وضعیت اشتغال</label>
-              <select id="employmentStatus" formControlName="employmentStatus" [disabled]="isSaving">
+              <select id="employmentStatus" formControlName="employmentStatus" [disabled]="isSaving" class="select-field">
                 <option value="">انتخاب کنید</option>
                 <option *ngFor="let option of employmentStatusOptions" [value]="option.value">{{ option.label }}</option>
               </select>
@@ -141,7 +182,7 @@
 
             <div class="form-group">
               <label for="availability">آمادگی برای شروع کار</label>
-              <select id="availability" formControlName="availability" [disabled]="isSaving">
+              <select id="availability" formControlName="availability" [disabled]="isSaving" class="select-field">
                 <option value="">انتخاب کنید</option>
                 <option *ngFor="let option of availabilityOptions" [value]="option.value">{{ option.label }}</option>
               </select>
@@ -151,7 +192,7 @@
 
           <div class="form-group">
             <label for="militaryStatus">وضعیت نظام وظیفه</label>
-            <select id="militaryStatus" formControlName="militaryStatus" [disabled]="isSaving">
+            <select id="militaryStatus" formControlName="militaryStatus" [disabled]="isSaving" class="select-field">
               <option value="">انتخاب کنید</option>
               <option *ngFor="let option of militaryStatusOptions" [value]="option.value">{{ option.label }}</option>
             </select>
@@ -159,11 +200,16 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-save" [disabled]="profileForm.invalid || isSaving">
-          <span *ngIf="!isSaving">{{ profileExists ? 'ذخیره تغییرات' : 'ایجاد پروفایل' }}</span>
-          <span *ngIf="isSaving">در حال ذخیره...</span>
-        </button>
-      </form>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancelEditing()" [disabled]="isSaving">
+            انصراف
+          </button>
+          <button type="submit" class="btn-save" [disabled]="profileForm.invalid || isSaving">
+            <span *ngIf="!isSaving">{{ profileExists ? 'ذخیره تغییرات' : 'ایجاد پروفایل' }}</span>
+            <span *ngIf="isSaving">در حال ذخیره...</span>
+          </button>
+        </div>
+            </form>
     </ng-container>
   </div>
 </div>

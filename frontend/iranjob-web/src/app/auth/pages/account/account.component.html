@@ -1,7 +1,9 @@
 <div class="account-container">
   <div class="account-card">
-    <h1>حساب کاربری</h1>
-    
+    <div class="profile-header">
+      <h1>حساب کاربری</h1>
+    </div>
+
     <div *ngIf="isLoading" class="loading">
       در حال بارگذاری...
     </div>
@@ -29,6 +31,10 @@
           <span class="label">شماره موبایل:</span>
           <span class="value">{{ userProfile.phoneNumber }}</span>
         </div>
+        <div class="info-row" *ngIf="memberSince">
+          <span class="label">تاریخ عضویت:</span>
+          <span class="value">{{ memberSince }}</span>
+        </div>
       </div>
 
       <div class="profile-section">
@@ -37,6 +43,19 @@
           <span *ngFor="let role of userProfile.roles" class="role-badge">
             {{ getRoleName(role) }}
           </span>
+        </div>
+      </div>
+
+                  <div class="profile-section" *ngIf="hasProfileLink()">
+        <h2>لینک پروفایل</h2>
+        <div class="profile-links">
+          <ng-container *ngFor="let role of userProfile.roles">
+            <a *ngIf="getProfileRoute(role)"
+               [routerLink]="getProfileRoute(role)"
+               class="btn-profile-link">
+              مشاهده پروفایل {{ getRoleName(role) }}
+            </a>
+          </ng-container>
         </div>
       </div>
 

@@ -1,0 +1,62 @@
+<main class="details-page" dir="rtl">
+  <a class="back-link" routerLink="/jobs">بازگشت به فرصت‌های شغلی</a>
+  <p *ngIf="isLoading" class="details-state" role="status">در حال بارگذاری جزئیات شغل…</p>
+  <section *ngIf="errorMessage" class="details-state error-state" role="alert">
+    <h1>فرصت شغلی در دسترس نیست</h1>
+    <p>{{ errorMessage }}</p>
+    <a class="primary-button" routerLink="/jobs">دیدن فرصت‌های شغلی</a>
+  </section>
+
+  <ng-container *ngIf="job as currentJob">
+    <header class="details-hero">
+      <img *ngIf="currentJob.employer.logoUrl" [src]="currentJob.employer.logoUrl" [alt]="'نشان ' + currentJob.employer.companyName" />
+      <div class="hero-copy">
+        <p class="eyebrow">{{ currentJob.category }}</p>
+        <h1>{{ currentJob.title }}</h1>
+        <p class="company-name">{{ currentJob.employer.companyName }}</p>
+        <p class="published-date">منتشرشده در {{ formatDate(currentJob.publishedAt) }}</p>
+      </div>
+      <a *ngIf="currentJob.employer.websiteUrl" class="company-link" [href]="currentJob.employer.websiteUrl" target="_blank" rel="noopener noreferrer">وب‌سایت شرکت</a>
+    </header>
+
+    <div class="details-grid">
+      <article class="description-panel">
+        <h2>شرح شغل</h2>
+        <p class="description-text">{{ currentJob.description }}</p>
+        <section class="skills-section" *ngIf="currentJob.skills.length">
+          <h2>مهارت‌های موردنیاز</h2>
+          <ul><li *ngFor="let skill of currentJob.skills">{{ skill }}</li></ul>
+        </section>
+        <section class="company-section">
+          <h2>دربارهٔ شرکت</h2>
+          <p>{{ currentJob.employer.description || currentJob.employer.industry }}</p>
+        </section>
+      </article>
+
+      <aside class="facts-panel" aria-label="اطلاعات شغل">
+        <h2>اطلاعات شغل</h2>
+        <dl>
+          <div><dt>دسته‌بندی</dt><dd>{{ currentJob.category }}</dd></div>
+          <div><dt>موقعیت</dt><dd>{{ currentJob.city }}، {{ currentJob.province }}، {{ currentJob.country }}</dd></div>
+          <div><dt>نوع همکاری</dt><dd>{{ employmentLabel(currentJob.employmentType) }}</dd></div>
+          <div><dt>شیوهٔ انجام کار</dt><dd>{{ arrangementLabel(currentJob.workArrangement) }}</dd></div>
+          <div *ngIf="formatSalary(currentJob) as salary"><dt>حقوق</dt><dd>{{ salary }}</dd></div>
+        </dl>
+        <div class="application-action" *ngIf="isCandidate || isAnonymous">
+          <p *ngIf="isApplicationStateLoading" class="application-state" role="status">در حال بررسی وضعیت درخواست…</p>
+          <p *ngIf="applicationMessage" class="application-message" role="status">{{ applicationMessage }}</p>
+          <button *ngIf="!application && !isApplicationStateLoading" type="button" class="apply-button"
+            [disabled]="isApplying" (click)="apply()">
+            {{ isApplying ? 'در حال ارسال…' : 'ارسال درخواست همکاری' }}
+          </button>
+          <ng-container *ngIf="application as existingApplication">
+            <p class="application-state" role="status">
+              {{ existingApplication.status === 'Withdrawn' ? 'درخواست شما لغو شده است.' : 'درخواست شما ارسال شده است.' }}
+            </p>
+            <a class="application-link" routerLink="/candidate/applications">درخواست‌های من</a>
+          </ng-container>
+        </div>
+      </aside>
+    </div>
+  </ng-container>
+</main>

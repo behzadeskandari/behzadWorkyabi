@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { JalaliDatepickerComponent } from '../../../core/components/jalali-datepicker.component';
+import { JalaliDateService } from '../../../core/services/jalali-date.service';
 import { CandidateProfileService } from '../../services/candidate-profile.service';
 import {
   availabilityOptions,
@@ -14,14 +16,15 @@ import {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+        imports: [CommonModule, ReactiveFormsModule, JalaliDatepickerComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly profileService = inject(CandidateProfileService);
-  private readonly router = inject(Router);
+    private readonly router = inject(Router);
+  private readonly jalaliDate = inject(JalaliDateService);
 
   readonly profileForm = this.fb.nonNullable.group({
     headline: ['', [Validators.maxLength(200)]],
@@ -46,9 +49,10 @@ export class ProfileComponent implements OnInit {
   readonly availabilityOptions = availabilityOptions;
   readonly militaryStatusOptions = militaryStatusOptions;
 
-  isLoading = true;
+    isLoading = true;
   isSaving = false;
   profileExists = false;
+  isEditing = false;
   errorMessage = '';
   successMessage = '';
   validationErrors: Record<string, string[]> = {};
@@ -77,9 +81,9 @@ export class ProfileComponent implements OnInit {
       },
       error: error => {
         this.isLoading = false;
-        if (error.status === 404) {
-          // No profile yet: the candidate creates one progressively.
+                if (error.status === 404) {
           this.profileExists = false;
+          this.isEditing = true; // No profile yet: go straight to edit/create mode
         } else if (error.status === 401) {
           void this.router.navigate(['/login'], { queryParams: { returnUrl: '/candidate/profile' } });
         } else {
@@ -123,9 +127,10 @@ export class ProfileComponent implements OnInit {
       : this.profileService.createProfile(request);
 
     operation$.subscribe({
-      next: () => {
+            next: () => {
         this.isSaving = false;
         this.profileExists = true;
+        this.isEditing = false;
         this.successMessage = 'پروفایل با موفقیت ذخیره شد.';
       },
       error: error => {
@@ -151,6 +156,18 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+    enableEditing(): void {
+    this.isEditing = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  cancelEditing(): void {
+    this.isEditing = false;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
   hasError(controlName: string): boolean {
     const control = this.profileForm.get(controlName);
     return !!control && control.invalid && (control.dirty || control.touched);
@@ -160,8 +177,39 @@ export class ProfileComponent implements OnInit {
     return this.validationErrors[controlName] ?? [];
   }
 
+      formatDate(value: string | null): string {
+    if (!value) return '—';
+    return this.jalaliDate.formatDisplay(value);
+  }
+
+  genderLabel(value: string | null): string {
+    if (!value) return '';
+    return this.genderOptions.find(option => option.value === value)?.label ?? value;
+  }
+
+  salaryTypeLabel(value: string | null): string {
+    if (!value) return '';
+    return this.salaryTypeOptions.find(option => option.value === value)?.label ?? value;
+  }
+
+  employmentStatusLabel(value: string | null): string {
+    if (!value) return '';
+    return this.employmentStatusOptions.find(option => option.value === value)?.label ?? value;
+  }
+
+  availabilityLabel(value: string | null): string {
+    if (!value) return '';
+    return this.availabilityOptions.find(option => option.value === value)?.label ?? value;
+  }
+
+  militaryStatusLabel(value: string | null): string {
+    if (!value) return '';
+    return this.militaryStatusOptions.find(option => option.value === value)?.label ?? value;
+  }
+
   private toNullOrTrimmed(value: string): string | null {
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : null;
   }
 }
+

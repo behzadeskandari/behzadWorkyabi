@@ -1,0 +1,44 @@
+24:19:30 Tab1 PageLoad
+24:19:30 Microsoft.Autofill.Password.SignIn.NoAutofillSuggestions
+24:19:51 Tab1 StartNav89 #renderer-script #link
+24:19:51 Tab1 FinishNav89
+24:19:51 Tab1 StartNav90 #renderer-script #link
+24:19:51 Tab1 FinishNav90
+24:19:51 Tab1 PageLoad
+24:19:51 Microsoft.Autofill.Password.SignIn.NoAutofillSuggestions
+24:21:43 Memory Pressure: Moderate
+24:21:53 Memory Pressure: Moderate
+24:22:03 Memory Pressure: Moderate
+24:22:13 Memory Pressure: Moderate
+24:22:23 Memory Pressure: Moderate
+24:22:33 Memory Pressure: Moderate
+24:22:43 Memory Pressure: Moderate
+24:22:53 Memory Pressure: Moderate
+24:23:03 Memory Pressure: Moderate
+24:23:14 Memory Pressure: Moderate
+24:23:24 Memory Pressure: Moderate
+24:23:34 Memory Pressure: Moderate
+24:23:44 Memory Pressure: Moderate
+24:23:54 Memory Pressure: Moderate
+24:24:04 Memory Pressure: Moderate
+24:24:14 Memory Pressure: Moderate
+24:24:24 Memory Pressure: Moderate
+24:24:34 Memory Pressure: Moderate
+24:24:44 Memory Pressure: Moderate
+24:24:54 Memory Pressure: Moderate
+24:25:04 Memory Pressure: Moderate
+24:25:14 Memory Pressure: Moderate
+24:25:24 Memory Pressure: None
+24:25:44 Memory Pressure: Moderate
+24:25:54 Memory Pressure: Moderate
+24:25:59 Memory Pressure: None
+24:26:04 Memory Pressure: Moderate
+24:26:09 Memory Pressure: None
+24:26:39 Memory Pressure: Moderate
+24:26:44 Memory Pressure: None
+24:26:59 Memory Pressure: Moderate
+24:27:04 Memory Pressure: None
+24:27:09 Memory Pressure: Moderate
+24:27:19 Memory Pressure: None
+25:00:01 Microsoft.Shutdown.IsRunningInBackground_HasEdgeUpdateBlockingKeepAlive
+26:00:01 Microsoft.Shutdown.IsRunningInBackground_HasEdgeUpdateBlockingKeepAlive

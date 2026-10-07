@@ -1,17 +1,24 @@
+﻿using System.Threading.RateLimiting;
 using Asp.Versioning;
 using IranJob.Api.Services;
 using IranJob.BuildingBlocks.Infrastructure.Extensions;
 using IranJob.BuildingBlocks.Infrastructure.Logging;
 using IranJob.Modules.Candidates.Infrastructure.Extensions;
 using IranJob.Modules.Candidates.Presentation.Controllers;
+using IranJob.Modules.EmployerProfile.Infrastructure.Extensions;
+using IranJob.Modules.EmployerProfile.Presentation.Controllers;
 using IranJob.Modules.Identity.Infrastructure.Configuration;
 using IranJob.Modules.Identity.Infrastructure.Extensions;
 using IranJob.Modules.Identity.Presentation.Controllers;
+using IranJob.Modules.JobPostings.Infrastructure.Extensions;
+using IranJob.Modules.JobPostings.Presentation.Controllers;
+using IranJob.Modules.ReferenceData.Infrastructure.Extensions;
+using IranJob.Modules.ReferenceData.Presentation.Controllers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +39,9 @@ builder.Host.UseSerilog((context, services, configuration) =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddCandidatesModule(builder.Configuration);
+builder.Services.AddEmployerProfileModule(builder.Configuration);
+builder.Services.AddReferenceDataModule(builder.Configuration);
+builder.Services.AddJobPostingsModule(builder.Configuration);
 
 var rateOptions = builder.Configuration.GetSection(IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions.SectionName).Get<IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions>()
     ?? new IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions();
@@ -55,7 +65,10 @@ builder.Services.AddScoped<ISystemInfoService, SystemInfoService>();
 
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(AuthController).Assembly)
-    .AddApplicationPart(typeof(CandidateProfileController).Assembly);
+    .AddApplicationPart(typeof(CandidateProfileController).Assembly)
+    .AddApplicationPart(typeof(EmployerProfileController).Assembly)
+    .AddApplicationPart(typeof(JobCategoriesController).Assembly)
+    .AddApplicationPart(typeof(EmployerJobsController).Assembly);
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -124,6 +137,9 @@ var app = builder.Build();
 await app.ApplyInfrastructureMigrationsAsync();
 await app.ApplyIdentityMigrationsAsync();
 await app.ApplyCandidatesMigrationsAsync();
+await app.ApplyEmployerProfileMigrationsAsync();
+await app.ApplyReferenceDataMigrationsAsync();
+await app.ApplyJobPostingsMigrationsAsync();
 
 if (app.Environment.IsDevelopment())
 {
@@ -149,6 +165,17 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     Predicate = registration => registration.Tags.Contains("ready")
+});
+
+
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+
+app.UseStaticFiles(); // normal wwwroot (optional but recommended)
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"          // ← this makes /uploads/logos/... work
 });
 
 app.Run();

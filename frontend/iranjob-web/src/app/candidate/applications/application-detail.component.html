@@ -1,0 +1,20 @@
+<main class="application-detail" dir="rtl">
+  <a routerLink="/candidate/applications" class="back-link">بازگشت به درخواست‌های من</a>
+  <p *ngIf="isLoading" class="state-card" role="status">در حال بارگذاری درخواست…</p>
+  <section *ngIf="errorMessage" class="state-card error-state" role="alert">{{ errorMessage }}</section>
+  <article *ngIf="application as item" class="application-card">
+    <p class="eyebrow">جزئیات درخواست همکاری</p>
+    <h1>{{ item.jobTitle }}</h1>
+    <p class="company-name">{{ item.companyName }}</p>
+    <dl>
+      <div><dt>وضعیت</dt><dd><span class="status-badge" [class.status-badge--withdrawn]="item.status === 'Withdrawn'">{{ item.status === 'Withdrawn' ? 'لغوشده' : 'ارسال‌شده' }}</span></dd></div>
+      <div><dt>تاریخ درخواست</dt><dd>{{ formatDate(item.appliedAt) }}</dd></div>
+    </dl>
+    <div class="actions">
+      <a class="secondary-button" [routerLink]="['/jobs', item.jobId]">مشاهده موقعیت شغلی</a>
+      <button *ngIf="item.status === 'Applied'" type="button" class="text-button" [disabled]="isWithdrawing" (click)="withdraw()">
+        {{ isWithdrawing ? 'در حال لغو…' : 'لغو درخواست' }}
+      </button>
+    </div>
+  </article>
+</main>

@@ -1,0 +1,104 @@
+.jobs-page {
+  width: min(100% - 2rem, 72rem);
+  margin: 2rem auto;
+  color: #202b31;
+}
+
+.page-heading,
+.job-row,
+.job-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-heading {
+  margin-bottom: 1.5rem;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.page-heading p,
+.job-row p {
+  color: #58676f;
+}
+
+.page-heading p,
+.job-main p {
+  margin-top: 0.35rem;
+}
+
+.job-list {
+  border-top: 1px solid #d8e0e3;
+}
+
+.job-row {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid #d8e0e3;
+}
+
+.job-row h2 {
+  font-size: 1.05rem;
+}
+
+.job-meta {
+  font-size: 0.875rem;
+}
+
+.job-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+button,
+a {
+  color: #075f62;
+}
+
+button,
+.primary-action {
+  border: 1px solid #075f62;
+  border-radius: 4px;
+  background: #fff;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.primary-action {
+  background: #075f62;
+  color: #fff;
+  text-decoration: none;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.error-message,
+.empty-state {
+  margin: 1rem 0;
+  padding: 0.8rem 0;
+}
+
+.error-message {
+  color: #a33b32;
+}
+
+@media (max-width: 640px) {
+  .page-heading,
+  .job-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .job-actions {
+    justify-content: flex-start;
+  }
+}

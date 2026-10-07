@@ -25,6 +25,10 @@
     <ProjectReference Include="..\..\Modules\Identity\IranJob.Modules.Identity.Presentation\IranJob.Modules.Identity.Presentation.csproj" />
     <ProjectReference Include="..\..\Modules\Candidates\IranJob.Modules.Candidates.Infrastructure\IranJob.Modules.Candidates.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Candidates\IranJob.Modules.Candidates.Presentation\IranJob.Modules.Candidates.Presentation.csproj" />
+    <ProjectReference Include="..\..\Modules\ReferenceData\IranJob.Modules.ReferenceData.Infrastructure\IranJob.Modules.ReferenceData.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\ReferenceData\IranJob.Modules.ReferenceData.Presentation\IranJob.Modules.ReferenceData.Presentation.csproj" />
+    <ProjectReference Include="..\..\Modules\JobPostings\IranJob.Modules.JobPostings.Infrastructure\IranJob.Modules.JobPostings.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\JobPostings\IranJob.Modules.JobPostings.Presentation\IranJob.Modules.JobPostings.Presentation.csproj" />
   </ItemGroup>
 
 </Project>

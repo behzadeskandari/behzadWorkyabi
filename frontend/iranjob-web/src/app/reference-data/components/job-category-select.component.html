@@ -1,0 +1,12 @@
+<label class="select-field">
+  <span>{{ label }}</span>
+  <select [value]="value ?? ''" [disabled]="isLoading || !!errorMessage" (change)="onSelectionChange($event)">
+    <option value="">انتخاب کنید</option>
+    <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+  </select>
+</label>
+<p *ngIf="isLoading" role="status">در حال بارگذاری...</p>
+<div *ngIf="errorMessage" role="alert" class="load-error">
+  <span>{{ errorMessage }}</span>
+  <button type="button" class="retry-button" (click)="loadCategories()">دوباره تلاش کن</button>
+</div>

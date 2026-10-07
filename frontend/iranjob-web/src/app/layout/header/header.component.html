@@ -1,10 +1,19 @@
-<header class="header">
+﻿<header class="header">
   <div class="container header__content">
     <a routerLink="/" class="brand">ایران‌جاب</a>
     <nav class="nav">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">خانه</a>
-      @if (authService.isAuthenticated()) {
-        <a routerLink="/candidate/profile" routerLinkActive="active">پروفایل کارجو</a>
+      <a routerLink="/" routerLinkActive="active"  [routerLinkActiveOptions]="{ exact: true }">خانه</a>
+      <a routerLink="/jobs" routerLinkActive="active">فرصت های شغلی</a>
+            @if (authService.isAuthenticated()) {
+        @if (authService.hasRole('Candidate')) {
+          <a routerLink="/candidate/profile" routerLinkActive="active">پروفایل کارجو</a>
+          <a routerLink="/candidate/applications" routerLinkActive="active">درخواست‌های من</a>
+        }
+        @if (authService.hasRole('Employer') || authService.hasRole('Recruiter')) {
+          <a routerLink="/employer/profile" routerLinkActive="active">پروفایل شرکت</a>
+          <a routerLink="/employer/jobs" routerLinkActive="active">آگهی‌های من</a>
+          <a routerLink="/employer/applications" routerLinkActive="active">درخواست‌های دریافتی</a>
+        }
         <a routerLink="/account" routerLinkActive="active">حساب کاربری</a>
         <button type="button" class="nav-button" (click)="logout()">خروج</button>
       } @else {

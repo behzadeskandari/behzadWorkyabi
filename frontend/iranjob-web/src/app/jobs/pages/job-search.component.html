@@ -1,0 +1,143 @@
+<section class="search-page" dir="rtl">
+  <header class="search-heading">
+    <p class="eyebrow">فرصت‌های شغلی</p>
+    <h1>شغل مناسب بعدی‌تان را پیدا کنید</h1>
+    <p>آگهی‌های منتشرشده را بر اساس مهارت، موقعیت و نوع همکاری بررسی کنید.</p>
+  </header>
+
+  <form [formGroup]="filters" (ngSubmit)="applyFilters()" class="search-form">
+    <div class="keyword-search">
+      <label class="visually-hidden" for="job-keyword">جست‌وجوی عنوان یا متن آگهی</label>
+      <input id="job-keyword" type="search" formControlName="q" placeholder="عنوان شغل یا واژه‌ای از شرح آگهی را وارد کنید" />
+      <button class="primary-button" type="submit">جست‌وجو</button>
+      <button class="mobile-filter-toggle" type="button" (click)="filtersOpen = !filtersOpen" [attr.aria-expanded]="filtersOpen">
+        {{ filtersOpen ? 'بستن فیلترها' : 'فیلترها' }}
+      </button>
+    </div>
+
+    <div class="search-layout">
+      <aside class="filter-panel" [class.filter-panel--open]="filtersOpen" aria-label="فیلترهای آگهی">
+        <div class="filter-heading"><h2>فیلترها</h2><button class="text-button" type="button" (click)="clearFilters()">پاک کردن</button></div>
+
+        <label>دسته‌بندی شغلی
+          <select formControlName="categoryId">
+            <option value="">همه دسته‌بندی‌ها</option>
+            <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+          </select>
+        </label>
+
+        <label>مهارت‌ها
+          <select formControlName="skillIds" multiple size="5" aria-label="انتخاب یک یا چند مهارت">
+            <option *ngFor="let skill of skills" [value]="skill.id">{{ skill.name }}</option>
+          </select>
+          <small>با انتخاب چند مهارت، فقط آگهی‌هایی نمایش داده می‌شوند که همهٔ آن‌ها را داشته باشند.</small>
+        </label>
+
+        <fieldset class="location-filters">
+          <legend>موقعیت مکانی</legend>
+          <label>کشور
+            <select formControlName="countryId" (change)="onCountryChange()">
+              <option value="">همهٔ کشورها</option>
+              <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+            </select>
+          </label>
+          <label>استان
+            <select formControlName="provinceId" [attr.disabled]="!filters.controls.countryId.value ? '' : null" (change)="onProvinceChange()">
+              <option value="">همهٔ استان‌ها</option>
+              <option *ngFor="let province of provinces" [value]="province.id">{{ province.name }}</option>
+            </select>
+          </label>
+          <label>شهر
+            <select formControlName="cityId" [attr.disabled]="!filters.controls.provinceId.value ? '' : null">
+              <option value="">همهٔ شهرها</option>
+              <option *ngFor="let city of cities" [value]="city.id">{{ city.name }}</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <label>نوع همکاری
+          <select formControlName="employmentType">
+            <option value="">همهٔ انواع همکاری</option>
+            <option value="FullTime">تمام‌وقت</option>
+            <option value="PartTime">پاره‌وقت</option>
+            <option value="Contract">قراردادی</option>
+            <option value="Internship">کارآموزی</option>
+            <option value="Temporary">موقت</option>
+          </select>
+        </label>
+
+        <label>شیوهٔ انجام کار
+          <select formControlName="workArrangement">
+            <option value="">همهٔ شیوه‌ها</option>
+            <option value="OnSite">حضوری</option>
+            <option value="Hybrid">ترکیبی</option>
+            <option value="Remote">دورکاری</option>
+          </select>
+        </label>
+
+        <fieldset class="salary-filters">
+          <legend>محدودهٔ حقوق</legend>
+          <label>حداقل<input type="number" min="0" formControlName="salaryMinimum" inputmode="numeric" /></label>
+          <label>حداکثر<input type="number" min="0" formControlName="salaryMaximum" inputmode="numeric" /></label>
+          <label>واحد پول<input type="text" maxlength="3" formControlName="salaryCurrency" placeholder="IRR" dir="ltr" /></label>
+        </fieldset>
+        <p *ngIf="filterValidationMessage" class="lookup-error" role="alert">{{ filterValidationMessage }}</p>
+
+        <button class="primary-button apply-filters" type="submit">اعمال فیلترها</button>
+        <p *ngIf="lookupError" class="lookup-error" role="alert">بارگذاری گزینه‌های فیلتر با خطا روبه‌رو شد.</p>
+      </aside>
+
+      <div class="results-panel">
+        <div class="results-toolbar">
+          <p *ngIf="!isLoading && !hasError">{{ formatCount(results.totalCount) }} فرصت شغلی پیدا شد</p>
+          <label>مرتب‌سازی
+            <select [value]="currentQuery.sort ?? 'Newest'" (change)="changeSort($any($event.target).value)">
+              <option value="Newest">جدیدترین</option>
+              <option value="Oldest">قدیمی‌ترین</option>
+              <option value="SalaryAscending">حقوق: کم به زیاد</option>
+              <option value="SalaryDescending">حقوق: زیاد به کم</option>
+            </select>
+          </label>
+        </div>
+
+        <p *ngIf="isLoading" class="state-card" role="status">در حال بارگذاری فرصت‌های شغلی…</p>
+        <div *ngIf="hasError" class="state-card error-state" role="alert">
+          <p>دریافت فرصت‌های شغلی انجام نشد. اتصال خود را بررسی و دوباره تلاش کنید.</p>
+          <button type="button" (click)="retry()">تلاش دوباره</button>
+        </div>
+        <div *ngIf="!isLoading && !hasError && results.items.length === 0" class="state-card empty-state">
+          <h2>فرصتی پیدا نشد</h2>
+          <p>با معیارهای انتخاب‌شده فرصت شغلی‌ای پیدا نشد. فیلترها را پاک کنید یا معیار دیگری را امتحان کنید.</p>
+          <button class="primary-button" type="button" (click)="clearFilters()">پاک کردن فیلترها</button>
+        </div>
+
+        <div *ngIf="!isLoading && !hasError && results.items.length" class="job-results">
+          <a *ngFor="let job of results.items" class="job-card" [routerLink]="['/jobs', job.id]" [attr.aria-label]="'جزئیات شغل ' + job.title + ' در ' + job.companyName">
+            <div class="card-topline">
+              <img *ngIf="job.companyLogoUrl" [src]="job.companyLogoUrl" [alt]="'نشان ' + job.companyName" loading="lazy" />
+              <div class="card-title"><h2>{{ job.title }}</h2><p>{{ job.companyName }}</p></div>
+              <span class="category-pill">{{ job.category }}</span>
+            </div>
+            <p class="job-description">{{ job.description }}</p>
+            <ul class="job-facts">
+              <li>{{ job.city }}، {{ job.province }}، {{ job.country }}</li>
+              <li>{{ arrangementLabel(job.workArrangement) }}</li>
+              <li>{{ employmentLabel(job.employmentType) }}</li>
+              <li *ngIf="formatSalary(job) as salary">{{ salary }}</li>
+            </ul>
+            <div class="card-bottomline">
+              <ul class="skill-list" aria-label="مهارت‌ها"><li *ngFor="let skill of job.skills">{{ skill }}</li></ul>
+              <time [attr.datetime]="job.publishedAt">{{ formatDate(job.publishedAt) }}</time>
+            </div>
+          </a>
+        </div>
+
+        <nav *ngIf="!isLoading && !hasError && results.totalPages > 1" class="pagination" aria-label="صفحه‌های نتایج">
+          <button type="button" [disabled]="results.page <= 1" (click)="goToPage(results.page - 1)">قبلی</button>
+          <span>صفحهٔ {{ formatCount(results.page) }} از {{ formatCount(results.totalPages) }}</span>
+          <button type="button" [disabled]="results.page >= results.totalPages" (click)="goToPage(results.page + 1)">بعدی</button>
+        </nav>
+      </div>
+    </div>
+  </form>
+</section>

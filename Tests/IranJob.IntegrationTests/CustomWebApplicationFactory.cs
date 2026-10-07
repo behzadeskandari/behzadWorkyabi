@@ -10,27 +10,28 @@ using IranJob.BuildingBlocks.Infrastructure.Persistence;
 using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using IranJob.Modules.Identity.Infrastructure.Persistence;
 using IranJob.Modules.Identity.Infrastructure.Extensions;
+using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
+using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
+using IranJob.Modules.JobPostings.Infrastructure.Persistence;
 
 namespace IranJob.IntegrationTests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-        private SqliteConnection? _connection;
-    private SqliteConnection? _candidateConnection;
+    private SqliteConnection? _connection;
+    private SqliteConnection? _jobConnection;
+    private readonly SemaphoreSlim _jobDatabaseLock = new(1, 1);
+    private bool _jobDatabaseInitialized;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _connection = new SqliteConnection("DataSource=:memory:");
         _connection.Open();
 
-        // The candidate profile is an isolated module; it stores only a UserId
-        // reference and has no foreign keys to the Identity user table. In the
-        // test host it gets its own in-memory SQLite database so that
-        // EnsureCreated can build its schema independently and without clashing
-        // with the migration-history table created by the other module DbContext
-        // instances that share the connection above.
-        _candidateConnection = new SqliteConnection("DataSource=:memory:");
-        _candidateConnection.Open();
+        // Candidate profiles, employers, reference data and jobs share the same
+        // test database just as their schemas share the development SQL Server.
+        _jobConnection = new SqliteConnection("DataSource=:memory:");
+        _jobConnection.Open();
 
         builder.UseEnvironment("Testing");
 
@@ -64,6 +65,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IdentityDbContext>();
             services.RemoveAll<DbContextOptions<CandidateDbContext>>();
             services.RemoveAll<CandidateDbContext>();
+            services.RemoveAll<DbContextOptions<EmployerDbContext>>();
+            services.RemoveAll<EmployerDbContext>();
+            services.RemoveAll<DbContextOptions<ReferenceDataDbContext>>();
+            services.RemoveAll<ReferenceDataDbContext>();
+            services.RemoveAll<DbContextOptions<JobPostingDbContext>>();
+            services.RemoveAll<JobPostingDbContext>();
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -74,9 +81,21 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseSqlite(_connection);
             });
-                        services.AddDbContext<CandidateDbContext>(options =>
+            services.AddDbContext<CandidateDbContext>(options =>
             {
-                options.UseSqlite(_candidateConnection);
+                options.UseSqlite(_jobConnection);
+            });
+            services.AddDbContext<EmployerDbContext>(options =>
+            {
+                options.UseSqlite(_jobConnection);
+            });
+            services.AddDbContext<ReferenceDataDbContext>(options =>
+            {
+                options.UseSqlite(_jobConnection);
+            });
+            services.AddDbContext<JobPostingDbContext>(options =>
+            {
+                options.UseSqlite(_jobConnection);
             });
 
             services.PostConfigure<HealthCheckServiceOptions>(options =>
@@ -92,11 +111,29 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var identityDbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         var candidateDbContext = scope.ServiceProvider.GetRequiredService<CandidateDbContext>();
+        var jobPostingDbContext = scope.ServiceProvider.GetRequiredService<JobPostingDbContext>();
+        var employerDbContext = scope.ServiceProvider.GetRequiredService<EmployerDbContext>();
+        var referenceDataDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
 
         await applicationDbContext.Database.EnsureCreatedAsync();
         await identityDbContext.Database.EnsureCreatedAsync();
-        await candidateDbContext.Database.EnsureCreatedAsync();
-        
+        await _jobDatabaseLock.WaitAsync();
+        try
+        {
+            if (!_jobDatabaseInitialized)
+            {
+                await jobPostingDbContext.Database.EnsureCreatedAsync();
+                await candidateDbContext.Database.ExecuteSqlRawAsync(candidateDbContext.Database.GenerateCreateScript());
+                await referenceDataDbContext.Database.ExecuteSqlRawAsync(referenceDataDbContext.Database.GenerateCreateScript());
+                await employerDbContext.Database.ExecuteSqlRawAsync(employerDbContext.Database.GenerateCreateScript());
+                _jobDatabaseInitialized = true;
+            }
+        }
+        finally
+        {
+            _jobDatabaseLock.Release();
+        }
+
         await IdentitySeedData.SeedAsync(Services);
     }
 
@@ -104,8 +141,8 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         if (disposing)
         {
-                        _connection?.Dispose();
-            _candidateConnection?.Dispose();
+            _connection?.Dispose();
+            _jobConnection?.Dispose();
         }
 
         base.Dispose(disposing);

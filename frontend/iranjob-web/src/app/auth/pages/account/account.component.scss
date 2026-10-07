@@ -94,7 +94,7 @@ h1 {
   }
 }
 
-.btn-logout {
+  .btn-logout {
   width: 100%;
   padding: 14px;
   background: #dc3545;
@@ -105,6 +105,7 @@ h1 {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
+  margin-top: 20px;
 
   &:hover {
     background: #c82333;
@@ -113,5 +114,41 @@ h1 {
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-profile-link {
+  display: block;
+  text-align: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }

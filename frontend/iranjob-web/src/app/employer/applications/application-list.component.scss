@@ -1,0 +1,33 @@
+:host { display: block; }
+.applications-page { max-width: 72rem; margin: 2rem auto; color: #163136; }
+.page-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.page-heading h1 { margin: 0; font-size: clamp(1.5rem, 4vw, 2rem); }
+.eyebrow { margin: 0; color: #087c7c; font-weight: 700; }
+.primary-action { display: inline-flex; align-items: center; padding: 0.55rem 0.9rem; border: 1px solid #075f62; border-radius: 4px; background: #075f62; color: #fff; text-decoration: none; font-weight: 700; }
+.primary-action:hover { opacity: 0.9; }
+.application-list { display: grid; gap: 0.85rem; }
+.application-card { min-width: 0; padding: 1.1rem; border: 1px solid #dce7e6; border-radius: 0.9rem; background: #fff; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.85rem; align-items: start; }
+.application-copy { min-width: 0; }
+.application-copy h2 { margin: 0; font-size: 1.15rem; overflow-wrap: anywhere; }
+.application-copy h2 a { color: #163136; text-decoration: none; }
+.application-copy h2 a:hover { text-decoration: underline; }
+.candidate-name { margin: 0.25rem 0 0; color: #087c7c; font-weight: 700; }
+.candidate-location { margin: 0.25rem 0; color: #53696a; }
+.applied-date { margin: 0.25rem 0 0; color: #53696a; font-size: 0.875rem; }
+.status-badge { align-self: start; border-radius: 999px; padding: 0.3rem 0.7rem; white-space: nowrap; font-weight: 700; }
+.status-badge--active { background: #e6f5ef; color: #17665f; }
+.status-badge--inactive { background: #f1f3f3; color: #53696a; }
+.status-badge--accepted { background: #e8f7ee; color: #1e7a44; }
+.application-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+.primary-button, .secondary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.6rem; padding: 0.5rem 0.8rem; border-radius: 0.55rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.primary-button { border: 1px solid #087c7c; background: #087c7c; color: #fff; }
+.secondary-button { border: 1px solid #b7ccca; background: #fff; color: #17665f; }
+.secondary-button:hover { background: #f0f7f6; }
+.state-card { margin: 1.5rem 0; padding: 1.5rem; text-align: center; border: 1px solid #dce7e6; border-radius: 0.9rem; background: #fff; color: #53696a; }
+.error-state { border-color: #f0cdcd; color: #8a2525; }
+.empty-state { text-align: center; }
+@media (max-width: 520px) {
+  .application-card { grid-template-columns: minmax(0, 1fr); }
+  .status-badge { grid-row: 2; }
+  .application-actions { grid-column: 1; }
+}

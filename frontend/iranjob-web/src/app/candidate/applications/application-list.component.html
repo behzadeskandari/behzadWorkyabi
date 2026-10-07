@@ -1,0 +1,37 @@
+<section class="applications-page" dir="rtl">
+  <header class="page-heading">
+    <p class="eyebrow">حساب کاربری شما</p>
+    <h1>درخواست‌های من</h1>
+  </header>
+
+  <p *ngIf="isLoading" class="state-card" role="status">در حال بارگذاری درخواست‌ها…</p>
+  <div *ngIf="errorMessage" class="state-card error-state" role="alert">
+    <p>{{ errorMessage }}</p>
+    <button type="button" class="secondary-button" (click)="load()">تلاش دوباره</button>
+  </div>
+  <div *ngIf="!isLoading && !errorMessage && applications.length === 0" class="state-card empty-state">
+    <h2>درخواستی ثبت نشده است</h2>
+    <p>پس از ارسال درخواست همکاری، وضعیت آن را در این صفحه می‌بینید.</p>
+    <a class="primary-button" routerLink="/jobs">دیدن فرصت‌های شغلی</a>
+  </div>
+
+  <div *ngIf="!isLoading && applications.length" class="application-list">
+    <article *ngFor="let application of applications" class="application-card">
+      <div class="application-copy">
+        <h2><a [routerLink]="['/candidate/applications', application.id]">{{ application.jobTitle }}</a></h2>
+        <p class="company-name">{{ application.companyName }}</p>
+        <p class="applied-date">تاریخ درخواست: {{ formatDate(application.appliedAt) }}</p>
+      </div>
+      <span class="status-badge" [class.status-badge--withdrawn]="application.status === 'Withdrawn'">
+        {{ statusLabel(application.status) }}
+      </span>
+      <div class="application-actions">
+        <a class="secondary-button" [routerLink]="['/jobs', application.jobId]">مشاهده موقعیت</a>
+        <button *ngIf="application.status === 'Applied'" type="button" class="text-button"
+          [disabled]="withdrawingId !== null" (click)="withdraw(application)">
+          {{ withdrawingId === application.id ? 'در حال لغو…' : 'لغو درخواست' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
