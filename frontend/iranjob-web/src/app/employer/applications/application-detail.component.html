@@ -40,7 +40,7 @@
       </dl>
     </div>
 
-    <div class="actions">
+            <div class="actions">
       <button *ngIf="canReview(item.status)" type="button" class="secondary-button" [disabled]="isUpdating" (click)="updateStatus('review')">
         {{ isUpdating ? 'در حال بررسی…' : 'بررسی شده' }}
       </button>
@@ -52,4 +52,28 @@
       </button>
     </div>
   </article>
+
+  <!-- Candidate resume (consented) -->
+    <section *ngIf="application as app" class="resume-section">
+    <h2>رزومهٔ کارجو</h2>
+
+    <p *ngIf="isLoadingResume" class="state-card" role="status">در حال بارگذاری رزومه…</p>
+    <p *ngIf="resumeError" class="state-card error-state" role="alert">{{ resumeError }}</p>
+
+    <ng-container *ngIf="resume as r">
+      <p class="resume-meta">
+        وضعیت: <strong>{{ r.status }}</strong>
+        · تکمیل: <strong>{{ r.completenessScore }}٪</strong>
+        · <ng-container *ngIf="r.hasCvFile; else noCv">فایل رزومه موجود است</ng-container>
+        <ng-template #noCv>فایل رزومه‌ای آپلود نشده است</ng-template>
+      </p>
+
+      <button *ngIf="r.hasCvFile" type="button" class="secondary-button"
+              [disabled]="isLoadingResume" (click)="downloadCv(app.id)">
+        دریافت فایل رزومه (PDF)
+      </button>
+
+      <app-resume-view [resume]="r"></app-resume-view>
+    </ng-container>
+  </section>
 </main>

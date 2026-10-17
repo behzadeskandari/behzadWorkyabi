@@ -10,6 +10,9 @@ public sealed class ReferenceDataDbContext(DbContextOptions<ReferenceDataDbConte
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Province> Provinces => Set<Province>();
     public DbSet<City> Cities => Set<City>();
+    public DbSet<EmploymentType> EmploymentTypes => Set<EmploymentType>();
+    public DbSet<WorkArrangement> WorkArrangements => Set<WorkArrangement>();
+    public DbSet<SalaryCurrency> SalaryCurrencies => Set<SalaryCurrency>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

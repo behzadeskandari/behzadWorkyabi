@@ -29,6 +29,8 @@
     <ProjectReference Include="..\..\Modules\ReferenceData\IranJob.Modules.ReferenceData.Presentation\IranJob.Modules.ReferenceData.Presentation.csproj" />
     <ProjectReference Include="..\..\Modules\JobPostings\IranJob.Modules.JobPostings.Infrastructure\IranJob.Modules.JobPostings.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\JobPostings\IranJob.Modules.JobPostings.Presentation\IranJob.Modules.JobPostings.Presentation.csproj" />
+    <ProjectReference Include="..\..\Modules\Payments\IranJob.Modules.Payments.Infrastructure\IranJob.Modules.Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Payments\IranJob.Modules.Payments.Presentation\IranJob.Modules.Payments.Presentation.csproj" />
   </ItemGroup>
 
 </Project>

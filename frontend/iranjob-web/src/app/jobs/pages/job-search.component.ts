@@ -7,8 +7,11 @@ import { Subject, catchError, map, merge, of, switchMap, tap, withLatestFrom } f
 import { JobCategoryService } from '../../reference-data/services/job-category.service';
 import { LocationService } from '../../reference-data/services/location.service';
 import { SkillService } from '../../reference-data/services/skill.service';
+import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
+import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
+import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
 import { JalaliDateService } from '../../core/services/jalali-date.service';
-import { City, Country, JobCategory, Province, Skill } from '../../reference-data/models/reference-data.models';
+import { City, Country, EmploymentType, JobCategory, Province, SalaryCurrency, Skill, WorkArrangement } from '../../reference-data/models/reference-data.models';
 import { PublicJobSearchItem, PublicJobSearchPage, PublicJobSearchQuery, PublicJobSort } from '../models/public-job.models';
 import { PublicJobSearchService } from '../services/public-job-search.service';
 
@@ -30,6 +33,9 @@ export class JobSearchComponent implements OnInit {
   private readonly categoryService = inject(JobCategoryService);
   private readonly skillService = inject(SkillService);
     private readonly locationService = inject(LocationService);
+  private readonly employmentTypeService = inject(EmploymentTypeService);
+  private readonly workArrangementService = inject(WorkArrangementService);
+  private readonly salaryCurrencyService = inject(SalaryCurrencyService);
   private readonly jalaliDate = inject(JalaliDateService);
   private readonly retrySearch = new Subject<void>();
 
@@ -53,6 +59,9 @@ export class JobSearchComponent implements OnInit {
   countries: Country[] = [];
   provinces: Province[] = [];
   cities: City[] = [];
+  employmentTypes: EmploymentType[] = [];
+  workArrangements: WorkArrangement[] = [];
+  salaryCurrencies: SalaryCurrency[] = [];
   results: PublicJobSearchPage = EMPTY_PAGE;
   currentQuery: PublicJobSearchQuery = { page: 1, pageSize: 12, sort: 'Newest' };
   isLoading = true;
@@ -183,15 +192,17 @@ export class JobSearchComponent implements OnInit {
       ? `${this.formatNumber(job.salaryMinimum)} تا ${this.formatNumber(job.salaryMaximum)}`
       : this.formatNumber(job.salaryMinimum ?? job.salaryMaximum ?? 0);
     const period = job.salaryPeriod === 'Monthly' ? ' ماهانه' : job.salaryPeriod === 'Yearly' ? ' سالانه' : '';
-    return `${amount} ${job.salaryCurrency ?? ''}${period}`.trim();
+    const currency = this.salaryCurrencies.find(c => c.code === job.salaryCurrency);
+    const currencyDisplay = currency ? (currency.symbol ?? currency.name) : (job.salaryCurrency ?? '');
+    return `${amount} ${currencyDisplay}${period}`.trim();
   }
 
     arrangementLabel(value: string): string {
-    return ({ OnSite: 'حضوری', Hybrid: 'ترکیبی', Remote: 'دورکاری' } as Record<string, string>)[value] ?? value;
+    return this.workArrangements.find(a => a.value === value)?.name ?? value;
   }
 
   employmentLabel(value: string): string {
-    return ({ FullTime: 'تمام‌وقت', PartTime: 'پاره‌وقت', Contract: 'قراردادی', Internship: 'کارآموزی', Temporary: 'موقت' } as Record<string, string>)[value] ?? value;
+    return this.employmentTypes.find(t => t.value === value)?.name ?? value;
   }
 
   private loadLookups(): void {
@@ -205,6 +216,18 @@ export class JobSearchComponent implements OnInit {
     });
     this.locationService.getCountries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: items => this.countries = items,
+      error: () => this.lookupError = true
+    });
+    this.employmentTypeService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.employmentTypes = items,
+      error: () => this.lookupError = true
+    });
+    this.workArrangementService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.workArrangements = items,
+      error: () => this.lookupError = true
+    });
+    this.salaryCurrencyService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.salaryCurrencies = items,
       error: () => this.lookupError = true
     });
   }

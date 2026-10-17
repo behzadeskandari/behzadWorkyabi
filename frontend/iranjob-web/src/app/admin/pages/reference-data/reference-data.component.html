@@ -1,0 +1,242 @@
+﻿<div class="ref-data" dir="rtl">
+  <div class="ref-data__header">
+    <h1>مدیریت داده‌های مرجع</h1>
+    <p class="ref-data__subtitle">کشورها، استان‌ها، شهرها، دسته‌بندی‌ها و مهارت‌ها</p>
+  </div>
+
+  <!-- Tab navigation -->
+  <div class="ref-data__tabs">
+    <button type="button" class="ref-data__tab" [class.active]="activeTab() === 'countries'" (click)="switchTab('countries')">کشورها</button>
+    <button type="button" class="ref-data__tab" [class.active]="activeTab() === 'provinces'" (click)="switchTab('provinces')">استان‌ها</button>
+    <button type="button" class="ref-data__tab" [class.active]="activeTab() === 'cities'" (click)="switchTab('cities')">شهرها</button>
+    <button type="button" class="ref-data__tab" [class.active]="activeTab() === 'categories'" (click)="switchTab('categories')">دسته‌بندی‌ها</button>
+    <button type="button" class="ref-data__tab" [class.active]="activeTab() === 'skills'" (click)="switchTab('skills')">مهارت‌ها</button>
+  </div>
+
+  <!-- Countries tab -->
+  <div *ngIf="activeTab() === 'countries'" class="ref-data__section">
+    <div *ngIf="!isFormOpen || selectedEntity() !== 'countries'; else countryFormTmpl">
+      <button type="button" class="btn btn--primary" (click)="startCreateCountry()">+ افزودن کشور</button>
+      <div *ngIf="isLoadingCountries()" class="ref-data__loading" role="status">در حال بارگذاری کشورها...</div>
+      <table *ngIf="!isLoadingCountries()" class="ref-data__table">
+        <thead><tr><th>نام</th><th>کد</th><th>وضعیت</th><th>تاریخ ایجاد</th><th class="ref-data__actions-header">عملیات</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let country of countries()">
+            <td>{{ country.name }}</td>
+            <td>{{ country.code }}</td>
+            <td><span class="ref-data__status" [class.active]="country.isActive" [class.inactive]="!country.isActive">{{ country.isActive ? 'فعال' : 'غیرفعال' }}</span></td>
+            <td>{{ formatDate(country.createdAt) }}</td>
+            <td class="ref-data__actions">
+              <button type="button" class="btn btn--small" (click)="startEditCountry(country)" [disabled]="!country.isActive">ویرایش</button>
+              <button type="button" class="btn btn--small btn--danger" (click)="deactivateCountry(country)" [disabled]="!country.isActive">غیرفعال</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!isLoadingCountries() && countries().length === 0" class="ref-data__empty"><p>هیچ کشوری یافت نشد.</p></div>
+      <div *ngIf="!isLoadingCountries() && inactiveCountriesCount > 0" class="ref-data__info"><p>{{ inactiveCountriesCount }} کشور غیرفعال وجود دارد.</p></div>
+    </div>
+  </div>
+
+  <!-- Provinces tab -->
+  <div *ngIf="activeTab() === 'provinces'" class="ref-data__section">
+    <div class="ref-data__filters">
+      <label>فیلتر کشور:
+        <select (change)="onCountryFilterChange($event)" [value]="selectedCountryId()">
+          <option value="">همه استان‌ها</option>
+          <option *ngFor="let country of activeCountries" [value]="country.id">{{ country.name }}</option>
+        </select>
+      </label>
+    </div>
+    <div *ngIf="!isFormOpen || selectedEntity() !== 'provinces'; else provinceFormTmpl">
+      <button type="button" class="btn btn--primary" (click)="startCreateProvince()" [disabled]="!selectedCountryId()">+ افزودن استان</button>
+      <div *ngIf="selectedCountryId() && isLoadingProvinces()" class="ref-data__loading" role="status">در حال بارگذاری استان‌ها...</div>
+      <table *ngIf="!isLoadingProvinces()" class="ref-data__table">
+        <thead><tr><th>نام</th><th>کشور</th><th>وضعیت</th><th>تاریخ ایجاد</th><th class="ref-data__actions-header">عملیات</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let province of provinces()">
+            <td>{{ province.name }}</td>
+            <td>{{ province.countryName }}</td>
+            <td><span class="ref-data__status" [class.active]="province.isActive" [class.inactive]="!province.isActive">{{ province.isActive ? 'فعال' : 'غیرفعال' }}</span></td>
+            <td>{{ formatDate(province.createdAt) }}</td>
+            <td class="ref-data__actions">
+              <button type="button" class="btn btn--small" (click)="startEditProvince(province)" [disabled]="!province.isActive">ویرایش</button>
+              <button type="button" class="btn btn--small btn--danger" (click)="deactivateProvince(province)" [disabled]="!province.isActive">غیرفعال</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!isLoadingProvinces() && !selectedCountryId()" class="ref-data__empty"><p>لطفاً یک کشور انتخاب کنید.</p></div>
+      <div *ngIf="!isLoadingProvinces() && selectedCountryId() && provinces().length === 0" class="ref-data__empty"><p>هیچ استانی یافت نشد.</p></div>
+    </div>
+  </div>
+
+  <!-- Cities tab -->
+  <div *ngIf="activeTab() === 'cities'" class="ref-data__section">
+    <div class="ref-data__filters">
+      <label>فیلتر کشور:
+        <select (change)="loadCitiesForCountry($event)" [value]="selectedCountryId()">
+          <option value="">همه شهرها</option>
+          <option *ngFor="let country of activeCountries" [value]="country.id">{{ country.name }}</option>
+        </select>
+      </label>
+      <label *ngIf="selectedCountryId()">فیلتر استان:
+        <select (change)="onProvinceFilterChange($event)" [value]="selectedProvinceId()">
+          <option value="">همه شهرها</option>
+          <option *ngFor="let province of provinces()" [value]="province.id">{{ province.name }}</option>
+        </select>
+      </label>
+    </div>
+    <div *ngIf="!isFormOpen || selectedEntity() !== 'cities'; else cityFormTmpl">
+      <button type="button" class="btn btn--primary" (click)="startCreateCity()" [disabled]="!selectedProvinceId()">+ افزودن شهر</button>
+      <div *ngIf="selectedProvinceId() && isLoadingCities()" class="ref-data__loading" role="status">در حال بارگذاری شهرها...</div>
+      <table *ngIf="!isLoadingCities()" class="ref-data__table">
+        <thead><tr><th>نام</th><th>استان</th><th>کشور</th><th>وضعیت</th><th>تاریخ ایجاد</th><th class="ref-data__actions-header">عملیات</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let city of cities()">
+            <td>{{ city.name }}</td>
+            <td>{{ city.provinceName }}</td>
+            <td>{{ city.countryName }}</td>
+            <td><span class="ref-data__status" [class.active]="city.isActive" [class.inactive]="!city.isActive">{{ city.isActive ? 'فعال' : 'غیرفعال' }}</span></td>
+            <td>{{ formatDate(city.createdAt) }}</td>
+            <td class="ref-data__actions">
+              <button type="button" class="btn btn--small" (click)="startEditCity(city)" [disabled]="!city.isActive">ویرایش</button>
+              <button type="button" class="btn btn--small btn--danger" (click)="deactivateCity(city)" [disabled]="!city.isActive">غیرفعال</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!isLoadingCities() && !selectedProvinceId()" class="ref-data__empty"><p>لطفاً کشور و استان را انتخاب کنید.</p></div>
+      <div *ngIf="!isLoadingCities() && selectedProvinceId() && cities().length === 0" class="ref-data__empty"><p>هیچ شهری یافت نشد.</p></div>
+    </div>
+  </div>
+
+  <!-- Job Categories tab -->
+  <div *ngIf="activeTab() === 'categories'" class="ref-data__section">
+    <div *ngIf="!isFormOpen || selectedEntity() !== 'categories'; else categoryFormTmpl">
+      <button type="button" class="btn btn--primary" (click)="startCreateCategory()">+ افزودن دسته‌بندی</button>
+      <div *ngIf="isLoadingCategories()" class="ref-data__loading" role="status">در حال بارگذاری دسته‌بندی‌ها...</div>
+      <table *ngIf="!isLoadingCategories()" class="ref-data__table">
+        <thead><tr><th>نام</th><th>توضیحات</th><th>وضعیت</th><th>تاریخ ایجاد</th><th class="ref-data__actions-header">عملیات</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let category of categories()">
+            <td>{{ category.name }}</td>
+            <td>{{ category.description ?? '-' }}</td>
+            <td><span class="ref-data__status" [class.active]="category.isActive" [class.inactive]="!category.isActive">{{ category.isActive ? 'فعال' : 'غیرفعال' }}</span></td>
+            <td>{{ formatDate(category.createdAt) }}</td>
+            <td class="ref-data__actions">
+              <button type="button" class="btn btn--small" (click)="startEditCategory(category)" [disabled]="!category.isActive">ویرایش</button>
+              <button type="button" class="btn btn--small btn--danger" (click)="deactivateCategory(category)" [disabled]="!category.isActive">غیرفعال</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!isLoadingCategories() && categories().length === 0" class="ref-data__empty"><p>هیچ دسته‌بندی شغلی یافت نشد.</p></div>
+    </div>
+  </div>
+
+  <!-- Skills tab -->
+  <div *ngIf="activeTab() === 'skills'" class="ref-data__section">
+    <div *ngIf="!isFormOpen || selectedEntity() !== 'skills'; else skillFormTmpl">
+      <button type="button" class="btn btn--primary" (click)="startCreateSkill()">+ افزودن مهارت</button>
+      <div *ngIf="isLoadingSkills()" class="ref-data__loading" role="status">در حال بارگذاری مهارت‌ها...</div>
+      <table *ngIf="!isLoadingSkills()" class="ref-data__table">
+        <thead><tr><th>نام</th><th>توضیحات</th><th>وضعیت</th><th>تاریخ ایجاد</th><th class="ref-data__actions-header">عملیات</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let skill of skills()">
+            <td>{{ skill.name }}</td>
+            <td>{{ skill.description ?? '-' }}</td>
+            <td><span class="ref-data__status" [class.active]="skill.isActive" [class.inactive]="!skill.isActive">{{ skill.isActive ? 'فعال' : 'غیرفعال' }}</span></td>
+            <td>{{ formatDate(skill.createdAt) }}</td>
+            <td class="ref-data__actions">
+              <button type="button" class="btn btn--small" (click)="startEditSkill(skill)" [disabled]="!skill.isActive">ویرایش</button>
+              <button type="button" class="btn btn--small btn--danger" (click)="deactivateSkill(skill)" [disabled]="!skill.isActive">غیرفعال</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!isLoadingSkills() && skills().length === 0" class="ref-data__empty"><p>هیچ مهارتی یافت نشد.</p></div>
+    </div>
+  </div>
+
+  <!-- Form templates -->
+  <ng-template #countryFormTmpl>
+    <div class="ref-data__form">
+      <h2>{{ isEditing() ? 'ویرایش کشور' : 'کشور جدید' }}</h2>
+      <div *ngIf="formError()" class="ref-data__form-error" role="alert">{{ formError() }}</div>
+      <div class="form-grid">
+        <div class="form-group"><label>نام کشور</label><input type="text" class="form-control" [(ngModel)]="countryForm.name" placeholder="مثال: ایران" /></div>
+        <div class="form-group"><label>کد (۲ تا ۳ کاراکتر)</label><input type="text" class="form-control" maxlength="3" [(ngModel)]="countryForm.code" placeholder="مثال: IR" /></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn--primary" (click)="submitCountry()">{{ isEditing() ? 'به‌روزرسانی' : 'ایجاد' }}</button>
+        <button type="button" class="btn btn--secondary" (click)="cancelForm()">انصراف</button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #provinceFormTmpl>
+    <div class="ref-data__form">
+      <h2>{{ isEditing() ? 'ویرایش استان' : 'استان جدید' }}</h2>
+      <div *ngIf="formError()" class="ref-data__form-error" role="alert">{{ formError() }}</div>
+      <div class="form-group"><label>کشور</label>
+        <select class="form-control" [(ngModel)]="provinceForm.countryId">
+          <option *ngFor="let country of countries()" [value]="country.id">{{ country.name }}</option>
+        </select>
+      </div>
+      <div class="form-group"><label>نام استان</label><input type="text" class="form-control" [(ngModel)]="provinceForm.name" placeholder="مثال: تهران" /></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn--primary" (click)="submitProvince()">{{ isEditing() ? 'به‌روزرسانی' : 'ایجاد' }}</button>
+        <button type="button" class="btn btn--secondary" (click)="cancelForm()">انصراف</button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #cityFormTmpl>
+    <div class="ref-data__form">
+      <h2>{{ isEditing() ? 'ویرایش شهر' : 'شهر جدید' }}</h2>
+      <div *ngIf="formError()" class="ref-data__form-error" role="alert">{{ formError() }}</div>
+      <div class="form-group"><label>کشور</label>
+        <select class="form-control" [(ngModel)]="cityForm.countryId" (change)="loadCitiesForCountry($event)">
+          <option *ngFor="let country of countries()" [value]="country.id">{{ country.name }}</option>
+        </select>
+      </div>
+      <div class="form-group"><label>استان</label>
+        <select class="form-control" [(ngModel)]="cityForm.provinceId" (change)="onProvinceFilterChange($event)" [disabled]="!cityForm.countryId">
+          <option *ngFor="let province of provinces()" [value]="province.id">{{ province.name }}</option>
+        </select>
+      </div>
+      <div class="form-group"><label>نام شهر</label><input type="text" class="form-control" [(ngModel)]="cityForm.name" placeholder="مثال: تهران" /></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn--primary" (click)="submitCity()">{{ isEditing() ? 'به‌روزرسانی' : 'ایجاد' }}</button>
+        <button type="button" class="btn btn--secondary" (click)="cancelForm()">انصراف</button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #categoryFormTmpl>
+    <div class="ref-data__form">
+      <h2>{{ isEditing() ? 'ویرایش دسته‌بندی' : 'دسته‌بندی جدید' }}</h2>
+      <div *ngIf="formError()" class="ref-data__form-error" role="alert">{{ formError() }}</div>
+      <div class="form-group"><label>نام دسته‌بندی</label><input type="text" class="form-control" [(ngModel)]="namedForm.name" placeholder="مثال: فناوری اطلاعات" /></div>
+      <div class="form-group"><label>توضیحات (اختیاری)</label><textarea class="form-control" rows="3" [(ngModel)]="namedForm.description" placeholder="توضیح مختصر"></textarea></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn--primary" (click)="submitCategory()">{{ isEditing() ? 'به‌روزرسانی' : 'ایجاد' }}</button>
+        <button type="button" class="btn btn--secondary" (click)="cancelForm()">انصراف</button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #skillFormTmpl>
+    <div class="ref-data__form">
+      <h2>{{ isEditing() ? 'ویرایش مهارت' : 'مهارت جدید' }}</h2>
+      <div *ngIf="formError()" class="ref-data__form-error" role="alert">{{ formError() }}</div>
+      <div class="form-group"><label>نام مهارت</label><input type="text" class="form-control" [(ngModel)]="namedForm.name" placeholder="مثال: برنامه‌نویسی اندروید" /></div>
+      <div class="form-group"><label>توضیحات (اختیاری)</label><textarea class="form-control" rows="3" [(ngModel)]="namedForm.description" placeholder="توضیح مختصر"></textarea></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn--primary" (click)="submitSkill()">{{ isEditing() ? 'به‌روزرسانی' : 'ایجاد' }}</button>
+        <button type="button" class="btn btn--secondary" (click)="cancelForm()">انصراف</button>
+      </div>
+    </div>
+  </ng-template>
+</div>

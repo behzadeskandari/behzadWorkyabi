@@ -50,3 +50,21 @@ public sealed record LocationItem(
     Guid? CountryId,
     string? CountryName,
     bool IsActive);
+
+public sealed record JobFieldOptionItem(
+    Guid Id,
+    string Value,
+    string Name,
+    string? Description,
+    bool IsActive,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt);
+
+public sealed record SalaryCurrencyItem(
+    Guid Id,
+    string Code,
+    string Name,
+    string? Symbol,
+    bool IsActive,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt);

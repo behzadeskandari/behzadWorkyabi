@@ -1,9 +1,11 @@
-using FluentValidation;
+﻿using FluentValidation;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
+using IranJob.BuildingBlocks.Infrastructure.Events;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.JobPostings.Application.Validators;
 using IranJob.Modules.JobPostings.Infrastructure.Persistence;
 using IranJob.Modules.JobPostings.Infrastructure.Services;
+using IranJob.Modules.Payments.Domain.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IJobPostingService, JobPostingService>();
         services.AddScoped<IJobApplicationService, JobApplicationService>();
         services.AddScoped<IPublicJobSearchService, PublicJobSearchService>();
+        services.AddScoped<IAdminJobModerationService, AdminJobModerationService>();
+        services.AddScoped<IEventHandler<PaymentCompleted>, PaymentCompletedEventHandler>();
         services.AddValidatorsFromAssemblyContaining<CreateJobPostingRequestValidator>();
         return services;
     }

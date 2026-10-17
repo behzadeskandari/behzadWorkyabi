@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using IranJob.Modules.Candidates.Application.Contracts;
 using IranJob.Modules.ReferenceData.Domain.Entities;
 using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -269,4 +270,130 @@ public sealed class EmployerApplicationsTests : IClassFixture<CustomWebApplicati
         .Take(3).Select(value => (char)('A' + value % 26)).ToArray());
 
     private enum JobState { Draft, Published, Closed }
+
+    [Fact]
+    public async Task Employer_Downloads_Candidates_Uploaded_Cv()
+    {
+        var (employer, jobId, _) = await CreateEmployerJobAsync(JobState.Published);
+        var candidate = await CreateCandidateAsync(createProfile: true);
+
+        // Candidate uploads a CV and consents to sharing it with employers.
+        await UploadCandidateCvAsync(candidate);
+        (await candidate.PostAsync("/api/v1/candidates/resume/status?status=ReadyToShare", null))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Candidate applies to the employer published job posting.
+        var apply = await candidate.PostAsJsonAsync($"/api/v1/jobs/{jobId}/applications",
+            new { userId = Guid.NewGuid(), candidateProfileId = Guid.NewGuid() }, json);
+        apply.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await apply.Content.ReadFromJsonAsync<JsonElement>(json);
+        var applicationId = created.GetProperty("id").GetGuid();
+
+        // Employer downloads the candidate CV file through the CV endpoint.
+        var cv = await employer.GetAsync($"/api/v1/employers/applications/{applicationId}/cv");
+        cv.StatusCode.Should().Be(HttpStatusCode.OK);
+        cv.Content.Headers.ContentType?.MediaType.Should().Be("application/pdf");
+        var bytes = await cv.Content.ReadAsByteArrayAsync();
+        bytes.Length.Should().BeGreaterThan(0);
+    }
+
+                private async Task UpsertCandidateResumeAsync(HttpClient candidate, bool share = false)
+    {
+        var request = new SaveResumeRequest(
+            "Backend engineer with .NET experience.",
+            "Complete",
+            new[]
+            {
+                new ResumeWorkExperienceItem(null, "Acme Corp", "Senior .NET Engineer",
+                    "Built cloud platforms.", new DateOnly(2020, 1, 1), new DateOnly(2024, 1, 1), false)
+            },
+            null, null, null, null, null, null);
+        var upsert = await candidate.PutAsJsonAsync("/api/v1/candidates/resume", request, json);
+        upsert.StatusCode.Should().Be(HttpStatusCode.OK);
+        if (share)
+            (await candidate.PostAsync("/api/v1/candidates/resume/status?status=ReadyToShare", null))
+                .StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    private async Task<Guid> ApplyAsync(HttpClient candidate, Guid jobId)
+    {
+        var apply = await candidate.PostAsJsonAsync($"/api/v1/jobs/{jobId}/applications",
+            new { userId = Guid.NewGuid(), candidateProfileId = Guid.NewGuid() }, json);
+        apply.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await apply.Content.ReadFromJsonAsync<JsonElement>(json);
+        return created.GetProperty("id").GetGuid();
+    }
+
+    [Fact]
+    public async Task Employer_Views_Consented_Candidate_Resume_And_Downloads_Cv()
+    {
+        var (employer, jobId, _) = await CreateEmployerJobAsync(JobState.Published);
+        var candidate = await CreateCandidateAsync(createProfile: true);
+
+        // Candidate builds a resume and consents to sharing it, then uploads a CV document.
+        await UpsertCandidateResumeAsync(candidate, share: true);
+        await UploadCandidateCvAsync(candidate);
+        var applicationId = await ApplyAsync(candidate, jobId);
+
+        var resume = await employer.GetAsync($"{EmployerApplicationsEndpoint}/{applicationId}/resume");
+        resume.StatusCode.Should().Be(HttpStatusCode.OK);
+        var payload = await resume.Content.ReadFromJsonAsync<JsonElement>(json);
+        payload.GetProperty("candidateHeadline").GetString().Should().Be("Candidate");
+        payload.GetProperty("status").GetString().Should().Be("ReadyToShare");
+        payload.GetProperty("completenessScore").GetInt32().Should().BeGreaterThan(0);
+        payload.GetProperty("workExperiences").GetArrayLength().Should().Be(1);
+        payload.GetProperty("hasCvFile").GetBoolean().Should().BeTrue();
+
+        var cv = await employer.GetAsync($"{EmployerApplicationsEndpoint}/{applicationId}/cv");
+        cv.StatusCode.Should().Be(HttpStatusCode.OK);
+        cv.Content.Headers.ContentType?.MediaType.Should().Be("application/pdf");
+        (await cv.Content.ReadAsByteArrayAsync()).Length.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task Employer_Cannot_View_Candidate_Resume_Until_Consented()
+    {
+        var (employer, jobId, _) = await CreateEmployerJobAsync(JobState.Published);
+        var candidate = await CreateCandidateAsync(createProfile: true);
+
+        // Resume exists and a CV is uploaded, but the candidate has not consented to sharing.
+        await UpsertCandidateResumeAsync(candidate, share: false);
+        await UploadCandidateCvAsync(candidate);
+        var applicationId = await ApplyAsync(candidate, jobId);
+
+        var resume = await employer.GetAsync($"{EmployerApplicationsEndpoint}/{applicationId}/resume");
+        resume.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        // Consent gates the CV download too — a Draft resume must not leak the CV even if present.
+        var cv = await employer.GetAsync($"{EmployerApplicationsEndpoint}/{applicationId}/cv");
+        cv.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task Employer_Cannot_View_Resume_Of_Other_Employer_Application()
+    {
+        var (employerA, _, _) = await CreateEmployerJobAsync(JobState.Published);
+        var (_, jobIdB, _) = await CreateEmployerJobAsync(JobState.Published);
+        var candidate = await CreateCandidateAsync(createProfile: true);
+
+        await UpsertCandidateResumeAsync(candidate, share: true);
+        await UploadCandidateCvAsync(candidate);
+        // Candidate applies to employer B's posting only.
+        var applicationIdB = await ApplyAsync(candidate, jobIdB);
+
+        // Employer A has no application for this resume → 404 (owner gate).
+        var resume = await employerA.GetAsync($"{EmployerApplicationsEndpoint}/{applicationIdB}/resume");
+        resume.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private static async Task UploadCandidateCvAsync(HttpClient candidate)
+    {
+        using var content = new MultipartFormDataContent();
+        var streamContent = new StreamContent(new MemoryStream(new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 })); // "%PDF-1.4"
+        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+        content.Add(streamContent, "file", "cv.pdf");
+        var response = await candidate.PostAsync("/api/v1/candidates/resume/cv", content);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
 }

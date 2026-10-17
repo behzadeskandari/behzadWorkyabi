@@ -1,4 +1,4 @@
-﻿import { Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { HomeComponent } from './pages/home/home.component';
 import { authGuard } from './auth/guards/auth.guard';
@@ -6,6 +6,7 @@ import { roleGuard } from './auth/guards/role.guard';
 import { AccountComponent } from './auth/pages/account/account.component';
 import { LoginComponent } from './auth/pages/login/login.component';
 import { RegisterComponent } from './auth/pages/register/register.component';
+import { AdminLayoutComponent } from './admin/admin-layout/admin-layout.component';
 
 export const routes: Routes = [
   {
@@ -26,6 +27,13 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./candidate/pages/profile/profile.component').then(m => m.ProfileComponent)
+      },
+      {
+        path: 'candidate/resume',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['Candidate'] },
+        loadComponent: () =>
+          import('./candidate/pages/resume/resume.component').then(m => m.CandidateResumeComponent)
       },
       {
         path: 'candidate/applications',
@@ -93,6 +101,14 @@ export const routes: Routes = [
           import('./employer/applications/application-detail.component').then(m => m.EmployerApplicationDetailComponent)
       }
     ]
+  },
+  {
+    path: 'admin',
+    component: AdminLayoutComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['Admin', 'SuperAdmin'] },
+    loadChildren: () =>
+      import('./admin/admin.routes').then((m) => m.adminRoutes)
   },
   {
     path: 'login',

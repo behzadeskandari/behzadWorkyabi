@@ -1,0 +1,92 @@
+<div class="resume-viewer">
+  <section>
+    <h3>سابقهٔ کاری</h3>
+    <div *ngIf="workExperiences.length === 0" class="empty">بدون سابقه کاری.</div>
+    <article *ngFor="let work of workExperiences" class="resume-item">
+      <header class="resume-item__header">
+        <h4>{{ sectionLabel(work) }}</h4>
+        <span class="resume-item__duration">{{ durationLabel(work.durationMonths) }}</span>
+      </header>
+      <p *ngIf="sectionSecondary(work)" class="resume-item__sub">{{ sectionSecondary(work) }}</p>
+      <p *ngIf="sectionTertiary(work)" class="resume-item__desc">{{ sectionTertiary(work) }}</p>
+      <p class="resume-item__dates">{{ dateRangeLabel(work) }}</p>
+    </article>
+  </section>
+
+  <section>
+    <h3>تحصیلات</h3>
+    <div *ngIf="educations.length === 0" class="empty">بدون سابقه تحصیلی.</div>
+    <article *ngFor="let edu of educations" class="resume-item">
+      <header class="resume-item__header">
+        <h4>{{ sectionLabel(edu) }}</h4>
+        <span class="resume-item__duration">{{ durationLabel(edu.durationMonths) }}</span>
+      </header>
+      <p *ngIf="sectionSecondary(edu)" class="resume-item__sub">{{ sectionSecondary(edu) }}</p>
+      <p *ngIf="sectionTertiary(edu)" class="resume-item__desc">{{ sectionTertiary(edu) }}</p>
+      <p class="resume-item__dates">{{ dateRangeLabel(edu) }}</p>
+    </article>
+  </section>
+
+  <section>
+    <h3>مهارت‌ها</h3>
+    <div *ngIf="skills.length === 0" class="empty">مهارتی افزوده نشده است.</div>
+    <ul *ngIf="skills.length" class="skill-list">
+      <li *ngFor="let skill of skills" class="skill-item">
+        <span class="skill-item__name">{{ skill.skillName }}</span>
+        <span *ngIf="skill.proficiencyLevel" class="skill-item__level">{{ skill.proficiencyLevel }}</span>
+        <span *ngIf="skill.yearsOfExperience !== null" class="skill-item__years">{{ skill.yearsOfExperience }} سال</span>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>زبان‌ها</h3>
+    <div *ngIf="languages.length === 0" class="empty">زبانی افزوده نشده است.</div>
+    <ul *ngIf="languages.length" class="language-list">
+      <li *ngFor="let lang of languages" class="language-item">
+        {{ lang.languageName }} ({{ lang.proficiencyLevel }})
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>پروژه‌ها</h3>
+    <div *ngIf="projects.length === 0" class="empty">پروژه‌ای افزوده نشده است.</div>
+    <article *ngFor="let project of projects" class="resume-item">
+      <header class="resume-item__header">
+        <h4>{{ project.title }}</h4>
+      </header>
+      <p *ngIf="project.url" class="resume-item__sub">
+        <a [href]="project.url" target="_blank" rel="noopener">{{ project.url }}</a>
+      </p>
+      <p *ngIf="project.description" class="resume-item__desc">{{ project.description }}</p>
+      <p class="resume-item__dates">{{ dateRangeLabel(project) }}</p>
+    </article>
+  </section>
+
+  <section>
+    <h3>گواهینامه‌ها</h3>
+    <div *ngIf="certifications.length === 0" class="empty">گواهینامه‌ای افزوده نشده است.</div>
+    <article *ngFor="let cert of certifications" class="resume-item">
+      <header class="resume-item__header">
+        <h4>{{ cert.name }}</h4>
+      </header>
+      <p *ngIf="cert.issuingOrganization" class="resume-item__sub">{{ cert.issuingOrganization }}</p>
+      <p *ngIf="cert.certificateUrl" class="resume-item__sub">
+        <a [href]="cert.certificateUrl" target="_blank" rel="noopener">لینک گواهینامه</a>
+      </p>
+            <p *ngIf="cert.issueDate" class="resume-item__dates">{{ certificationDateLabel(cert) }}</p>
+    </article>
+  </section>
+
+  <section>
+    <h3>لینک‌های پرتفوی</h3>
+    <div *ngIf="portfolioLinks.length === 0" class="empty">لینک پرتفوی‌ای افزوده نشده است.</div>
+    <ul *ngIf="portfolioLinks.length" class="portfolio-list">
+      <li *ngFor="let link of portfolioLinks" class="portfolio-item">
+        <a [href]="link.url" target="_blank" rel="noopener">{{ link.title }}</a>
+        <p *ngIf="link.description" class="portfolio-item__desc">{{ link.description }}</p>
+      </li>
+    </ul>
+  </section>
+</div>

@@ -57,13 +57,13 @@ public sealed class PublicJobSearchService(
 
         if (query.WorkArrangement is not null)
         {
-            var arrangement = Enum.Parse<WorkArrangement>(query.WorkArrangement, ignoreCase: false);
+            var arrangement = Enum.Parse<IranJob.Modules.JobPostings.Domain.Enums.WorkArrangement>(query.WorkArrangement, ignoreCase: false);
             postings = postings.Where(posting => posting.WorkArrangement == arrangement);
         }
 
         if (query.EmploymentType is not null)
         {
-            var employmentType = Enum.Parse<EmploymentType>(query.EmploymentType, ignoreCase: false);
+            var employmentType = Enum.Parse<IranJob.Modules.JobPostings.Domain.Enums.EmploymentType>(query.EmploymentType, ignoreCase: false);
             postings = postings.Where(posting => posting.EmploymentType == employmentType);
         }
 

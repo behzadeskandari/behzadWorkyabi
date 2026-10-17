@@ -241,6 +241,18 @@ public sealed class ReferenceDataService(
         return country ?? throw Missing("Location", id);
     }
 
+    public async Task<IReadOnlyList<JobFieldOptionItem>> GetEmploymentTypesAsync(CancellationToken cancellationToken) =>
+        await dbContext.EmploymentTypes.AsNoTracking().Where(item => item.IsActive)
+            .OrderBy(item => item.Name).Select(item => Map(item)).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<JobFieldOptionItem>> GetWorkArrangementsAsync(CancellationToken cancellationToken) =>
+        await dbContext.WorkArrangements.AsNoTracking().Where(item => item.IsActive)
+            .OrderBy(item => item.Name).Select(item => Map(item)).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<SalaryCurrencyItem>> GetSalaryCurrenciesAsync(CancellationToken cancellationToken) =>
+        await dbContext.SalaryCurrencies.AsNoTracking().Where(item => item.IsActive)
+            .OrderBy(item => item.Name).Select(item => Map(item)).ToListAsync(cancellationToken);
+
     private async Task EnsureCountryActiveAsync(Guid id, CancellationToken cancellationToken)
     {
         if (!await dbContext.Countries.AnyAsync(country => country.Id == id && country.IsActive, cancellationToken))
@@ -273,6 +285,15 @@ public sealed class ReferenceDataService(
     private static CityItem Map(City city) => new(
         city.Id, city.ProvinceId, city.Province.Name, city.Province.CountryId, city.Province.Country.Name,
         city.Name, city.IsActive, city.CreatedAt, city.UpdatedAt);
+
+    private static JobFieldOptionItem Map(EmploymentType item) =>
+        new(item.Id, item.Value, item.Name, item.Description, item.IsActive, item.CreatedAt, item.UpdatedAt);
+
+    private static JobFieldOptionItem Map(WorkArrangement item) =>
+        new(item.Id, item.Value, item.Name, item.Description, item.IsActive, item.CreatedAt, item.UpdatedAt);
+
+    private static SalaryCurrencyItem Map(SalaryCurrency item) =>
+        new(item.Id, item.Code, item.Name, item.Symbol, item.IsActive, item.CreatedAt, item.UpdatedAt);
 
     private static string Normalize(string value) => value.Trim().ToUpperInvariant();
     private static NotFoundException Missing(string name, Guid id) => new($"{name} '{id}' was not found.");

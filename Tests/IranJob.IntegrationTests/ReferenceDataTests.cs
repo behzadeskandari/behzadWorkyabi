@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -166,6 +166,79 @@ public sealed class ReferenceDataTests : IClassFixture<CustomWebApplicationFacto
         (await factory.CreateClient().GetAsync($"{LocationsEndpoint}/countries")).StatusCode.Should().Be(HttpStatusCode.OK);
         (await factory.CreateClient().GetAsync($"{LocationsEndpoint}/provinces?countryId={countryId}")).StatusCode.Should().Be(HttpStatusCode.OK);
         (await factory.CreateClient().GetAsync($"{LocationsEndpoint}/cities?provinceId={provinceId}")).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Get_Countries_ReturnsOk()
+    {
+        // Regression: /countries previously 404'd because the endpoint constant was
+        // interpolated without a leading `$` (emitting the literal '{LocationsEndpoint}/countries').
+        // The resolved GET /api/v1/locations/countries route (LocationsController.GetCountries)
+        // must return 200 OK.
+        await factory.InitializeDatabaseAsync();
+        var client = factory.CreateClient();
+        var response = await client.GetAsync($"{LocationsEndpoint}/countries");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Locations_ProvinceDeactivationIsBlockedWhenActiveCitiesExist()
+    {
+        var admin = await CreateAuthenticatedClientAsync(IdentityRoles.Admin);
+        var code = UniqueCode();
+
+        var countryResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/countries", new { name = UniqueName("Country"), code }, json);
+        var countryId = (await countryResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        var provinceResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/provinces", new { countryId, name = UniqueName("Province") }, json);
+        var provinceId = (await provinceResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        await admin.PostAsJsonAsync($"{LocationsEndpoint}/cities", new { provinceId, name = UniqueName("City") }, json);
+
+        var deactivation = await admin.DeleteAsync($"{LocationsEndpoint}/provinces/{provinceId}");
+        deactivation.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task Locations_ProvinceUpdateChangesNameAndParent()
+    {
+        var admin = await CreateAuthenticatedClientAsync(IdentityRoles.SuperAdmin);
+        var code = UniqueCode();
+
+        var countryResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/countries", new { name = UniqueName("Country"), code }, json);
+        var countryId = (await countryResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        var provinceResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/provinces", new { countryId, name = UniqueName("OldProvince") }, json);
+        var province = await provinceResponse.Content.ReadFromJsonAsync<JsonElement>(json);
+        var provinceId = province.GetProperty("id").GetGuid();
+
+        var updatedName = UniqueName("NewProvince");
+        var update = await admin.PutAsJsonAsync($"{LocationsEndpoint}/provinces/{provinceId}", new { countryId, name = updatedName }, json);
+        update.StatusCode.Should().Be(HttpStatusCode.OK);
+        var updated = await update.Content.ReadFromJsonAsync<JsonElement>(json);
+        updated.GetProperty("name").GetString().Should().Be(updatedName);
+    }
+
+    [Fact]
+    public async Task Locations_CityDeactivationHidesFromPublicReads()
+    {
+        var admin = await CreateAuthenticatedClientAsync(IdentityRoles.Admin);
+        var code = UniqueCode();
+
+        var countryResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/countries", new { name = UniqueName("Country"), code }, json);
+        var countryId = (await countryResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        var provinceResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/provinces", new { countryId, name = UniqueName("Province") }, json);
+        var provinceId = (await provinceResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        var cityResponse = await admin.PostAsJsonAsync($"{LocationsEndpoint}/cities", new { provinceId, name = UniqueName("City") }, json);
+        var cityId = (await cityResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        (await factory.CreateClient().GetAsync($"{LocationsEndpoint}/{cityId}")).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        (await admin.DeleteAsync($"{LocationsEndpoint}/cities/{cityId}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await factory.CreateClient().GetAsync($"{LocationsEndpoint}/{cityId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     private async Task<HttpClient> CreateAuthenticatedClientAsync(string role)

@@ -5,6 +5,7 @@
 namespace IranJob.Modules.ReferenceData.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
+    [Migration("20261007000000_SeedIranLocations")]
     public partial class SeedIranLocations : Migration
     {
         /// <inheritdoc />

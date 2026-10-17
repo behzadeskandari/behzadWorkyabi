@@ -12,6 +12,8 @@ using IranJob.Modules.Identity.Infrastructure.Extensions;
 using IranJob.Modules.Identity.Presentation.Controllers;
 using IranJob.Modules.JobPostings.Infrastructure.Extensions;
 using IranJob.Modules.JobPostings.Presentation.Controllers;
+using IranJob.Modules.Payments.Infrastructure.Extensions;
+using IranJob.Modules.Payments.Presentation.Controllers;
 using IranJob.Modules.ReferenceData.Infrastructure.Extensions;
 using IranJob.Modules.ReferenceData.Presentation.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -42,6 +44,7 @@ builder.Services.AddCandidatesModule(builder.Configuration);
 builder.Services.AddEmployerProfileModule(builder.Configuration);
 builder.Services.AddReferenceDataModule(builder.Configuration);
 builder.Services.AddJobPostingsModule(builder.Configuration);
+builder.Services.AddPaymentsModule(builder.Configuration);
 
 var rateOptions = builder.Configuration.GetSection(IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions.SectionName).Get<IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions>()
     ?? new IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions();
@@ -68,8 +71,8 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(CandidateProfileController).Assembly)
     .AddApplicationPart(typeof(EmployerProfileController).Assembly)
     .AddApplicationPart(typeof(JobCategoriesController).Assembly)
-    .AddApplicationPart(typeof(EmployerJobsController).Assembly);
-
+    .AddApplicationPart(typeof(EmployerJobsController).Assembly)
+        .AddApplicationPart(typeof(PaymentController).Assembly);
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
@@ -140,6 +143,7 @@ await app.ApplyCandidatesMigrationsAsync();
 await app.ApplyEmployerProfileMigrationsAsync();
 await app.ApplyReferenceDataMigrationsAsync();
 await app.ApplyJobPostingsMigrationsAsync();
+await app.ApplyPaymentsMigrationsAsync();
 
 if (app.Environment.IsDevelopment())
 {

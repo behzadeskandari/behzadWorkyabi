@@ -1,19 +1,23 @@
-﻿using IranJob.Modules.Candidates.Domain.Entities;
+using IranJob.Modules.Candidates.Domain.Entities;
+using IranJob.Modules.Candidates.Domain.Enums;
 using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.JobPostings.Application.Contracts;
 using IranJob.Modules.JobPostings.Domain.Entities;
 using IranJob.Modules.JobPostings.Domain.Enums;
 using IranJob.Modules.JobPostings.Infrastructure.Persistence;
+using IranJob.BuildingBlocks.Infrastructure.Configuration;
 using IranJob.SharedKernel.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using EmployerProfileEntity = IranJob.Modules.EmployerProfile.Domain.Entities.EmployerProfile;
 
 namespace IranJob.Modules.JobPostings.Infrastructure.Services;
 
 public sealed class JobApplicationService(
     JobPostingDbContext jobDbContext,
-    CandidateDbContext candidateDbContext) : IJobApplicationService
+    CandidateDbContext candidateDbContext,
+    IOptions<FileStorageOptions> fileStorageOptions) : IJobApplicationService
 {
     public async Task<JobApplicationResponse> ApplyAsync(Guid userId, Guid jobId, CancellationToken cancellationToken)
     {
@@ -140,6 +144,170 @@ public sealed class JobApplicationService(
         Guid applicationId,
         CancellationToken cancellationToken) =>
         await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Reject(), cancellationToken);
+
+    public async Task<EmployerCvAccessResponse> DownloadCandidateCvAsync(
+        Guid employerUserId,
+        Guid applicationId,
+        CancellationToken cancellationToken)
+    {
+        var employerProfileId = await GetEmployerProfileIdAsync(employerUserId, cancellationToken);
+        var application = await (
+            from app in jobDbContext.JobApplications.AsNoTracking()
+            join job in jobDbContext.JobPostings.AsNoTracking() on app.JobPostingId equals job.Id
+            where app.Id == applicationId && job.EmployerProfileId == employerProfileId
+            select app)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Application was not found.");
+        var candidateProfile = await candidateDbContext.CandidateProfiles.AsNoTracking()
+            .Where(profile => profile.Id == application.CandidateProfileId)
+            .Select(profile => new { profile.UserId, profile.Headline, profile.City })
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Candidate profile was not found.");
+        var resume = await candidateDbContext.CandidateResumes.AsNoTracking()
+            .SingleOrDefaultAsync(r => r.UserId == candidateProfile.UserId, cancellationToken)
+            ?? throw new NotFoundException("Candidate resume was not found.");
+        if (resume.Status != ResumeStatus.ReadyToShare)
+            throw new NotFoundException("Candidate resume is not shared with employers.");
+        if (string.IsNullOrEmpty(resume.CvFileName) || string.IsNullOrEmpty(resume.CvFileContentType))
+            throw new NotFoundException("CV file was not found.");
+        var opts = fileStorageOptions.Value;
+        var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), opts.CvStoragePath, resume.CvFileName);
+        if (!File.Exists(physicalPath))
+            throw new NotFoundException("CV file was not found.");
+        var contentStream = new MemoryStream();
+        using (var fs = new FileStream(physicalPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true))
+        {
+            await fs.CopyToAsync(contentStream, 4096, cancellationToken);
+        }
+        contentStream.Position = 0;
+        return new EmployerCvAccessResponse(
+            applicationId,
+            candidateProfile.UserId,
+            candidateProfile.Headline,
+            contentStream,
+            resume.CvFileContentType,
+            GetDownloadFileName(resume.CvFileContentType));
+    }
+
+    public async Task<EmployerResumeViewResponse> GetCandidateResumeAsync(
+        Guid employerUserId,
+        Guid applicationId,
+        CancellationToken cancellationToken)
+    {
+        var employerProfileId = await GetEmployerProfileIdAsync(employerUserId, cancellationToken);
+
+        var application = await (
+            from app in jobDbContext.JobApplications.AsNoTracking()
+            join job in jobDbContext.JobPostings.AsNoTracking() on app.JobPostingId equals job.Id
+            where app.Id == applicationId && job.EmployerProfileId == employerProfileId
+            select app)
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Application was not found.");
+
+        var candidateProfile = await candidateDbContext.CandidateProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.Id == application.CandidateProfileId, cancellationToken)
+            ?? throw new NotFoundException("Candidate profile was not found.");
+
+        var resume = await candidateDbContext.CandidateResumes.AsNoTracking()
+            .Include(r => r.WorkExperiences)
+            .Include(r => r.Educations)
+            .Include(r => r.Skills)
+            .Include(r => r.Languages)
+            .Include(r => r.Projects)
+            .Include(r => r.Certifications)
+            .Include(r => r.PortfolioLinks)
+            .SingleOrDefaultAsync(r => r.UserId == candidateProfile.UserId, cancellationToken)
+            ?? throw new NotFoundException("Candidate resume was not found.");
+
+        if (resume.Status != ResumeStatus.ReadyToShare)
+            throw new NotFoundException("Candidate resume is not shared with employers.");
+
+        return MapEmployerResumeView(application, candidateProfile, resume);
+    }
+
+    private static EmployerResumeViewResponse MapEmployerResumeView(
+        JobApplication application,
+        CandidateProfile? candidateProfile,
+        CandidateResume resume) => new(
+        application.Id,
+        application.CandidateProfileId,
+        candidateProfile?.Headline,
+        resume.Status.ToString(),
+        resume.CalculateCompleteness(),
+        resume.CvFileName is not null && resume.CvFileContentType is not null,
+        resume.WorkExperiences.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumeSectionView(
+                e.Id,
+                e.Company,
+                e.JobTitle,
+                e.Description,
+                e.StartDate,
+                e.EndDate,
+                e.IsCurrent,
+                DurationMonths(e.StartDate, e.EndDate, e.IsCurrent),
+                e.SortOrder)).ToArray(),
+        resume.Educations.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumeSectionView(
+                e.Id,
+                e.Institution,
+                e.Degree,
+                e.FieldOfStudy,
+                e.StartDate,
+                e.EndDate,
+                e.IsCurrent,
+                DurationMonths(e.StartDate, e.EndDate, e.IsCurrent),
+                e.SortOrder)).ToArray(),
+        resume.Skills.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumeSkillView(
+                e.Id,
+                e.SkillId,
+                e.SkillName,
+                e.ProficiencyLevel,
+                e.YearsOfExperience,
+                e.SortOrder)).ToArray(),
+        resume.Languages.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumeLanguageView(
+                e.Id,
+                e.LanguageName,
+                e.ProficiencyLevel,
+                e.SortOrder)).ToArray(),
+        resume.Projects.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumeProjectView(
+                e.Id,
+                e.Title,
+                e.Description,
+                e.Url,
+                e.StartDate,
+                e.EndDate,
+                e.IsCurrent,
+                e.SortOrder)).ToArray(),
+        resume.Certifications.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumeCertificationView(
+                e.Id,
+                e.Name,
+                e.IssuingOrganization,
+                e.IssueDate,
+                e.ExpiryDate,
+                e.CertificateUrl,
+                e.SortOrder)).ToArray(),
+        resume.PortfolioLinks.OrderBy(e => e.SortOrder)
+            .Select(e => new EmployerResumePortfolioLinkView(
+                e.Id,
+                e.Title,
+                e.Url,
+                e.Description,
+                e.SortOrder)).ToArray());
+
+    private static int DurationMonths(DateOnly? start, DateOnly? end, bool isCurrent)
+    {
+        if (start is null)
+            return 0;
+        var to = isCurrent || end is null ? DateOnly.FromDateTime(DateTime.Today) : end.Value;
+        var months = (to.Year - start.Value.Year) * 12 + to.Month - start.Value.Month;
+        if (to.Day < start.Value.Day)
+            months--;
+        return months < 0 ? 0 : months;
+    }
 
     private async Task<Guid> GetCandidateProfileIdAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -333,6 +501,15 @@ public sealed class JobApplicationService(
         JobApplicationStatus Status,
         DateTimeOffset AppliedAt,
         DateTimeOffset? UpdatedAt);
+
+    private static string GetDownloadFileName(string contentType) =>
+        contentType switch
+        {
+            "application/pdf" => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.pdf",
+            "application/msword" => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.doc",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.docx",
+            _ => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.bin"
+        };
 
     private static DomainException AlreadyApplied() =>
         new("You have already applied to this job.");

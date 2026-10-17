@@ -7,6 +7,9 @@ import { JobApplicationService } from '../../candidate/applications/job-applicat
 import { JobDetailsComponent } from './job-details.component';
 import { PublicJobDetails } from '../models/public-job.models';
 import { PublicJobSearchService } from '../services/public-job-search.service';
+import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
+import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
+import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
 
 describe('JobDetailsComponent application action', () => {
   const job: PublicJobDetails = {
@@ -29,6 +32,12 @@ describe('JobDetailsComponent application action', () => {
     applications.getMyApplications.and.returnValue(of(currentApplications));
     applications.applyToJob.and.returnValue(of(application));
     const auth = { hasRole: jasmine.createSpy('hasRole').and.returnValue(isAuthenticated), isAuthenticated: () => isAuthenticated };
+    const employmentTypeService = jasmine.createSpyObj<EmploymentTypeService>('EmploymentTypeService', ['getAll']);
+    employmentTypeService.getAll.and.returnValue(of([]));
+    const workArrangementService = jasmine.createSpyObj<WorkArrangementService>('WorkArrangementService', ['getAll']);
+    workArrangementService.getAll.and.returnValue(of([]));
+    const salaryCurrencyService = jasmine.createSpyObj<SalaryCurrencyService>('SalaryCurrencyService', ['getAll']);
+    salaryCurrencyService.getAll.and.returnValue(of([]));
     TestBed.configureTestingModule({
       imports: [JobDetailsComponent],
       providers: [
@@ -36,6 +45,9 @@ describe('JobDetailsComponent application action', () => {
         { provide: PublicJobSearchService, useValue: search },
         { provide: JobApplicationService, useValue: applications },
         { provide: AuthService, useValue: auth },
+        { provide: EmploymentTypeService, useValue: employmentTypeService },
+        { provide: WorkArrangementService, useValue: workArrangementService },
+        { provide: SalaryCurrencyService, useValue: salaryCurrencyService },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: job.id }) } } }
       ]
     });

@@ -70,10 +70,13 @@ describe('JobSearchComponent', () => {
     fixture.detectChanges();
   }
 
-  function flushLookups(): void {
+    function flushLookups(): void {
     http.expectOne(`${API}/job-categories`).flush([]);
     http.expectOne(`${API}/skills`).flush([]);
     http.expectOne(`${API}/locations/countries`).flush([]);
+    http.expectOne(`${API}/employment-types`).flush([]);
+    http.expectOne(`${API}/work-arrangements`).flush([]);
+    http.expectOne(`${API}/salary-currencies`).flush([]);
   }
 
   afterEach(() => {
@@ -177,9 +180,13 @@ describe('JobDetailsComponent', () => {
       providers: [provideHttpClient(), provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'job-1' }) } } }]
     });
-    fixture = TestBed.createComponent(JobDetailsComponent);
+        fixture = TestBed.createComponent(JobDetailsComponent);
     http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+    // Flush reference-data lookups initiated in ngOnInit
+    http.expectOne(`${API}/employment-types`).flush([]);
+    http.expectOne(`${API}/work-arrangements`).flush([]);
+    http.expectOne(`${API}/salary-currencies`).flush([]);
   });
 
   afterEach(() => http.verify());

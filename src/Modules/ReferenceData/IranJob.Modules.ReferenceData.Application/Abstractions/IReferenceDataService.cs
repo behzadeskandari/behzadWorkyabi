@@ -32,6 +32,10 @@ public interface IReferenceDataService
     Task<CityItem> GetCityAsync(Guid id, CancellationToken cancellationToken);
     Task<CityItem> CreateCityAsync(CityInput input, CancellationToken cancellationToken);
     Task<CityItem> UpdateCityAsync(Guid id, CityInput input, CancellationToken cancellationToken);
-    Task DeactivateCityAsync(Guid id, CancellationToken cancellationToken);
+        Task DeactivateCityAsync(Guid id, CancellationToken cancellationToken);
     Task<LocationItem> GetLocationAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<JobFieldOptionItem>> GetEmploymentTypesAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<JobFieldOptionItem>> GetWorkArrangementsAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<SalaryCurrencyItem>> GetSalaryCurrenciesAsync(CancellationToken cancellationToken);
 }

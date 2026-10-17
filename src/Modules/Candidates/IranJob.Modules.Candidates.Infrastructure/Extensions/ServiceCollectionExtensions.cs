@@ -1,9 +1,9 @@
 using FluentValidation;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
 using IranJob.Modules.Candidates.Application.Abstractions;
+using IranJob.Modules.Candidates.Application.Validators;
 using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using IranJob.Modules.Candidates.Infrastructure.Services;
-using IranJob.Modules.Candidates.Application.Validators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +28,12 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddScoped<ICandidateProfileService, CandidateProfileService>();
+        services.AddScoped<ICandidateResumeService, CandidateResumeService>();
 
         services.AddValidatorsFromAssemblyContaining<CandidateProfileRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<CvUploadValidator>();
+
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
 
         return services;
     }

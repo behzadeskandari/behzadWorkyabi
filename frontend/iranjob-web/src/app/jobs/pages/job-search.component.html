@@ -58,20 +58,14 @@
         <label>نوع همکاری
           <select formControlName="employmentType">
             <option value="">همهٔ انواع همکاری</option>
-            <option value="FullTime">تمام‌وقت</option>
-            <option value="PartTime">پاره‌وقت</option>
-            <option value="Contract">قراردادی</option>
-            <option value="Internship">کارآموزی</option>
-            <option value="Temporary">موقت</option>
+            <option *ngFor="let type of employmentTypes" [value]="type.value">{{ type.name }}</option>
           </select>
         </label>
 
         <label>شیوهٔ انجام کار
           <select formControlName="workArrangement">
             <option value="">همهٔ شیوه‌ها</option>
-            <option value="OnSite">حضوری</option>
-            <option value="Hybrid">ترکیبی</option>
-            <option value="Remote">دورکاری</option>
+            <option *ngFor="let arrangement of workArrangements" [value]="arrangement.value">{{ arrangement.name }}</option>
           </select>
         </label>
 
@@ -79,7 +73,12 @@
           <legend>محدودهٔ حقوق</legend>
           <label>حداقل<input type="number" min="0" formControlName="salaryMinimum" inputmode="numeric" /></label>
           <label>حداکثر<input type="number" min="0" formControlName="salaryMaximum" inputmode="numeric" /></label>
-          <label>واحد پول<input type="text" maxlength="3" formControlName="salaryCurrency" placeholder="IRR" dir="ltr" /></label>
+          <label>واحد پول
+            <select formControlName="salaryCurrency">
+              <option value="">همهٔ ارزها</option>
+              <option *ngFor="let currency of salaryCurrencies" [value]="currency.code">{{ currency.code }} ({{ currency.name }})</option>
+            </select>
+          </label>
         </fieldset>
         <p *ngIf="filterValidationMessage" class="lookup-error" role="alert">{{ filterValidationMessage }}</p>
 

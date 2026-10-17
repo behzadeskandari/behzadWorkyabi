@@ -1,0 +1,93 @@
+﻿@if (isLoading) {
+  <div class="stats-grid" role="status">
+    <div class="stat-card stat-card--loading" *ngFor="let i of [1,2,3,4]">
+      <div class="stat-card__skeleton"></div>
+    </div>
+  </div>
+}
+
+@if (error) {
+  <div class="error-state" role="alert">
+    <p>{{ error }}</p>
+    <button type="button" (click)="loadStats()" class="btn btn--secondary">
+      تلاش مجدد
+    </button>
+  </div>
+}
+
+@if (stats && !isLoading) {
+  <div class="dashboard-content">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats.totalUsers }}</div>
+        <div class="stat-card__label">کل کاربران</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats.activeUsers }}</div>
+        <div class="stat-card__label">کاربران فعال</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats.lockedOutUsers }}</div>
+        <div class="stat-card__label">قفل‌شده</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__value">{{ stats.recentRegistrations }}</div>
+                <div class="stat-card__label">ثبت‌نام‌های ۷ روز اخیر</div>
+      </div>
+    </div>
+
+    <div class="dashboard-section">
+      <h2 class="section-title">کاربران بر اساس نقش</h2>
+      <div class="role-stats">
+        <div
+          class="role-stat"
+          *ngFor="let entry of stats.usersByRole | keyvalue: preserveOrder"
+        >
+          <span class="role-stat__label">{{ getRoleLabel(entry.key) }}</span>
+          <span class="role-stat__value">{{ entry.value }}</span>
+        </div>
+        <div
+          class="role-stat"
+          *ngIf="!hasRoleEntries(stats.usersByRole)"
+        >
+          <span class="role-stat__label">هیچ نقشی ثبت نشده</span>
+          <span class="role-stat__value">0</span>
+        </div>
+            </div>
+    </div>
+
+    <div class="dashboard-section">
+      <h2 class="section-title">در دسترس در فازهای آینده</h2>
+      <ul class="feature-list">
+        <li class="feature-list__item">
+          <span class="feature-list__icon">👥</span>
+          <span class="feature-list__label">مدیریت کاربران</span>
+          <span class="feature-list__phase">فاز 13</span>
+        </li>
+        <li class="feature-list__item">
+          <span class="feature-list__icon">💼</span>
+          <span class="feature-list__label">مدریت آگهی‌ها</span>
+          <span class="feature-list__phase">فاز 14</span>
+        </li>
+        <li class="feature-list__item">
+          <span class="feature-list__icon">💰</span>
+          <span class="feature-list__label">مدیریت پرداخت‌ها</span>
+          <span class="feature-list__phase">فاز 17</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="dashboard-section">
+      <h2 class="section-title">به‌روزرسانی اخیر</h2>
+      <p class="text-muted">
+        آمار در تاریخ {{ formatDate(stats.generatedAt) }} تولید شده است.
+      </p>
+    </div>
+  </div>
+}
+
+@if (!stats && !isLoading) {
+  <div class="empty-state">
+    <p>داده‌ای موجود نیست.</p>
+  </div>
+}

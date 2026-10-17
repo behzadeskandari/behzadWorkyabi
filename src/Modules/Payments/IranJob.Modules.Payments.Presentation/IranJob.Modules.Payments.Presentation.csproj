@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\IranJob.Modules.Payments.Application\IranJob.Modules.Payments.Application.csproj" />
+    <ProjectReference Include="..\IranJob.Modules.Payments.Domain\IranJob.Modules.Payments.Domain.csproj" />
+    <ProjectReference Include="..\IranJob.Modules.Payments.Infrastructure\IranJob.Modules.Payments.Infrastructure.csproj" />
+        <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Identity\IranJob.Modules.Identity.Domain\IranJob.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

@@ -149,7 +149,6 @@ export class AuthService {
     if (this.csrfToken) {
       headers = headers.set('X-CSRF-TOKEN', this.csrfToken);
   }
-
     return headers;
   }
 

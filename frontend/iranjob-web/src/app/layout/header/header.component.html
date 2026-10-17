@@ -1,12 +1,13 @@
-﻿<header class="header">
+<header class="header">
   <div class="container header__content">
     <a routerLink="/" class="brand">ایران‌جاب</a>
     <nav class="nav">
       <a routerLink="/" routerLinkActive="active"  [routerLinkActiveOptions]="{ exact: true }">خانه</a>
       <a routerLink="/jobs" routerLinkActive="active">فرصت های شغلی</a>
-            @if (authService.isAuthenticated()) {
+      @if (authService.isAuthenticated()) {
         @if (authService.hasRole('Candidate')) {
-          <a routerLink="/candidate/profile" routerLinkActive="active">پروفایل کارجو</a>
+                    <a routerLink="/candidate/profile" routerLinkActive="active">پروفایل کارجو</a>
+          <a routerLink="/candidate/resume" routerLinkActive="active">رزومه</a>
           <a routerLink="/candidate/applications" routerLinkActive="active">درخواست‌های من</a>
         }
         @if (authService.hasRole('Employer') || authService.hasRole('Recruiter')) {
@@ -15,6 +16,9 @@
           <a routerLink="/employer/applications" routerLinkActive="active">درخواست‌های دریافتی</a>
         }
         <a routerLink="/account" routerLinkActive="active">حساب کاربری</a>
+        @if (authService.hasRole('Admin') || authService.hasRole('SuperAdmin')) {
+          <a routerLink="/admin" routerLinkActive="active">پنل مدیریت</a>
+        }
         <button type="button" class="nav-button" (click)="logout()">خروج</button>
       } @else {
         <a routerLink="/login" routerLinkActive="active">ورود</a>

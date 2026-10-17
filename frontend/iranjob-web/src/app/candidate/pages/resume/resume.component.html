@@ -1,0 +1,197 @@
+<div class="resume-page" dir="rtl">
+  <div class="resume-card">
+    <div class="resume-header">
+      <h1>رزومهٔ من</h1>
+      <p class="subtitle">ساختار خود را وارد کنید؛ این اطلاعات برای کارفرمایانی که درخواست شما را می‌بینند، قابل مشاهده است.</p>
+    </div>
+
+    <div *ngIf="isLoading" class="loading">در حال بارگذاری رزومه…</div>
+
+    <ng-container *ngIf="!isLoading">
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+
+      <section class="section">
+        <h2>فایل رزومه (PDF/Word، حداکثر ۵ مگابایت)</h2>
+        <div class="cv-upload">
+                    <button type="button" class="secondary-button" [disabled]="isUploadingCv">
+            <input type="file" (change)="uploadCv($event)" [disabled]="isUploadingCv"
+                   accept=".pdf,.doc,.docx" hidden />
+            {{ isUploadingCv ? 'در حال آپلود…' : 'انتخاب فایل' }}
+          </button>
+          <span *ngIf="existingResume?.hasCvFile" class="cv-meta">
+            فایل آپلود شده: {{ existingResume?.cvFileName }}
+          </span>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>خلاصهٔ حرفه‌ای</h2>
+        <textarea formControlName="professionalSummary"
+                  placeholder="مثال: مهندس نرم‌افزار با تجربه در پشتهٔ .NET و معمعاری ابری..."
+                  maxlength="2000"></textarea>
+      </section>
+
+      <section class="section" *ngIf="existingResume">
+        <h2>اشتراک‌گذاری</h2>
+        <div class="sharing-row">
+          <select [value]="existingResume.status"
+                                      (change)="onStatusChange($event)"
+                  [disabled]="isSharing">
+            <option value="Draft">پیش‌نویس</option>
+            <option value="Complete">کامل</option>
+            <option value="ReadyToShare">آمادهٔ اشتراک‌گذاری</option>
+          </select>
+          <span class="badge"
+                [class.shared]="existingResume.status === 'ReadyToShare'"
+                [class.draft]="existingResume.status === 'Draft'">
+            {{ existingResume.status === 'ReadyToShare' ? 'در حال انتشار'
+              : existingResume.status === 'Draft' ? 'پیش‌نویس' : 'خصوصی' }}
+          </span>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>سابقهٔ کاری</h2>
+        <div class="list-section">
+          <div *ngFor="let ctrl of workExperienceArray.controls; let i = index; trackBy: trackByIndex" class="repeater-item">
+            <input formControlName="company" placeholder="شرکت" maxlength="200" />
+            <input formControlName="jobTitle" placeholder="عنوان شغلی" maxlength="200" />
+            <textarea formControlName="description" placeholder="توضیحات (اختیاری)" maxlength="2000"></textarea>
+                        <app-jalali-datepicker
+              [value]="ctrl.get('startDate')?.value ?? null"
+              (valueChange)="onStartDateChange(i, 'work', $event)"
+              placeholder="تاریخ شروع" />
+            <label class="checkbox">
+              <input type="checkbox" formControlName="isCurrent" />
+              <span>در حال کار</span>
+            </label>
+            <app-jalali-datepicker
+              *ngIf="!ctrl.get('isCurrent')?.value"
+              [value]="ctrl.get('endDate')?.value ?? null"
+              (valueChange)="onEndDateChange(i, 'work', $event)"
+              placeholder="تاریخ خاتمه" />
+            <button type="button" class="text-button" (click)="removeWorkExperience(i)">حذف</button>
+          </div>
+                    <button type="button" class="secondary-button" (click)="addWorkExperience()">افزودن سابقه</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>تحصیلات</h2>
+        <div class="list-section">
+          <div *ngFor="let ctrl of educationArray.controls; let i = index; trackBy: trackByIndex" class="repeater-item">
+            <input formControlName="institution" placeholder="نهاد آموزشی" maxlength="200" />
+            <input formControlName="degree" placeholder="مدرک تحصیلی" maxlength="200" />
+            <input formControlName="fieldOfStudy" placeholder="رشته (اختیاری)" maxlength="200" />
+            <input formControlName="grade" placeholder="نمره (اختیاری)" maxlength="100" />
+                        <app-jalali-datepicker
+              [value]="ctrl.get('startDate')?.value ?? null"
+              (valueChange)="onStartDateChange(i, 'education', $event)"
+              placeholder="تاریخ شروع" />
+            <label class="checkbox">
+              <input type="checkbox" formControlName="isCurrent" />
+              <span>در حال تحقیق</span>
+            </label>
+            <app-jalali-datepicker
+              *ngIf="!ctrl.get('isCurrent')?.value"
+              [value]="ctrl.get('endDate')?.value ?? null"
+              (valueChange)="onEndDateChange(i, 'education', $event)"
+              placeholder="تاریخ پایان" />
+            <button type="button" class="text-button" (click)="removeEducation(i)">حذف</button>
+          </div>
+          <button type="button" class="secondary-button" (click)="addEducation()">افزودن تحصیل</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>مهارت‌ها</h2>
+        <app-skill-select [(valueIds)]="selectedSkillIds" label="مهارت‌ها را انتخاب کنید..." />
+        <div *ngFor="let ctrl of skillArray.controls; let i = index; trackBy: trackByIndex" class="skill-item-row">
+          <input formControlName="skillName" readonly />
+          <input formControlName="proficiencyLevel" placeholder="سطح مهارت (اختیاری)" maxlength="100" />
+          <input type="number" formControlName="yearsOfExperience" placeholder="سال تجربه (اختیاری)" min="0" />
+                    <button type="button" class="text-button" (click)="removeSkillAt(i)">حذف</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>زبان‌ها</h2>
+        <div class="list-section">
+          <div *ngFor="let ctrl of languageArray.controls; let i = index; trackBy: trackByIndex" class="repeater-item">
+            <input formControlName="languageName" placeholder="نام زبان" maxlength="100" />
+            <input formControlName="proficiencyLevel" placeholder="سطح مهارت" maxlength="100" />
+            <button type="button" class="text-button" (click)="removeLanguage(i)">حذف</button>
+          </div>
+          <button type="button" class="secondary-button" (click)="addLanguage()">افزودن زبان</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>پروژه‌ها</h2>
+        <div class="list-section">
+          <div *ngFor="let ctrl of projectArray.controls; let i = index; trackBy: trackByIndex" class="repeater-item">
+            <input formControlName="title" placeholder="عنوان پروژه" maxlength="200" />
+            <textarea formControlName="description" placeholder="توضیحات (اختیاری)" maxlength="4000"></textarea>
+            <input formControlName="url" placeholder="URL (اختیاری)" maxlength="500" />
+                        <app-jalali-datepicker
+              [value]="ctrl.get('startDate')?.value ?? null"
+              (valueChange)="onStartDateChange(i, 'project', $event)"
+              placeholder="تاریخ شروع" />
+            <label class="checkbox">
+              <input type="checkbox" formControlName="isCurrent" />
+              <span>در حال انجام</span>
+            </label>
+            <app-jalali-datepicker
+              *ngIf="!ctrl.get('isCurrent')?.value"
+              [value]="ctrl.get('endDate')?.value ?? null"
+              (valueChange)="onEndDateChange(i, 'project', $event)"
+              placeholder="تاریخ پایان" />
+            <button type="button" class="text-button" (click)="removeProject(i)">حذف</button>
+          </div>
+          <button type="button" class="secondary-button" (click)="addProject()">افزودن پروژه</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>گواهینامه‌ها</h2>
+        <div class="list-section">
+          <div *ngFor="let ctrl of certificationArray.controls; let i = index; trackBy: trackByIndex" class="repeater-item">
+            <input formControlName="name" placeholder="نام گواهینامه" maxlength="200" />
+            <input formControlName="issuingOrganization" placeholder="نهاد صادرکننده (اختیاری)" maxlength="200" />
+                        <app-jalali-datepicker
+              [value]="ctrl.get('issueDate')?.value ?? null"
+              (valueChange)="ctrl.get('issueDate')?.setValue($event, { emitModelToViewChange: false })"
+              placeholder="تاریخ صدور" />
+            <app-jalali-datepicker
+              [value]="ctrl.get('expiryDate')?.value ?? null"
+              (valueChange)="ctrl.get('expiryDate')?.setValue($event, { emitModelToViewChange: false })"
+              placeholder="تاریخ انقضا (اختیاری)" />
+            <input formControlName="certificateUrl" placeholder="URL گواهینامه (اختیاری)" maxlength="500" />
+            <button type="button" class="text-button" (click)="removeCertification(i)">حذف</button>
+          </div>
+          <button type="button" class="secondary-button" (click)="addCertification()">افزودن گواهینامه</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>لینک‌های پرتفوی</h2>
+        <div class="list-section">
+          <div *ngFor="let ctrl of portfolioArray.controls; let i = index; trackBy: trackByIndex" class="repeater-item">
+            <input formControlName="title" placeholder="عنوان" maxlength="200" />
+            <input formControlName="url" placeholder="URL" maxlength="500" />
+            <textarea formControlName="description" placeholder="توضیحات (اختیاری)" maxlength="1000"></textarea>
+            <button type="button" class="text-button" (click)="removePortfolio(i)">حذف</button>
+          </div>
+          <button type="button" class="secondary-button" (click)="addPortfolio()">افزودن لینک</button>
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="primary-button" [disabled]="form.invalid || isSaving" (click)="save()">
+          {{ isSaving ? 'در حال ذخیره…' : 'ذخیرهٔ رزومه' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

@@ -3,6 +3,7 @@ using FluentValidation;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
 using IranJob.Modules.Identity.Application.Abstractions;
 using IranJob.Modules.Identity.Application.Validators;
+using IranJob.Modules.Identity.Domain.Constants;
 using IranJob.Modules.Identity.Domain.Entities;
 using IranJob.Modules.Identity.Infrastructure.Configuration;
 using IranJob.Modules.Identity.Infrastructure.Persistence;
@@ -67,8 +68,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IAuthenticationAuditService, AuthenticationAuditService>();
         services.AddScoped<IUserLookupService, UserLookupService>();
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
-        services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+                services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
         services.AddAuthentication(authenticationOptions =>
             {
@@ -98,7 +102,30 @@ public static class ServiceCollectionExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(options =>
+        {
+            // Role-based policies for administrative access
+            options.AddPolicy(PolicyNames.AdminOnly,
+                policy => policy.RequireRole(IdentityRoles.Admin, IdentityRoles.SuperAdmin));
+            options.AddPolicy(PolicyNames.SuperAdminOnly,
+                policy => policy.RequireRole(IdentityRoles.SuperAdmin));
+
+            // Permission-based policies for future phases (Phase 12–18)
+            options.AddPolicy(IdentityPermissions.UsersRead,
+                policy => policy.RequireRole(IdentityRoles.Admin, IdentityRoles.SuperAdmin));
+            options.AddPolicy(IdentityPermissions.UsersManage,
+                policy => policy.RequireRole(IdentityRoles.SuperAdmin));
+            options.AddPolicy(IdentityPermissions.CompaniesManage,
+                policy => policy.RequireRole(IdentityRoles.Admin, IdentityRoles.SuperAdmin));
+            options.AddPolicy(IdentityPermissions.JobsManage,
+                policy => policy.RequireRole(IdentityRoles.Admin, IdentityRoles.SuperAdmin));
+            options.AddPolicy(IdentityPermissions.ApplicationsManage,
+                policy => policy.RequireRole(IdentityRoles.Admin, IdentityRoles.SuperAdmin));
+            options.AddPolicy(IdentityPermissions.PaymentsManage,
+                policy => policy.RequireRole(IdentityRoles.SuperAdmin));
+            options.AddPolicy(IdentityPermissions.AdminManage,
+                policy => policy.RequireRole(IdentityRoles.SuperAdmin));
+        });
 
         services.PostConfigure<HealthCheckServiceOptions>(options =>
         {

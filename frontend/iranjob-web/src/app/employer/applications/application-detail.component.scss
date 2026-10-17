@@ -28,4 +28,7 @@ button:disabled { cursor: wait; opacity: 0.65; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .state-card { margin-top: 0.75rem; text-align: center; }
 .error-state { border-color: #f0cdcd; color: #8a2525; }
+.resume-section { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #e1eae9; }
+.resume-section h2 { margin: 0 0 0.5rem; font-size: 1.1rem; color: #087c7c; font-weight: 700; }
+.resume-meta { font-size: 0.85rem; color: #557272; margin-bottom: 0.5rem; }
 @media (max-width: 480px) { .actions > * { flex: 1 1 100%; justify-content: center; } }

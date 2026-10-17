@@ -1,7 +1,5 @@
 namespace IranJob.Modules.Candidates.Application.Abstractions;
-
-public interface ICandidateProfileService
-{
+public interface ICandidateProfileService {
     Task<CandidateProfileResult> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task<CandidateProfileResult> CreateProfileAsync(Guid userId, CandidateProfileRequest request, CancellationToken cancellationToken = default);

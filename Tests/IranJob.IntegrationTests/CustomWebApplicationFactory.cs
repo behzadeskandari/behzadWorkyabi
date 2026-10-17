@@ -1,37 +1,55 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using IranJob.BuildingBlocks.Infrastructure.Persistence;
-using IranJob.Modules.Candidates.Infrastructure.Persistence;
-using IranJob.Modules.Identity.Infrastructure.Persistence;
-using IranJob.Modules.Identity.Infrastructure.Extensions;
-using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
-using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
-using IranJob.Modules.JobPostings.Infrastructure.Persistence;
+            using Microsoft.AspNetCore.Mvc.Testing;
+            using Microsoft.Data.Sqlite;
+            using Microsoft.EntityFrameworkCore;
+            using Microsoft.Extensions.Configuration;
+            using Microsoft.Extensions.DependencyInjection;
+            using Microsoft.Extensions.DependencyInjection.Extensions;
+            using Microsoft.Extensions.Diagnostics.HealthChecks;
+            using IranJob.BuildingBlocks.Infrastructure.Persistence;
+            using IranJob.Modules.Candidates.Infrastructure.Persistence;
+            using IranJob.Modules.Identity.Infrastructure.Persistence;
+            using IranJob.Modules.Identity.Infrastructure.Extensions;
+            using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
+            using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
+            using IranJob.Modules.JobPostings.Infrastructure.Persistence;
+            using IranJob.Modules.Payments.Application.Abstractions;
+            using IranJob.Modules.Payments.Infrastructure.Configuration;
+            using IranJob.Modules.Payments.Infrastructure.Persistence;
+            using IranJob.Modules.Payments.Infrastructure.Services;
+            using IranJob.IntegrationTests.TestStubs;
 
 namespace IranJob.IntegrationTests;
 
 public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private SqliteConnection? _connection;
-    private SqliteConnection? _jobConnection;
+    // Shared-cache in-memory databases. Each DbContext opens its own connection (thread-safe)
+    // to the same in-memory cache; the keep-alive connections below keep the databases alive
+    // for the lifetime of the test server. Default Timeout=30 sets a 30s busy_timeout so
+    // concurrent writers wait instead of surfacing SQLITE_BUSY / NullReference.
+    private const string InMemoryDatabaseProvider = "Data Source=InMemory;Mode=Memory;Cache=Shared;Default Timeout=30";
+    private const string InMemoryIdentityProvider = "Data Source=InMemoryIdentity;Mode=Memory;Cache=Shared;Default Timeout=30";
+    private SqliteConnection? _keepAliveConnection;
+    private SqliteConnection? _identityKeepAliveConnection;
     private readonly SemaphoreSlim _jobDatabaseLock = new(1, 1);
     private bool _jobDatabaseInitialized;
 
+    /// <summary>
+    /// Publish fee charged to employers for publishing a job posting.
+    /// Default is 0 (free) so existing job-lifecycle tests publish immediately.
+    /// Set to a non-zero value in payment tests to exercise the gateway flow.
+    /// </summary>
+    public long PublishFeeAmount { get; set; }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        _connection = new SqliteConnection("DataSource=:memory:");
-        _connection.Open();
+        // Open keep-alive connections first so the shared-cache in-memory databases
+        // exist before any scoped DbContext attaches to them.
+        _keepAliveConnection = new SqliteConnection(InMemoryDatabaseProvider);
+        _keepAliveConnection.Open();
 
-        // Candidate profiles, employers, reference data and jobs share the same
-        // test database just as their schemas share the development SQL Server.
-        _jobConnection = new SqliteConnection("DataSource=:memory:");
-        _jobConnection.Open();
+        _identityKeepAliveConnection = new SqliteConnection(InMemoryIdentityProvider);
+        _identityKeepAliveConnection.Open();
 
         builder.UseEnvironment("Testing");
 
@@ -71,32 +89,44 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<ReferenceDataDbContext>();
             services.RemoveAll<DbContextOptions<JobPostingDbContext>>();
             services.RemoveAll<JobPostingDbContext>();
+            services.RemoveAll<DbContextOptions<PaymentDbContext>>();
+            services.RemoveAll<PaymentDbContext>();
 
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlite(_connection);
+                options.UseSqlite(InMemoryIdentityProvider);
             });
 
             services.AddDbContext<IdentityDbContext>(options =>
             {
-                options.UseSqlite(_connection);
+                options.UseSqlite(InMemoryIdentityProvider);
             });
             services.AddDbContext<CandidateDbContext>(options =>
             {
-                options.UseSqlite(_jobConnection);
+                options.UseSqlite(InMemoryDatabaseProvider);
             });
             services.AddDbContext<EmployerDbContext>(options =>
             {
-                options.UseSqlite(_jobConnection);
+                options.UseSqlite(InMemoryDatabaseProvider);
             });
             services.AddDbContext<ReferenceDataDbContext>(options =>
             {
-                options.UseSqlite(_jobConnection);
+                options.UseSqlite(InMemoryDatabaseProvider);
             });
             services.AddDbContext<JobPostingDbContext>(options =>
             {
-                options.UseSqlite(_jobConnection);
+                options.UseSqlite(InMemoryDatabaseProvider);
             });
+
+            // Payments module: in-memory SQLite, fee-free by default so existing job-lifecycle tests publish immediately. Payment tests set PublishFeeAmount to exercise the fee-gated gateway flow; each PaymentDbContext opens its own thread-safe connection to the shared job database (Cache=Shared + per-DbContext connections eliminate the shared-SqliteConnection race).
+            services.AddDbContext<PaymentDbContext>(options =>
+            {
+                options.UseSqlite(InMemoryDatabaseProvider);
+            });
+            services.Configure<PaymentOptions>(options => { options.PublishFeeAmount = PublishFeeAmount; });
+            services.AddSingleton<IZarinPalClient, StubZarinPalClient>();
+            services.AddScoped<IPaymentService, PaymentService>();
+
 
             services.PostConfigure<HealthCheckServiceOptions>(options =>
             {
@@ -106,48 +136,60 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     }
 
     public async Task InitializeDatabaseAsync()
+{
+
+    using var scope = Services.CreateScope();
+    var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var identityDbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+    var candidateDbContext = scope.ServiceProvider.GetRequiredService<CandidateDbContext>();
+    var jobPostingDbContext = scope.ServiceProvider.GetRequiredService<JobPostingDbContext>();
+    var employerDbContext = scope.ServiceProvider.GetRequiredService<EmployerDbContext>();
+    var referenceDataDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
+    var paymentDbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+
+    await applicationDbContext.Database.EnsureCreatedAsync();
+    await identityDbContext.Database.EnsureCreatedAsync();
+    await _jobDatabaseLock.WaitAsync();
+    try
     {
-        using var scope = Services.CreateScope();
-        var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var identityDbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        var candidateDbContext = scope.ServiceProvider.GetRequiredService<CandidateDbContext>();
-        var jobPostingDbContext = scope.ServiceProvider.GetRequiredService<JobPostingDbContext>();
-        var employerDbContext = scope.ServiceProvider.GetRequiredService<EmployerDbContext>();
-        var referenceDataDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
-
-        await applicationDbContext.Database.EnsureCreatedAsync();
-        await identityDbContext.Database.EnsureCreatedAsync();
-        await _jobDatabaseLock.WaitAsync();
-        try
+        if (!_jobDatabaseInitialized)
         {
-            if (!_jobDatabaseInitialized)
-            {
-                await jobPostingDbContext.Database.EnsureCreatedAsync();
-                await candidateDbContext.Database.ExecuteSqlRawAsync(candidateDbContext.Database.GenerateCreateScript());
-                await referenceDataDbContext.Database.ExecuteSqlRawAsync(referenceDataDbContext.Database.GenerateCreateScript());
-                await employerDbContext.Database.ExecuteSqlRawAsync(employerDbContext.Database.GenerateCreateScript());
-                _jobDatabaseInitialized = true;
-            }
+            await jobPostingDbContext.Database.EnsureCreatedAsync();
+            await candidateDbContext.Database.ExecuteSqlRawAsync(candidateDbContext.Database.GenerateCreateScript());
+            await referenceDataDbContext.Database.ExecuteSqlRawAsync(referenceDataDbContext.Database.GenerateCreateScript());
+            await employerDbContext.Database.ExecuteSqlRawAsync(employerDbContext.Database.GenerateCreateScript());
+            await paymentDbContext.Database.ExecuteSqlRawAsync(paymentDbContext.Database.GenerateCreateScript());
+            _jobDatabaseInitialized = true;
         }
-        finally
-        {
-            _jobDatabaseLock.Release();
-        }
-
-        await IdentitySeedData.SeedAsync(Services);
     }
+    finally
+    {
+        _jobDatabaseLock.Release();
+    }
+
+    await IdentitySeedData.SeedAsync(Services);
+}
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
+            if (disposing)
         {
-            _connection?.Dispose();
-            _jobConnection?.Dispose();
+            _keepAliveConnection?.Dispose();
+            _identityKeepAliveConnection?.Dispose();
         }
 
         base.Dispose(disposing);
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 

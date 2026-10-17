@@ -182,7 +182,8 @@ public sealed class EmployerProfileService(
             var request = httpContextAccessor.HttpContext?.Request;
             if (request is not null)
             {
-                logoUrl = $"{request.Scheme}://{request.Host}{entity.LogoUrl}";
+                //{request.Scheme}://{request.Host}
+                logoUrl = $"{entity.LogoUrl}";
             }
             else
             {

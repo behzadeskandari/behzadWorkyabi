@@ -39,3 +39,76 @@ export interface EmployerApplicationDetail {
   appliedAt: string;
   updatedAt: string | null;
 }
+
+export interface EmployerResumeSectionView {
+  id: string;
+  primaryLabel: string | null;
+  secondaryLabel: string | null;
+  tertiaryLabel: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isCurrent: boolean;
+  durationMonths: number;
+  sortOrder: number;
+}
+
+export interface EmployerResumeSkillView {
+  id: string;
+  skillId: string | null;
+  skillName: string | null;
+  proficiencyLevel: string | null;
+  yearsOfExperience: number | null;
+  sortOrder: number;
+}
+
+export interface EmployerResumeLanguageView {
+  id: string;
+  languageName: string | null;
+  proficiencyLevel: string | null;
+  sortOrder: number;
+}
+
+export interface EmployerResumeProjectView {
+  id: string;
+  title: string | null;
+  description: string | null;
+  url: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isCurrent: boolean;
+  sortOrder: number;
+}
+
+export interface EmployerResumeCertificationView {
+  id: string;
+  name: string | null;
+  issuingOrganization: string | null;
+  issueDate: string | null;
+  expiryDate: string | null;
+  certificateUrl: string | null;
+  sortOrder: number;
+}
+
+export interface EmployerResumePortfolioLinkView {
+  id: string;
+  title: string | null;
+  url: string | null;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface EmployerResumeViewResponse {
+  applicationId: string;
+  candidateProfileId: string;
+  candidateHeadline: string | null;
+  status: string;
+  completenessScore: number;
+  hasCvFile: boolean;
+    workExperiences: EmployerResumeSectionView[];
+  educations: EmployerResumeSectionView[];
+  skills: EmployerResumeSkillView[];
+  languages: EmployerResumeLanguageView[];
+  projects: EmployerResumeProjectView[];
+  certifications: EmployerResumeCertificationView[];
+  portfolioLinks: EmployerResumePortfolioLinkView[];
+}

@@ -1,12 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PublicJobDetails } from '../models/public-job.models';
 import { PublicJobSearchService } from '../services/public-job-search.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { JalaliDateService } from '../../core/services/jalali-date.service';
 import { JobApplication } from '../../candidate/applications/job-application.models';
 import { JobApplicationService } from '../../candidate/applications/job-application.service';
+import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
+import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
+import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
+import { EmploymentType, SalaryCurrency, WorkArrangement } from '../../reference-data/models/reference-data.models';
 
 @Component({
   selector: 'app-job-details',
@@ -22,10 +27,17 @@ export class JobDetailsComponent implements OnInit {
     private readonly authService = inject(AuthService);
   private readonly jalaliDate = inject(JalaliDateService);
   private readonly applicationService = inject(JobApplicationService);
+  private readonly employmentTypeService = inject(EmploymentTypeService);
+  private readonly workArrangementService = inject(WorkArrangementService);
+  private readonly salaryCurrencyService = inject(SalaryCurrencyService);
+  private readonly destroyRef = inject(DestroyRef);
 
   job: PublicJobDetails | null = null;
   isLoading = true;
   errorMessage = '';
+  employmentTypes: EmploymentType[] = [];
+  workArrangements: WorkArrangement[] = [];
+  salaryCurrencies: SalaryCurrency[] = [];
   application: JobApplication | null = null;
   isApplicationStateLoading = false;
   isApplying = false;
@@ -46,6 +58,7 @@ export class JobDetailsComponent implements OnInit {
       this.isLoading = false;
       return;
     }
+    this.loadReferenceData();
     this.searchService.getById(id).subscribe({
       next: job => {
         this.job = job;
@@ -56,6 +69,21 @@ export class JobDetailsComponent implements OnInit {
         this.isLoading = false;
       },
       complete: () => this.isLoading = false
+    });
+  }
+
+  private loadReferenceData(): void {
+    this.employmentTypeService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.employmentTypes = items,
+      error: () => {}
+    });
+    this.workArrangementService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.workArrangements = items,
+      error: () => {}
+    });
+    this.salaryCurrencyService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: items => this.salaryCurrencies = items,
+      error: () => {}
     });
   }
 
@@ -123,14 +151,16 @@ export class JobDetailsComponent implements OnInit {
       ? `${format(job.salaryMinimum)} تا ${format(job.salaryMaximum)}`
       : format(job.salaryMinimum ?? job.salaryMaximum ?? 0);
     const period = job.salaryPeriod === 'Monthly' ? ' ماهانه' : job.salaryPeriod === 'Yearly' ? ' سالانه' : '';
-    return `${amount} ${job.salaryCurrency ?? ''}${period}`.trim();
+    const currency = this.salaryCurrencies.find(c => c.code === job.salaryCurrency);
+    const currencyDisplay = currency ? (currency.symbol ?? currency.name) : (job.salaryCurrency ?? '');
+    return `${amount} ${currencyDisplay}${period}`.trim();
   }
 
   arrangementLabel(value: string): string {
-    return ({ OnSite: 'حضوری', Hybrid: 'ترکیبی', Remote: 'دورکاری' } as Record<string, string>)[value] ?? value;
+    return this.workArrangements.find(a => a.value === value)?.name ?? value;
   }
 
   employmentLabel(value: string): string {
-    return ({ FullTime: 'تمام‌وقت', PartTime: 'پاره‌وقت', Contract: 'قراردادی', Internship: 'کارآموزی', Temporary: 'موقت' } as Record<string, string>)[value] ?? value;
+    return this.employmentTypes.find(t => t.value === value)?.name ?? value;
   }
 }

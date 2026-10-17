@@ -1,4 +1,4 @@
-using IranJob.Modules.JobPostings.Domain.Entities;
+﻿using IranJob.Modules.JobPostings.Domain.Entities;
 using IranJob.Modules.ReferenceData.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -36,5 +36,10 @@ public sealed class JobPostingConfiguration : IEntityTypeConfiguration<JobPostin
         builder.HasIndex(posting => posting.CategoryId);
         builder.HasIndex(posting => posting.CityId);
         builder.HasIndex(posting => posting.ClosingAt);
+
+        // Moderation tracking columns
+        builder.Property(posting => posting.ModeratedByUserId).HasColumnType("uniqueidentifier");
+        builder.Property(posting => posting.ModerationReason).HasMaxLength(500);
+        builder.Property(posting => posting.ModeratedAt).HasColumnType("datetimeoffset");
     }
 }

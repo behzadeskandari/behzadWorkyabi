@@ -1,0 +1,36 @@
+<div class="admin-layout">
+  <app-admin-sidebar [isOpen]="isSidebarOpen()"></app-admin-sidebar>
+
+  <div class="admin-layout__main">
+    <header class="admin-header">
+      <div class="admin-header__content container">
+        <button
+          type="button"
+          class="admin-header__menu-btn"
+          aria-label="باز/بستن منو"
+          (click)="toggleSidebar()"
+        >
+          <span class="admin-header__menu-icon">☰</span>
+        </button>
+
+        <h1 class="admin-header__title">پنل مدیریت</h1>
+
+        <div class="admin-header__actions">
+          <span class="admin-header__role-badge">{{ roleLabel }}</span>
+          <button
+            type="button"
+            class="admin-header__logout-btn"
+            (click)="logout()"
+            aria-label="خروج"
+          >
+            خروج
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-layout__content container">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

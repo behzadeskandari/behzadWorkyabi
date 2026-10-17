@@ -1,3 +1,5 @@
+using IranJob.Modules.Payments.Application.Contracts;
+
 namespace IranJob.Modules.JobPostings.Application.Contracts;
 
 public abstract record JobPostingInput
@@ -21,6 +23,7 @@ public sealed record UpdateJobPostingRequest : JobPostingInput;
 
 public sealed record JobPostingReference(Guid Id, string Name);
 
+
 public sealed record JobPostingResponse(
     Guid Id,
     string Title,
@@ -43,4 +46,5 @@ public sealed record JobPostingResponse(
     DateTimeOffset? UpdatedAt,
     DateTimeOffset? PublishedAt,
     DateTimeOffset? ClosedAt,
-    DateTimeOffset? ClosingAt);
+    DateTimeOffset? ClosingAt,
+    PaymentInfo? PaymentInfo = null);

@@ -51,7 +51,7 @@ public sealed class EmployerApplicationsController(
     public async Task<ActionResult<EmployerApplicationResponse>> Accept(Guid id, CancellationToken cancellationToken) =>
         Ok(await applicationService.AcceptApplicationAsync(GetCurrentUserId(), id, cancellationToken));
 
-    [HttpPost("{id:guid}/reject")]
+        [HttpPost("{id:guid}/reject")]
     [ProducesResponseType(typeof(EmployerApplicationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -59,6 +59,25 @@ public sealed class EmployerApplicationsController(
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<EmployerApplicationResponse>> Reject(Guid id, CancellationToken cancellationToken) =>
         Ok(await applicationService.RejectApplicationAsync(GetCurrentUserId(), id, cancellationToken));
+
+    [HttpGet("{id:guid}/cv")]
+    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadCandidateCv(Guid id, CancellationToken cancellationToken)
+    {
+                var access = await applicationService.DownloadCandidateCvAsync(GetCurrentUserId(), id, cancellationToken);
+        return File(access.CvContent, access.CvContentType, access.CvDownloadName);
+    }
+
+    [HttpGet("{id:guid}/resume")]
+    [ProducesResponseType(typeof(EmployerResumeViewResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EmployerResumeViewResponse>> GetResume(Guid id, CancellationToken cancellationToken) =>
+        Ok(await applicationService.GetCandidateResumeAsync(GetCurrentUserId(), id, cancellationToken));
 
     private Guid GetCurrentUserId() => currentUser.UserId ?? throw new UnauthorizedException();
 }

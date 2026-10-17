@@ -1,4 +1,4 @@
-using IranJob.Modules.JobPostings.Domain.Enums;
+﻿using IranJob.Modules.JobPostings.Domain.Enums;
 using IranJob.SharedKernel.Exceptions;
 
 namespace IranJob.Modules.JobPostings.Domain.Entities;
@@ -26,6 +26,11 @@ public sealed class JobPosting
     public DateTimeOffset? ClosedAt { get; private set; }
     public DateTimeOffset? ClosingAt { get; private set; }
     public ICollection<JobPostingSkill> Skills { get; private set; } = new List<JobPostingSkill>();
+
+    // ── Moderation tracking ──────────────────────────────────────────
+    public Guid? ModeratedByUserId { get; private set; }
+    public string? ModerationReason { get; private set; }
+    public DateTimeOffset? ModeratedAt { get; private set; }
 
     public static JobPosting Create(Guid employerProfileId, JobPostingDetails details)
     {
@@ -83,6 +88,64 @@ public sealed class JobPosting
         Status = JobPostingStatus.Closed;
         ClosedAt = DateTimeOffset.UtcNow;
         UpdatedAt = ClosedAt;
+    }
+
+    // ── Admin moderation methods ─────────────────────────────────────
+
+    /// <summary>
+    /// Restores a draft or closed posting to Published state (administrative restore).
+    /// Validates the posting is still complete and valid before re-publishing.
+    /// </summary>
+    public void ModeratePublish(Guid actorUserId, string? reason)
+    {
+        if (Status == JobPostingStatus.Published)
+            throw new DomainException("The job posting is already published.");
+
+        if (string.IsNullOrWhiteSpace(Title) || string.IsNullOrWhiteSpace(Description) || CategoryId == Guid.Empty)
+            throw new DomainException("The job posting is incomplete and cannot be published.");
+
+        if (CityId is null)
+            throw new DomainException("A city is required for every job posting.");
+
+        Status = JobPostingStatus.Published;
+        PublishedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = PublishedAt;
+        SetModerationInfo(actorUserId, reason);
+    }
+
+    /// <summary>
+    /// Takes a published posting down to Draft (administrative unpublish).
+    /// </summary>
+    public void ModerateUnpublish(Guid actorUserId, string? reason)
+    {
+        if (Status != JobPostingStatus.Published)
+            throw new DomainException("Only a published job posting can be unpublished by an administrator.");
+
+        Status = JobPostingStatus.Draft;
+        PublishedAt = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+        SetModerationInfo(actorUserId, reason);
+    }
+
+    /// <summary>
+    /// Closes a draft or published posting (administrative close).
+    /// </summary>
+    public void ModerateClose(Guid actorUserId, string? reason)
+    {
+        if (Status == JobPostingStatus.Closed)
+            throw new DomainException("A closed job posting cannot be closed again.");
+
+        Status = JobPostingStatus.Closed;
+        ClosedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = ClosedAt;
+        SetModerationInfo(actorUserId, reason);
+    }
+
+    private void SetModerationInfo(Guid actorUserId, string? reason)
+    {
+        ModeratedByUserId = actorUserId;
+        ModerationReason = reason?.Trim().Length > 500 ? reason.Trim()[..500] : reason?.Trim();
+        ModeratedAt = DateTimeOffset.UtcNow;
     }
 
     private void ApplyDetails(JobPostingDetails details)

@@ -1,0 +1,151 @@
+<div class="user-mgmt">
+  <div class="user-mgmt__header">
+    <h1>مدیریت کاربران</h1>
+  </div>
+
+  <div class="user-mgmt__filters">
+    <div class="filters__row">
+                  <input
+        type="text"
+        class="input input--search"
+        placeholder="جستجو بر اساس نام یا ایمیل..."
+        [value]="searchTerm()"
+                 (input)="onSearchInput($event)"
+        (change)="onSearchChange()"
+      />
+
+      <select
+        class="input input--select"
+        [value]="selectedRole()"
+                (change)="onRoleChange($event)"
+      >
+        <option value="">همه نقش‌ها</option>
+        <option *ngFor="let role of availableRoles" [value]="role">
+          {{ getRoleLabel(role) }}
+        </option>
+      </select>
+
+      <select
+        class="input input--select"
+        [value]="selectedStatus()"
+                (change)="onStatusChange($event)"
+      >
+        <option value="">همه وضعیت‌ها</option>
+        <option value="active">فعال</option>
+        <option value="inactive">غیرفعال</option>
+      </select>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="user-mgmt__loading" role="status">
+      در حال بارگذاری کاربران...
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-state" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="loadUsers()" class="btn btn--secondary">
+        تلاش مجدد
+      </button>
+    </div>
+  }
+
+  @if (!isLoading() && !error()) {
+    <div class="user-table-wrapper">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>نام</th>
+            <th>نام خانوادگی</th>
+            <th>ایمیل</th>
+            <th>موبایل</th>
+            <th>نقش‌ها</th>
+            <th>وضعیت</th>
+            <th>تاریخ ثبت‌نام</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users()">
+            <td>{{ user.firstName }}</td>
+            <td>{{ user.lastName }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.phoneNumber ?? '-' }}</td>
+            <td>
+              <span
+                class="user-table__role"
+                *ngFor="let role of user.roles"
+                >{{ getRoleLabel(role) }}</span
+              >
+            </td>
+            <td>
+              <span
+                class="user-table__status"
+                [class.active]="user.isActive"
+                [class.inactive]="!user.isActive"
+                >{{ user.isActive ? 'فعال' : 'غیرفعال' }}</span
+              >
+            </td>
+            <td>{{ formatDate(user.createdAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div
+        class="user-mgmt__empty"
+        *ngIf="users().length === 0"
+      >
+        <p>هیچ کاربری یافت نشد.</p>
+      </div>
+    </div>
+
+    <div class="user-mgmt__pagination" *ngIf="totalCount() > 0">
+      <span class="user-mgmt__count">
+        نمایش {{ (currentPage() - 1) * pageSize() + 1 }} تا
+        {{ Math.min(currentPage() * pageSize(), totalCount()) }} از
+        {{ totalCount() }} کاربر
+      </span>
+
+      <div class="pagination-controls">
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() <= 1 || isLoading()"
+          (click)="goToPage(1)"
+          aria-label="صفحه اول"
+        >
+          |&lt;&lt;
+        </button>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() <= 1 || isLoading()"
+          (click)="goToPage(currentPage() - 1)"
+          aria-label="قبلی"
+        >
+          &lt;
+        </button>
+
+        <span class="pagination-controls__current">
+          صفحه {{ currentPage() }} از {{ totalPages }}
+        </span>
+
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() >= totalPages || isLoading()"
+          (click)="goToPage(currentPage() + 1)"
+          aria-label="بعدی"
+        >
+          &gt;
+        </button>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() >= totalPages || isLoading()"
+          (click)="goToPage(totalPages)"
+          aria-label="صفحه آخر"
+        >
+          &gt;&gt;|
+        </button>
+      </div>
+    </div>
+  }
+</div>

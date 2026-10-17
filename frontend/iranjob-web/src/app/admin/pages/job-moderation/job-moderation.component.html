@@ -1,0 +1,272 @@
+<div class="job-moderation">
+  <div class="job-moderation__header">
+    <h1>مدیریت آگهی‌ها</h1>
+    <p class="job-moderation__subtitle">
+      بررسی، انتشار، خروج از انتشار و بستن آگهی‌های شغلی
+    </p>
+  </div>
+
+  @if (isLookupsLoading()) {
+    <div class="job-moderation__loading-lookups" role="status">
+      در حال بارگذاری فیلترها...
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-state" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="refresh()" class="btn btn--secondary">
+        تلاش مجدد
+      </button>
+    </div>
+  }
+
+  <div class="job-moderation__filters">
+    <div class="filters__row">
+      <input
+        type="text"
+        class="input input--search"
+        placeholder="جستجو بر اساس عنوان یا نام شرکت..."
+        [value]="searchTerm()"
+        (input)="onSearchInput($event)"
+      />
+
+      <select
+        class="input input--select"
+        [value]="selectedStatus()"
+        (change)="onStatusChange($event)"
+      >
+        <option value="">همه وضعیت‌ها</option>
+        <option *ngFor="let opt of statusOptions" [value]="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+
+      <select
+        class="input input--select"
+        [value]="selectedCategoryId()"
+        (change)="onCategoryChange($event)"
+        [disabled]="isLookupsLoading()"
+      >
+        <option value="">همه دسته‌ها</option>
+        <option *ngFor="let cat of categories()" [value]="cat.id">
+          {{ cat.name }}
+        </option>
+      </select>
+
+      <select
+        class="input input--select"
+        [value]="selectedCountryId()"
+        (change)="onCountryChangeHandler($event)"
+        [disabled]="isLookupsLoading()"
+      >
+        <option value="">همه کشورها</option>
+        <option *ngFor="let country of countries()" [value]="country.id">
+          {{ country.name }}
+        </option>
+      </select>
+      <select
+        class="input input--select"
+        [value]="selectedProvinceId()"
+        (change)="onProvinceChangeHandler($event)"
+        [disabled]="!selectedCountryId() || isLookupsLoading()"
+      >
+        <option value="">همه استان‌ها</option>
+        <option *ngFor="let prov of provinces()" [value]="prov.id">
+          {{ prov.name }}
+        </option>
+      </select>
+
+      <select
+        class="input input--select"
+        [value]="selectedCityId()"
+        (change)="onCityChangeHandler($event)"
+        [disabled]="!selectedProvinceId() || isLookupsLoading()"
+      >
+        <option value="">همه شهرها</option>
+        <option *ngFor="let city of cities()" [value]="city.id">
+          {{ city.name }}
+        </option>
+      </select>
+
+      <input
+        type="text"
+        class="input input--search"
+        placeholder="نام شرکت..."
+        [value]="employerName()"
+        (input)="onEmployerNameInput($event)"
+        (change)="onFilterChange()"
+      />
+
+      <select
+        class="input input--select"
+        [value]="sort()"
+        (change)="onSortChange($event)"
+      >
+        <option *ngFor="let opt of sortOptions" [value]="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+
+      <button
+        type="button"
+        class="btn btn--page"
+        (click)="resetFilters()"
+        [disabled]="isLookupsLoading()"
+      >
+        بازنشانی
+      </button>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="job-moderation__loading" role="status">
+      در حال بارگذیری آگهی‌ها...
+    </div>
+  }
+
+  @if (!isLoading() && !error()) {
+    <div class="job-table-wrapper">
+      <table class="job-table">
+        <thead>
+          <tr>
+            <th>عنوان آگهی</th>
+            <th>کارفرما</th>
+            <th>دسته‌بندی</th>
+            <th>موقعیت</th>
+            <th>نوع شغل</th>
+            <th>وضعیت</th>
+            <th>تاریخ ایجاد</th>
+            <th>تاریخ انتشار</th>
+            <th>اقدامات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let job of jobs()">
+            <td>
+              <span class="job-table__title">{{ job.title }}</span>
+            </td>
+            <td>{{ job.companyName }}</td>
+            <td>{{ job.categoryName }}</td>
+            <td>{{ getLocation(job) }}</td>
+            <td>
+              {{ getEmploymentTypeLabel(job.employmentType) }} /
+              {{ getWorkArrangementLabel(job.workArrangement) }}
+            </td>
+            <td>
+              <span
+                class="job-table__status"
+                [class.status--draft]="job.status === 'Draft'"
+                [class.status--published]="job.status === 'Published'"
+                [class.status--closed]="job.status === 'Closed'"
+              >
+                {{ getStatusLabel(job.status) }}
+              </span>
+            </td>
+            <td>{{ formatDate(job.createdAt) }}</td>
+            <td>{{ formatDate(job.publishedAt) }}</td>
+            <td>
+              <div class="job-table__actions">
+                <button
+                  *ngIf="canPublish(job)"
+                  type="button"
+                  class="btn btn--action btn--action--publish"
+                  (click)="moderatePublish(job)"
+                  [attr.aria-label]="'انتشار: ' + job.title"
+                >
+                  منتشر کن
+                </button>
+                <button
+                  *ngIf="canUnpublish(job)"
+                  type="button"
+                  class="btn btn--action btn--action--unpublish"
+                  (click)="moderateUnpublish(job)"
+                  [attr.aria-label]="'خروج از انتشار: ' + job.title"
+                >
+                  خارج از انتشار
+                </button>
+                <button
+                  *ngIf="canClose(job)"
+                  type="button"
+                  class="btn btn--action btn--action--close"
+                  (click)="moderateClose(job)"
+                  [attr.aria-label]="'بستن: ' + job.title"
+                >
+                  بستن
+                </button>
+                <span
+                  *ngIf="job.status === 'Closed'"
+                  class="job-table__closed-badge"
+                >
+                  بسته شده
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="job-moderation__empty" *ngIf="jobs().length === 0">
+        <p>هیچ آگهی‌ای یافت نشد.</p>
+      </div>
+    </div>
+
+    <div class="job-moderation__pagination" *ngIf="totalCount() > 0">
+      <span class="job-moderation__count">
+        نمایش {{ (currentPage() - 1) * pageSize() + 1 }} تا
+        {{ Math.min(currentPage() * pageSize(), totalCount()) }} از
+        {{ formatNumber(totalCount()) }} آگهی
+      </span>
+
+      <div class="pagination-controls">
+        <select
+          class="input input--select--small"
+          [value]="pageSize()"
+          (change)="onPageSizeChange($event)"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">
+            {{ size }} در صفحه
+          </option>
+        </select>
+
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() <= 1 || isLoading()"
+          (click)="goToPage(1)"
+          aria-label="صفحه اول"
+        >
+          |&lt;&lt;
+        </button>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() <= 1 || isLoading()"
+          (click)="goToPage(currentPage() - 1)"
+          aria-label="قبلی"
+        >
+          &lt;
+        </button>
+
+        <span class="pagination-controls__current">
+          صفحه {{ currentPage() }} از {{ totalPages() }}
+        </span>
+
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() >= totalPages() || isLoading()"
+          (click)="goToPage(currentPage() + 1)"
+          aria-label="بعدی"
+        >
+          &gt;
+        </button>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() >= totalPages() || isLoading()"
+          (click)="goToPage(totalPages())"
+          aria-label="صفحه آخر"
+        >
+          &gt;&gt;|
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -2,6 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Domain\IranJob.Modules.Candidates.Domain.csproj" />
     <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Infrastructure\IranJob.Modules.Candidates.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Payments\IranJob.Modules.Payments.Application\IranJob.Modules.Payments.Application.csproj" />
     <ProjectReference Include="..\IranJob.Modules.JobPostings.Application\IranJob.Modules.JobPostings.Application.csproj" />
     <ProjectReference Include="..\IranJob.Modules.JobPostings.Domain\IranJob.Modules.JobPostings.Domain.csproj" />
     <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Domain\IranJob.Modules.EmployerProfile.Domain.csproj" />

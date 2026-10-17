@@ -10,6 +10,29 @@ export interface ReferenceDataItem {
 export type JobCategory = ReferenceDataItem;
 export type Skill = ReferenceDataItem;
 
+export interface JobFieldOption {
+  id: string;
+  value: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export type EmploymentType = JobFieldOption;
+export type WorkArrangement = JobFieldOption;
+
+export interface SalaryCurrency {
+  id: string;
+  code: string;
+  name: string;
+  symbol: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface Country {
   id: string;
   name: string;

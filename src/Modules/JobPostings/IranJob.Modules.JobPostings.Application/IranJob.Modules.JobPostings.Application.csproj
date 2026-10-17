@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
+    <ItemGroup>
     <ProjectReference Include="..\IranJob.Modules.JobPostings.Domain\IranJob.Modules.JobPostings.Domain.csproj" />
+    <ProjectReference Include="..\..\Payments\IranJob.Modules.Payments.Application\IranJob.Modules.Payments.Application.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
   </ItemGroup>
   <ItemGroup>

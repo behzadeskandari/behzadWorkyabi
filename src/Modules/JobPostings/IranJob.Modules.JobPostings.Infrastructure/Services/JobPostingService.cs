@@ -6,6 +6,8 @@ using IranJob.Modules.JobPostings.Application.Contracts;
 using IranJob.Modules.JobPostings.Domain.Entities;
 using IranJob.Modules.JobPostings.Domain.Enums;
 using IranJob.Modules.JobPostings.Infrastructure.Persistence;
+using IranJob.Modules.Payments.Application.Abstractions;
+using IranJob.Modules.Payments.Application.Contracts;
 using IranJob.Modules.ReferenceData.Domain.Entities;
 using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
 using IranJob.SharedKernel.Exceptions;
@@ -18,6 +20,7 @@ public sealed class JobPostingService(
     JobPostingDbContext jobDbContext,
     EmployerDbContext employerDbContext,
     ReferenceDataDbContext referenceDataDbContext,
+    IPaymentService paymentService,
     IValidator<CreateJobPostingRequest> createValidator,
     IValidator<UpdateJobPostingRequest> updateValidator) : IJobPostingService
 {
@@ -61,15 +64,36 @@ public sealed class JobPostingService(
         return (await MapAsync([posting], cancellationToken))[0];
     }
 
-    public async Task<JobPostingResponse> PublishAsync(Guid userId, Guid id, CancellationToken cancellationToken)
-    {
-        var employerProfileId = await GetEmployerProfileIdAsync(userId, cancellationToken);
-        var posting = await GetPostingAsync(employerProfileId, id, cancellationToken);
-        await ValidateReferencesAsync(posting.CategoryId, posting.Skills.Select(skill => skill.SkillId).ToArray(), posting.CityId, cancellationToken);
-        posting.Publish();
-        await jobDbContext.SaveChangesAsync(cancellationToken);
-        return (await MapAsync([posting], cancellationToken))[0];
-    }
+        public async Task<JobPostingResponse> PublishAsync(Guid userId, Guid id, CancellationToken cancellationToken)
+        {
+            var employerProfileId = await GetEmployerProfileIdAsync(userId, cancellationToken);
+            var posting = await GetPostingAsync(employerProfileId, id, cancellationToken);
+            await ValidateReferencesAsync(posting.CategoryId, posting.Skills.Select(skill => skill.SkillId).ToArray(), posting.CityId, cancellationToken);
+
+            // Fee-gated publishing. With PublishFeeAmount == 0 (default/test path)
+            // the payment completes in-process and the job is published immediately,
+            // preserving the existing fee-free behavior. When a fee applies the job
+            // stays Draft until the payer completes the gateway; the PaymentCompleted
+            // handler publishes it.
+            var initiation = await paymentService.InitiateForJobPublishAsync(employerProfileId, id, cancellationToken);
+            if (initiation.IsCompleted)
+            {
+                // When fee == 0 the PaymentCompleted handler may have already
+                // published the job via PublishByIdAsync.  If so, skip the
+                // redundant Publish() call.  For any other non-Published status
+                // (e.g. Closed), fall through to posting.Publish() so the
+                // appropriate DomainException is thrown and mapped to 409.
+                if (posting.Status != JobPostingStatus.Published)
+                    posting.Publish();
+                await jobDbContext.SaveChangesAsync(cancellationToken);
+                return (await MapAsync([posting], cancellationToken))[0] with { PaymentInfo = ToPaymentInfo(initiation) };
+            }
+
+            return (await MapAsync([posting], cancellationToken))[0] with
+            {
+                PaymentInfo = ToPaymentInfo(initiation)
+            };
+        }
 
     public async Task<JobPostingResponse> UnpublishAsync(Guid userId, Guid id, CancellationToken cancellationToken)
     {
@@ -88,6 +112,28 @@ public sealed class JobPostingService(
         await jobDbContext.SaveChangesAsync(cancellationToken);
         return (await MapAsync([posting], cancellationToken))[0];
     }
+
+    /// <summary>
+    /// Publishes a job posting by id (used by the Payments module's
+    /// PaymentCompleted handler after a publish fee is verified).
+    /// </summary>
+    public async Task<JobPostingResponse> PublishByIdAsync(Guid jobPostingId, CancellationToken cancellationToken)
+    {
+        var posting = await jobDbContext.JobPostings
+            .Include(posting => posting.Skills)
+            .SingleOrDefaultAsync(posting => posting.Id == jobPostingId, cancellationToken)
+            ?? throw new NotFoundException("Job posting was not found.");
+
+        posting.Publish();
+        await jobDbContext.SaveChangesAsync(cancellationToken);
+        return (await MapAsync([posting], cancellationToken))[0];
+    }
+
+    private static PaymentInfo? ToPaymentInfo(PaymentInitiationResponse initiation) =>
+        initiation.IsCompleted
+            ? null
+                        : new PaymentInfo(initiation.PaymentId, initiation.Authority, initiation.RedirectUrl,
+                initiation.Amount, initiation.Currency, initiation.Status, initiation.PaymentMethod, false);
 
     private async Task<Guid> GetEmployerProfileIdAsync(Guid userId, CancellationToken cancellationToken)
     {
@@ -212,8 +258,8 @@ public sealed class JobPostingService(
         input.Description,
         input.CategoryId,
         input.SkillIds,
-        Enum.Parse<EmploymentType>(input.EmploymentType, ignoreCase: false),
-        Enum.Parse<WorkArrangement>(input.WorkArrangement, ignoreCase: false),
+        Enum.Parse<IranJob.Modules.JobPostings.Domain.Enums.EmploymentType>(input.EmploymentType, ignoreCase: false),
+        Enum.Parse<IranJob.Modules.JobPostings.Domain.Enums.WorkArrangement>(input.WorkArrangement, ignoreCase: false),
         input.CityId,
         input.SalaryMinimum,
         input.SalaryMaximum,
@@ -231,3 +277,4 @@ public sealed class JobPostingService(
                 .ToDictionary(group => group.Key, group => group.Select(error => error.ErrorMessage).ToArray()));
     }
 }
+

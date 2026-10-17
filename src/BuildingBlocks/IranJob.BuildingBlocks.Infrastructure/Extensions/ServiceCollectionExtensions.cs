@@ -1,9 +1,10 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
 using IranJob.BuildingBlocks.Infrastructure.CurrentService;
+using IranJob.BuildingBlocks.Infrastructure.Events;
 using IranJob.BuildingBlocks.Infrastructure.Middleware;
 using IranJob.BuildingBlocks.Infrastructure.Persistence;
 
@@ -11,10 +12,11 @@ namespace IranJob.BuildingBlocks.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+            public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<ApplicationOptions>(configuration.GetSection(ApplicationOptions.SectionName));
         services.Configure<DatabaseOptions>(configuration.GetSection(DatabaseOptions.SectionName));
+        services.Configure<FileStorageOptions>(configuration.GetSection(FileStorageOptions.SectionName));
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new DatabaseOptions();
         var connectionString = configuration.GetConnectionString(databaseOptions.ConnectionStringName)
@@ -34,8 +36,9 @@ public static class ServiceCollectionExtensions
             .AddDbContextCheck<ApplicationDbContext>("database", tags: ["ready"]);
 
         services.AddHttpContextAccessor();
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
+                services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        services.AddScoped<IEventDispatcher, InProcessEventDispatcher>();
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 
