@@ -1,8 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { CandidateProfileService } from '../services/candidate-profile.service';
-import { CandidateProfileCompletionResponse } from '../models/candidate-completion.models';
+import { CandidateProfileService } from '../../candidate/services/candidate-profile.service';
+import { CandidateProfileCompletionResponse } from '../../candidate/models/candidate-completion.models';
+import { JalaliDateService } from '../../core/services/jalali-date.service';
+import { CandidateResumeService } from '../services/candidate-resume.service';
 
 interface MissingItem {
   key: string;
@@ -19,6 +21,8 @@ interface MissingItem {
 })
 export class CandidateDashboardComponent implements OnInit {
   private readonly profileService = inject(CandidateProfileService);
+  private readonly resumeService = inject(CandidateResumeService);
+  private readonly jalaliDate = inject(JalaliDateService);
 
   completion: CandidateProfileCompletionResponse | null = null;
   isLoading = true;
@@ -48,13 +52,9 @@ export class CandidateDashboardComponent implements OnInit {
       EmploymentStatus: { label: 'وضعیت اشتغال', editRoute: '/candidate/profile' },
       Availability: { label: 'در دسترس بودن', editRoute: '/candidate/profile' }
     };
-    const result: MissingItem[] = [];
-    for (let i = 0; i < this.completion.missingProfileFields.length; i++) {
-      const key = this.completion.missingProfileFields[i];
-      const m = map[key] ?? { label: key, editRoute: '/candidate/profile' };
-      result.push({ key, label: m.label, editRoute: m.editRoute });
-    }
-    return result;
+    return this.completion.missingProfileFields
+      .map(key => map[key] ?? { label: key, editRoute: '/candidate/profile' })
+      .map((m, i) => ({ key: this.completion!.missingProfileFields[i], ...m }));
   }
 
   get resumeMissingItems(): MissingItem[] {
@@ -68,12 +68,8 @@ export class CandidateDashboardComponent implements OnInit {
       Projects: { label: 'پروژه‌ها', editRoute: '/candidate/resume' },
       Certifications: { label: 'گواهینامه‌ها', editRoute: '/candidate/resume' }
     };
-    const result: MissingItem[] = [];
-    for (const key of this.completion.resume.missingSections) {
-      const m = map[key] ?? { label: key, editRoute: '/candidate/resume' };
-      result.push({ key, label: m.label, editRoute: m.editRoute });
-    }
-    return result;
+    return this.completion.resume.missingSections
+      .map(key => map[key] ?? { label: key, editRoute: '/candidate/resume' });
   }
 
   get profilePct(): number {
@@ -86,5 +82,10 @@ export class CandidateDashboardComponent implements OnInit {
 
   get canPreviewResume(): boolean {
     return !!this.completion?.resume?.hasResume;
+  }
+
+  formatDate(value: string | null): string {
+    if (!value) return '—';
+    return this.jalaliDate.formatDisplay(value);
   }
 }
