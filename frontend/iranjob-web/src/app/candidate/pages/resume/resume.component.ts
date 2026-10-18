@@ -42,6 +42,7 @@ export class CandidateResumeComponent implements OnInit {
   successMessage = '';
   validationErrors: Record<string, string[]> = {};
   skills: Skill[] = [];
+  showPreview = false;
 
   readonly statusOptions = [
     { value: 'Draft', label: 'پیش‌نویس' },
@@ -96,8 +97,8 @@ export class CandidateResumeComponent implements OnInit {
     })));
     this.projectArray.clear();
     resume.projects.forEach(p => this.projectArray.push(this.fb.group({
-      id: [p.id], title: [p.primaryLabel, Validators.required], description: [p.secondaryLabel],
-      url: [p.tertiaryLabel], startDate: [p.startDate], endDate: [p.endDate], isCurrent: [p.isCurrent]
+      id: [p.id], title: [p.title, Validators.required], description: [p.description],
+      url: [p.url], startDate: [p.startDate], endDate: [p.endDate], isCurrent: [p.isCurrent]
     })));
     this.certificationArray.clear();
     resume.certifications.forEach(c => this.certificationArray.push(this.fb.group({
@@ -209,6 +210,10 @@ export class CandidateResumeComponent implements OnInit {
       error: () => { this.errorMessage = 'بروزرسانی وضعیت ناموفق بود.'; },
       complete: () => (this.isSharing = false)
     });
+  }
+
+  togglePreview(): void {
+    this.showPreview = !this.showPreview;
   }
 
   uploadCv(event: Event): void {

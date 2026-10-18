@@ -1,15 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
     <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Domain\IranJob.Modules.Candidates.Domain.csproj" />
     <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Infrastructure\IranJob.Modules.Candidates.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\Payments\IranJob.Modules.Payments.Application\IranJob.Modules.Payments.Application.csproj" />
-    <ProjectReference Include="..\IranJob.Modules.JobPostings.Application\IranJob.Modules.JobPostings.Application.csproj" />
-    <ProjectReference Include="..\IranJob.Modules.JobPostings.Domain\IranJob.Modules.JobPostings.Domain.csproj" />
+    <ProjectReference Include="..\..\Payments\IranJob.Modules.Payments.Domain\IranJob.Modules.Payments.Domain.csproj" />
     <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Domain\IranJob.Modules.EmployerProfile.Domain.csproj" />
     <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
     <ProjectReference Include="..\..\ReferenceData\IranJob.Modules.ReferenceData.Domain\IranJob.Modules.ReferenceData.Domain.csproj" />
     <ProjectReference Include="..\..\ReferenceData\IranJob.Modules.ReferenceData.Infrastructure\IranJob.Modules.ReferenceData.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Notifications\IranJob.Modules.Notifications.Application\IranJob.Modules.Notifications.Application.csproj" />
+    <ProjectReference Include="..\IranJob.Modules.JobPostings.Application\IranJob.Modules.JobPostings.Application.csproj" />
+    <ProjectReference Include="..\IranJob.Modules.JobPostings.Domain\IranJob.Modules.JobPostings.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />

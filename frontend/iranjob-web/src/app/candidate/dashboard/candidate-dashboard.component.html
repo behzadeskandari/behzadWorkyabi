@@ -1,0 +1,92 @@
+<main class="dashboard-page" dir="rtl">
+  <h1 class="page-title">تکمیل پروفایل و رزومه</h1>
+
+  <p *ngIf="isLoading" class="dashboard-state" role="status">در حال بارگذاری وضعیت شما…</p>
+
+  <section *ngIf="errorMessage" class="dashboard-state error-state" role="alert">
+    <h2>خطا</h2>
+    <p>{{ errorMessage }}</p>
+    <button class="secondary-button" (click)="ngOnInit()">دوباره‌سعی کنید</button>
+  </section>
+
+  <ng-container *ngIf="completion as c">
+    <!-- Readiness banner -->
+    <section class="readiness-banner" [class.ready]="c.readiness.isReady" [class.warn]="!c.readiness.isReady" role="status">
+      <p class="readiness-message">{{ c.readiness.message }}</p>
+      <ng-container *ngIf="!c.readiness.isReady">
+        <a class="primary-button" routerLink="/candidate/profile">تکمیل پروفایل</a>
+      </ng-container>
+      <ng-container *ngIf="c.readiness.isReady && !c.readiness.hasRecommendedResume">
+        <a class="secondary-button" routerLink="/candidate/resume">ساخت رزومه</a>
+      </ng-container>
+    </section>
+
+    <!-- Profile card -->
+    <section class="dashboard-card">
+      <header class="card-header">
+        <h2>پروفایل شخصی</h2>
+        <a class="edit-link" routerLink="/candidate/profile">ویرایش</a>
+      </header>
+      <div class="progress-bar" role="progressbar" [attr.aria-valuenow]="profilePct" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-fill" [style.width.%]="profilePct"></div>
+      </div>
+      <p class="progress-label">{{ profilePct }}٪ تکمیل شده</p>
+      <p *ngIf="c.hasProfile" class="updated-at">پروفایل شما ساخته شده است.</p>
+      <ul *ngIf="profileMissingItems.length" class="missing-list">
+        <li *ngFor="let item of profileMissingItems">
+          <span class="missing-label">{{ item.label }}</span>
+          <a class="complete-link" [routerLink]="item.editRoute">تکمیل</a>
+        </li>
+      </ul>
+      <p *ngIf="!c.hasProfile" class="empty-hint">هنوز پروفایلی ساخته نشده است.</p>
+    </section>
+
+    <!-- Resume card -->
+    <section class="dashboard-card">
+      <header class="card-header">
+        <h2>رزومهٔ من</h2>
+        <a *ngIf="c.resume?.hasResume" class="edit-link" routerLink="/candidate/resume">ویرایش</a>
+      </header>
+      <div *ngIf="c.resume?.hasResume; else resumeEmpty">
+        <div class="progress-bar" role="progressbar" [attr.aria-valuenow]="resumePct" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" [style.width.%]="resumePct"></div>
+        </div>
+        <p class="progress-label">{{ resumePct }}٪ تکمیل شده</p>
+        <p class="resume-status">وضعیت: {{ c.resume?.status === 'ReadyToShare' ? 'آمادهٔ اشتراک‌گذاری' : c.resume?.status === 'Complete' ? 'کامل' : 'پیش‌نویس' }}</p>
+        <p *ngIf="c.resume?.hasCvFile" class="cv-info">فایل رزومهٔ کاری آپلود شده است.</p>
+
+        <ul *ngIf="resumeMissingItems.length" class="missing-list">
+          <li *ngFor="let item of resumeMissingItems">
+            <span class="missing-label">{{ item.label }}</span>
+            <a class="complete-link" [routerLink]="item.editRoute">کامل کنید</a>
+          </li>
+        </ul>
+        <p *ngIf="!c.readiness.hasRecommendedResume && c.resume?.hasResume" class="share-hint">
+          برای دیدرسازدن رزومه نسبت به کارفرمایان، وضعیت آن را روی «آمادهٔ اشتراک‌گذاری» قرار دهید.
+        </p>
+
+        <div *ngIf="canPreviewResume" class="preview-action">
+          <a class="secondary-button" routerLink="/candidate/resume">پیش‌نمایش رزومه</a>
+        </div>
+      </div>
+      <ng-template #resumeEmpty>
+        <p class="empty-hint">هنوز رزومه‌ای ساخته نشده است.</p>
+        <a class="primary-button" routerLink="/candidate/resume">ساخت رزومه</a>
+      </ng-template>
+    </section>
+
+    <!-- Next action -->
+    <section class="next-action">
+      <h2>قلمروی بعدی</h2>
+      <p *ngIf="!c.readiness.isReady">
+        برای ثبت درخواست شغلی، ابتدا پروفایل شخصی خود را کامل کنید.
+      </p>
+      <p *ngIf="c.readiness.isReady && !c.readiness.hasRecommendedResume">
+        می‌توانید فرصت شغلی ببینید و درخواست بدهید؛ برای نمایش رزومه به کارفرمایان آن را تکمیل و منتشر کنید.
+      </p>
+      <p *ngIf="c.readiness.isReady && c.readiness.hasRecommendedResume">
+        آمادهٔ ارسال درخواست شغلی هستید. <a routerLink="/jobs">فرصت‌های شغلی را ببینید</a>
+      </p>
+    </section>
+  </ng-container>
+</main>

@@ -1,4 +1,5 @@
 using FluentValidation;
+using EmployerProfileEntity = IranJob.Modules.EmployerProfile.Domain.Entities.EmployerProfile;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.JobPostings.Application.Contracts;
 using IranJob.Modules.JobPostings.Domain.Entities;
@@ -9,7 +10,6 @@ using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
 using IranJob.SharedKernel.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using DomainValidationException = IranJob.SharedKernel.Exceptions.ValidationException;
-using EmployerProfileEntity = IranJob.Modules.EmployerProfile.Domain.Entities.EmployerProfile;
 
 namespace IranJob.Modules.JobPostings.Infrastructure.Services;
 

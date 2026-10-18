@@ -12,6 +12,7 @@ using IranJob.Modules.Identity.Infrastructure.Extensions;
 using IranJob.Modules.Identity.Presentation.Controllers;
 using IranJob.Modules.JobPostings.Infrastructure.Extensions;
 using IranJob.Modules.JobPostings.Presentation.Controllers;
+using IranJob.Modules.Notifications.Infrastructure.Extensions;
 using IranJob.Modules.Payments.Infrastructure.Extensions;
 using IranJob.Modules.Payments.Presentation.Controllers;
 using IranJob.Modules.ReferenceData.Infrastructure.Extensions;
@@ -45,6 +46,7 @@ builder.Services.AddEmployerProfileModule(builder.Configuration);
 builder.Services.AddReferenceDataModule(builder.Configuration);
 builder.Services.AddJobPostingsModule(builder.Configuration);
 builder.Services.AddPaymentsModule(builder.Configuration);
+builder.Services.AddNotificationsModule(builder.Configuration);
 
 var rateOptions = builder.Configuration.GetSection(IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions.SectionName).Get<IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions>()
     ?? new IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions();
@@ -72,7 +74,8 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(EmployerProfileController).Assembly)
     .AddApplicationPart(typeof(JobCategoriesController).Assembly)
     .AddApplicationPart(typeof(EmployerJobsController).Assembly)
-        .AddApplicationPart(typeof(PaymentController).Assembly);
+        .AddApplicationPart(typeof(PaymentController).Assembly)
+    .AddApplicationPart(typeof(IranJob.Modules.Notifications.Presentation.Controllers.NotificationsController).Assembly);
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
@@ -144,6 +147,7 @@ await app.ApplyEmployerProfileMigrationsAsync();
 await app.ApplyReferenceDataMigrationsAsync();
 await app.ApplyJobPostingsMigrationsAsync();
 await app.ApplyPaymentsMigrationsAsync();
+await app.ApplyNotificationsMigrationsAsync();
 
 if (app.Environment.IsDevelopment())
 {
@@ -185,3 +189,4 @@ app.UseStaticFiles(new StaticFileOptions
 app.Run();
 
 public partial class Program;
+

@@ -1,23 +1,25 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-            using Microsoft.AspNetCore.Mvc.Testing;
-            using Microsoft.Data.Sqlite;
-            using Microsoft.EntityFrameworkCore;
-            using Microsoft.Extensions.Configuration;
-            using Microsoft.Extensions.DependencyInjection;
-            using Microsoft.Extensions.DependencyInjection.Extensions;
-            using Microsoft.Extensions.Diagnostics.HealthChecks;
-            using IranJob.BuildingBlocks.Infrastructure.Persistence;
-            using IranJob.Modules.Candidates.Infrastructure.Persistence;
-            using IranJob.Modules.Identity.Infrastructure.Persistence;
-            using IranJob.Modules.Identity.Infrastructure.Extensions;
-            using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
-            using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
-            using IranJob.Modules.JobPostings.Infrastructure.Persistence;
-            using IranJob.Modules.Payments.Application.Abstractions;
-            using IranJob.Modules.Payments.Infrastructure.Configuration;
-            using IranJob.Modules.Payments.Infrastructure.Persistence;
-            using IranJob.Modules.Payments.Infrastructure.Services;
-            using IranJob.IntegrationTests.TestStubs;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+using IranJob.BuildingBlocks.Infrastructure.Persistence;
+using IranJob.Modules.Candidates.Infrastructure.Persistence;
+using IranJob.Modules.Identity.Infrastructure.Persistence;
+using IranJob.Modules.Identity.Infrastructure.Extensions;
+using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
+using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
+using IranJob.Modules.JobPostings.Infrastructure.Persistence;
+using IranJob.Modules.Payments.Application.Abstractions;
+using IranJob.Modules.Payments.Infrastructure.Configuration;
+using IranJob.Modules.Payments.Infrastructure.Persistence;
+using IranJob.Modules.Payments.Infrastructure.Services;
+using IranJob.Modules.Notifications.Infrastructure.Persistence;
+using IranJob.IntegrationTests.TestStubs;
 
 namespace IranJob.IntegrationTests;
 
@@ -41,6 +43,42 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     /// </summary>
     public long PublishFeeAmount { get; set; }
 
+    /// <summary>
+    /// Overrides the default factory behavior.
+    ///
+    /// The base implementation calls HostFactoryResolver to find a static
+    /// <c>CreateHostBuilder</c> method on the entry-point assembly (Program).
+    /// With .NET 8 minimal-hosting top-level statements, that method does NOT
+    /// exist, so HostFactoryResolver returns null and the factory falls into
+    /// the DeferredHostBuilder path. In that path, the factory's
+    /// <c>ConfigureWebHost</c> callbacks (stored on the IHostBuilder
+    /// Properties) are NOT replayed onto the host that Program.Main creates,
+    /// meaning <see cref="ConfigureWebHost"/> here is never invoked — the
+    /// SQLite substitutions in ConfigureWebHost never run, environment stays
+    /// at the default "Production", and SQL Server connection attempts fail.
+    ///
+    /// By returning a non-null IHostBuilder we take the *direct* path
+    /// (see WebApplicationFactory.EnsureServer). In that path
+    /// <see cref="Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory{TEntryPoint}
+    /// .ConfigureHostBuilder(IHostBuilder)"/> is called, which:
+    ///   1. Registers a ConfigureWebHost callback containing SetContentRoot,
+    ///      the _configuration delegate (= our ConfigureWebHost override),
+    ///      and UseTestServer().
+    /// These callbacks ARE replayed when the host is built.
+    /// UseStartup&lt;Program&gt; reuses the service registrations and HTTP
+    /// pipeline from Program.Configuration.cs (a partial class of Program),
+    /// so we don't duplicate the bootstrap logic from Program.cs.
+    /// </summary>
+    protected override IHostBuilder CreateHostBuilder()
+    {
+        return Host.CreateDefaultBuilder(Array.Empty<string>())
+            .UseEnvironment("Testing")
+            .ConfigureWebHostDefaults(webHostBuilder =>
+            {
+                webHostBuilder.UseStartup<Program>();
+            });
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Open keep-alive connections first so the shared-cache in-memory databases
@@ -62,117 +100,114 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["Database:ApplyMigrationsOnStartup"] = "false",
                 ["ConnectionStrings:DefaultConnection"] = "DataSource=:memory:",
                 ["Authentication:Jwt:SecretKey"] = "TEST_SECRET_KEY_FOR_INTEGRATION_TESTS_MUST_BE_LONG_ENOUGH",
-                ["Authentication:Jwt:Issuer"] = "TestIssuer",
-                ["Authentication:Jwt:Audience"] = "TestAudience",
-                ["Authentication:Identity:MaxFailedAccessAttempts"] = "5",
-                ["Authentication:Identity:LockoutMinutes"] = "15",
-                ["Authentication:Identity:RefreshTokenExpirationDays"] = "7",
-                ["Authentication:Identity:RefreshTokenCookieName"] = "iranjob_refresh_token",
-                ["Authentication:Identity:CsrfCookieName"] = "iranjob_csrf",
-                ["Authentication:Identity:CsrfHeaderName"] = "X-CSRF-TOKEN",
-                ["Authentication:RateLimiting:PermitLimit"] = "1000",
-                ["Authentication:RateLimiting:WindowSeconds"] = "60"
             });
         });
 
         builder.ConfigureServices(services =>
         {
-            services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-            services.RemoveAll<ApplicationDbContext>();
-            services.RemoveAll<DbContextOptions<IdentityDbContext>>();
-            services.RemoveAll<IdentityDbContext>();
-            services.RemoveAll<DbContextOptions<CandidateDbContext>>();
-            services.RemoveAll<CandidateDbContext>();
-            services.RemoveAll<DbContextOptions<EmployerDbContext>>();
-            services.RemoveAll<EmployerDbContext>();
-            services.RemoveAll<DbContextOptions<ReferenceDataDbContext>>();
-            services.RemoveAll<ReferenceDataDbContext>();
-            services.RemoveAll<DbContextOptions<JobPostingDbContext>>();
-            services.RemoveAll<JobPostingDbContext>();
-            services.RemoveAll<DbContextOptions<PaymentDbContext>>();
-            services.RemoveAll<PaymentDbContext>();
+            // Re-register the per-module DbContexts against the
+            // in-memory SQLite databases used by tests. RemoveAll is essential
+            // here — EF Core's AddDbContext internally uses TryAdd (not Add) for
+            // DbContextOptions<T>, which silently skips when the Program's
+            // Add...Module calls have already registered SQL Server options.
+            ApplySqliteRegistrations(services);
+        });
+    }
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryIdentityProvider);
-            });
+    /// <summary>
+    /// Override CreateHost to re-apply SQLite registrations at the IHostBuilder level.
+    /// This guarantees the test registrations run AFTER the Program's configuration
+    /// code (executed inside HostBuilder.Build), ensuring SQLite wins over SQL Server.
+    /// </summary>
+    protected override IHost CreateHost(IHostBuilder hostBuilder)
+    {
+        hostBuilder.ConfigureServices(services => ApplySqliteRegistrations(services));
 
-            services.AddDbContext<IdentityDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryIdentityProvider);
-            });
-            services.AddDbContext<CandidateDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryDatabaseProvider);
-            });
-            services.AddDbContext<EmployerDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryDatabaseProvider);
-            });
-            services.AddDbContext<ReferenceDataDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryDatabaseProvider);
-            });
-            services.AddDbContext<JobPostingDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryDatabaseProvider);
-            });
+        return base.CreateHost(hostBuilder);
+    }
 
-            // Payments module: in-memory SQLite, fee-free by default so existing job-lifecycle tests publish immediately. Payment tests set PublishFeeAmount to exercise the fee-gated gateway flow; each PaymentDbContext opens its own thread-safe connection to the shared job database (Cache=Shared + per-DbContext connections eliminate the shared-SqliteConnection race).
-            services.AddDbContext<PaymentDbContext>(options =>
-            {
-                options.UseSqlite(InMemoryDatabaseProvider);
-            });
-            services.Configure<PaymentOptions>(options => { options.PublishFeeAmount = PublishFeeAmount; });
-            services.AddSingleton<IZarinPalClient, StubZarinPalClient>();
-            services.AddScoped<IPaymentService, PaymentService>();
+    /// <summary>
+    /// Removes every existing registration for the module DbContexts and re-registers
+    /// them against the shared in-memory SQLite databases. Also wires up test-only
+    /// stubs (payment gateway, publish fee, health-check suppression).
+    /// </summary>
+    private void ApplySqliteRegistrations(IServiceCollection services)
+    {
+        // Identity module
+        services.RemoveAll<ApplicationDbContext>();
+        services.RemoveAll<IdentityDbContext>();
+        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(InMemoryIdentityProvider));
+        services.AddDbContext<IdentityDbContext>(options => options.UseSqlite(InMemoryIdentityProvider));
 
+        // Other modules — full RemoveAll on the context type so that EF Core's
+        // internal TryAdd does not skip our SQLite registration when the Program's
+        // Add...Module calls already registered SQL Server options.
+        services.RemoveAll<CandidateDbContext>();
+        services.RemoveAll<JobPostingDbContext>();
+        services.RemoveAll<EmployerDbContext>();
+        services.RemoveAll<ReferenceDataDbContext>();
+        services.RemoveAll<PaymentDbContext>();
+        services.RemoveAll<NotificationDbContext>();
+        services.AddDbContext<CandidateDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddDbContext<JobPostingDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddDbContext<EmployerDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddDbContext<ReferenceDataDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddDbContext<PaymentDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddDbContext<NotificationDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
 
-            services.PostConfigure<HealthCheckServiceOptions>(options =>
-            {
-                options.Registrations.Clear();
-            });
+        // Payments module: in-memory SQLite, fee-free by default so existing
+        // job-lifecycle tests publish immediately. Set a non-zero fee in
+        // payment tests to exercise the gateway flow.
+        services.Configure<PaymentOptions>(options => { options.PublishFeeAmount = PublishFeeAmount; });
+        services.AddSingleton<IZarinPalClient, StubZarinPalClient>();
+        services.AddScoped<IPaymentService, PaymentService>();
+
+        // Clear health-check registrations (they try to connect to SQL Server).
+        services.PostConfigure<HealthCheckServiceOptions>(options =>
+        {
+            options.Registrations.Clear();
         });
     }
 
     public async Task InitializeDatabaseAsync()
-{
-
-    using var scope = Services.CreateScope();
-    var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var identityDbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-    var candidateDbContext = scope.ServiceProvider.GetRequiredService<CandidateDbContext>();
-    var jobPostingDbContext = scope.ServiceProvider.GetRequiredService<JobPostingDbContext>();
-    var employerDbContext = scope.ServiceProvider.GetRequiredService<EmployerDbContext>();
-    var referenceDataDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
-    var paymentDbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-
-    await applicationDbContext.Database.EnsureCreatedAsync();
-    await identityDbContext.Database.EnsureCreatedAsync();
-    await _jobDatabaseLock.WaitAsync();
-    try
     {
-        if (!_jobDatabaseInitialized)
+        using var scope = Services.CreateScope();
+        var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var identityDbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var candidateDbContext = scope.ServiceProvider.GetRequiredService<CandidateDbContext>();
+        var jobPostingDbContext = scope.ServiceProvider.GetRequiredService<JobPostingDbContext>();
+        var employerDbContext = scope.ServiceProvider.GetRequiredService<EmployerDbContext>();
+        var referenceDataDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
+        var paymentDbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+        var notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+
+        await applicationDbContext.Database.EnsureCreatedAsync();
+        await identityDbContext.Database.EnsureCreatedAsync();
+        await _jobDatabaseLock.WaitAsync();
+        try
         {
-            await jobPostingDbContext.Database.EnsureCreatedAsync();
-            await candidateDbContext.Database.ExecuteSqlRawAsync(candidateDbContext.Database.GenerateCreateScript());
-            await referenceDataDbContext.Database.ExecuteSqlRawAsync(referenceDataDbContext.Database.GenerateCreateScript());
-            await employerDbContext.Database.ExecuteSqlRawAsync(employerDbContext.Database.GenerateCreateScript());
-            await paymentDbContext.Database.ExecuteSqlRawAsync(paymentDbContext.Database.GenerateCreateScript());
-            _jobDatabaseInitialized = true;
+            if (!_jobDatabaseInitialized)
+            {
+                await jobPostingDbContext.Database.EnsureCreatedAsync();
+                await candidateDbContext.Database.EnsureCreatedAsync();
+                await referenceDataDbContext.Database.EnsureCreatedAsync();
+                await employerDbContext.Database.EnsureCreatedAsync();
+                await paymentDbContext.Database.EnsureCreatedAsync();
+                await notificationDbContext.Database.EnsureCreatedAsync();
+                _jobDatabaseInitialized = true;
+            }
         }
-    }
-    finally
-    {
-        _jobDatabaseLock.Release();
-    }
+        finally
+        {
+            _jobDatabaseLock.Release();
+        }
 
-    await IdentitySeedData.SeedAsync(Services);
-}
+        await IdentitySeedData.SeedAsync(Services);
+    }
 
     protected override void Dispose(bool disposing)
     {
-            if (disposing)
+        if (disposing)
         {
             _keepAliveConnection?.Dispose();
             _identityKeepAliveConnection?.Dispose();
@@ -181,15 +216,4 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         base.Dispose(disposing);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 

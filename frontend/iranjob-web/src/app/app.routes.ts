@@ -43,6 +43,13 @@ export const routes: Routes = [
           import('./candidate/applications/application-list.component').then(m => m.ApplicationListComponent)
       },
       {
+        path: 'candidate/dashboard',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['Candidate'] },
+        loadComponent: () =>
+          import('./candidate/dashboard/candidate-dashboard.component').then(m => m.CandidateDashboardComponent)
+      },
+      {
         path: 'candidate/applications/:id',
         canActivate: [authGuard, roleGuard],
         data: { roles: ['Candidate'] },

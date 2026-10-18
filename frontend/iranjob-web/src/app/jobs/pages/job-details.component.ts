@@ -8,6 +8,7 @@ import { AuthService } from '../../auth/services/auth.service';
 import { JalaliDateService } from '../../core/services/jalali-date.service';
 import { JobApplication } from '../../candidate/applications/job-application.models';
 import { JobApplicationService } from '../../candidate/applications/job-application.service';
+import { CandidateProfileService } from '../../candidate/services/candidate-profile.service';
 import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
 import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
 import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
@@ -27,6 +28,7 @@ export class JobDetailsComponent implements OnInit {
     private readonly authService = inject(AuthService);
   private readonly jalaliDate = inject(JalaliDateService);
   private readonly applicationService = inject(JobApplicationService);
+  private readonly profileService = inject(CandidateProfileService);
   private readonly employmentTypeService = inject(EmploymentTypeService);
   private readonly workArrangementService = inject(WorkArrangementService);
   private readonly salaryCurrencyService = inject(SalaryCurrencyService);
@@ -42,6 +44,8 @@ export class JobDetailsComponent implements OnInit {
   isApplicationStateLoading = false;
   isApplying = false;
   applicationMessage = '';
+  isReady = true;
+  readinessMessage = '';
 
   get isCandidate(): boolean {
     return this.authService.hasRole('Candidate');
@@ -62,7 +66,10 @@ export class JobDetailsComponent implements OnInit {
     this.searchService.getById(id).subscribe({
       next: job => {
         this.job = job;
-        if (this.isCandidate) this.loadApplicationState();
+        if (this.isCandidate) {
+          this.loadReadiness();
+          this.loadApplicationState();
+        }
       },
       error: () => {
         this.errorMessage = 'این فرصت شغلی پیدا نشد یا دیگر منتشرشده نیست.';
@@ -94,6 +101,10 @@ export class JobDetailsComponent implements OnInit {
       return;
     }
     if (!this.isCandidate || this.isApplying || this.application) return;
+    if (!this.isReady) {
+      this.applicationMessage = this.readinessMessage || 'برای ارسال درخواست، ابتدا پروفایل شخصی خود را کامل کنید.';
+      return;
+    }
 
     this.isApplying = true;
     this.applicationMessage = '';
@@ -116,6 +127,18 @@ export class JobDetailsComponent implements OnInit {
         }
       },
       complete: () => this.isApplying = false
+    });
+  }
+
+  private loadReadiness(): void {
+    this.profileService.getCompletion().subscribe({
+      next: status => {
+        this.isReady = status.readiness.isReady;
+        this.readinessMessage = status.readiness.message;
+      },
+      error: () => {
+        this.isReady = true;
+      }
     });
   }
 

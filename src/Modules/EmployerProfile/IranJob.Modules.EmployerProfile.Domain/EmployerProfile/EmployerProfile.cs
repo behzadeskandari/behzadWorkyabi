@@ -17,7 +17,13 @@ namespace IranJob.Modules.EmployerProfile.Domain.EmployerProfile
         public string City { get; set; }
         public string LinkedInUrl { get; set; }
         public string PortfolioUrl { get; set; }
+        public string? CompanyDescription { get; set; }
+        public string? WebsiteUrl { get; set; }
+        public string Industry { get; set; }
+        public string CompanyName { get; set; }
+    public string LogoUrl { get; set; }
         
     }
 
 }
+

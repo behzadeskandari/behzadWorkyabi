@@ -85,6 +85,17 @@ export interface ResumeProjectForm {
   isCurrent: boolean;
 }
 
+export interface ResumeProjectItemDto {
+  id: string;
+  title: string | null;
+  description: string | null;
+  url: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isCurrent: boolean;
+  sortOrder: number;
+}
+
 export interface ResumeCertificationForm {
   id: string | null;
   name: string;
@@ -116,7 +127,7 @@ export interface ResumeResponseDto {
   educations: ResumeSectionItem[];
   skills: ResumeSkillItem[];
   languages: ResumeLanguageItem[];
-  projects: ResumeSectionItem[];
+  projects: ResumeProjectItemDto[];
   certifications: ResumeCertificationItemDto[];
   portfolioLinks: ResumePortfolioLinkItemDto[];
   createdAt: string;

@@ -31,6 +31,8 @@
     <ProjectReference Include="..\..\Modules\JobPostings\IranJob.Modules.JobPostings.Presentation\IranJob.Modules.JobPostings.Presentation.csproj" />
     <ProjectReference Include="..\..\Modules\Payments\IranJob.Modules.Payments.Infrastructure\IranJob.Modules.Payments.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Payments\IranJob.Modules.Payments.Presentation\IranJob.Modules.Payments.Presentation.csproj" />
+    <ProjectReference Include="..\..\Modules\Notifications\IranJob.Modules.Notifications.Infrastructure\IranJob.Modules.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Notifications\IranJob.Modules.Notifications.Presentation\IranJob.Modules.Notifications.Presentation.csproj" />
   </ItemGroup>
 
 </Project>

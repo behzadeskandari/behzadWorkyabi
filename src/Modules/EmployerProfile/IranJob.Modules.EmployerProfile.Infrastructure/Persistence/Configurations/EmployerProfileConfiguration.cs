@@ -24,6 +24,10 @@ public sealed class EmployerProfileConfiguration : IEntityTypeConfiguration<Empl
         builder.Property(profile => profile.LinkedInUrl).HasMaxLength(500);
         builder.Property(profile => profile.PortfolioUrl).HasMaxLength(500);
 
+        builder.Property(profile => profile.CompanyDescription).HasMaxLength(2000);
+        builder.Property(profile => profile.WebsiteUrl).HasMaxLength(500);
+        builder.Property(profile => profile.Industry).HasMaxLength(100).IsRequired();
+
         builder.HasIndex(profile => profile.UserId).IsUnique();
     }
 }

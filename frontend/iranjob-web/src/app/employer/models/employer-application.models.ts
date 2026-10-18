@@ -98,9 +98,13 @@ export interface EmployerResumePortfolioLinkView {
 }
 
 export interface EmployerResumeViewResponse {
-  applicationId: string;
-  candidateProfileId: string;
-  candidateHeadline: string | null;
+  // applicationId / candidateProfileId / candidateHeadline are intentionally
+  // optional so the shared ResumeViewComponent can also render a candidate's
+  // own saved resume (ResumeResponseDto), which carries no application-scoped ids.
+  applicationId?: string;
+  candidateProfileId?: string;
+  candidateHeadline?: string | null;
+  professionalSummary: string | null;
   status: string;
   completenessScore: number;
   hasCvFile: boolean;

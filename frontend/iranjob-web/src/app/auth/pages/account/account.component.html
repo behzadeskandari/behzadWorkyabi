@@ -56,6 +56,11 @@
               مشاهده پروفایل {{ getRoleName(role) }}
             </a>
           </ng-container>
+          <a *ngIf="(userProfile?.roles || []).includes('Candidate')"
+             routerLink="/candidate/dashboard"
+             class="btn-profile-link">
+            داشبورد تکمیل پروفایل و رزومه
+          </a>
         </div>
       </div>
 

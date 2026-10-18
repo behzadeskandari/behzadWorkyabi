@@ -1,15 +1,15 @@
 import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  EmployerResumeViewResponse,
-  EmployerResumeSectionView,
-  EmployerResumeSkillView,
-  EmployerResumeLanguageView,
-  EmployerResumeProjectView,
-  EmployerResumeCertificationView,
-  EmployerResumePortfolioLinkView
-} from '../../../employer/models/employer-application.models';
 import { JalaliDateService } from '../../../core/services/jalali-date.service';
+import type {
+  ResumePresentation,
+  ResumeSectionPresentation,
+  ResumeSkillPresentation,
+  ResumeLanguagePresentation,
+  ResumeProjectPresentation,
+  ResumeCertificationPresentation,
+  ResumePortfolioPresentation
+} from './resume-view.models';
 
 @Component({
   selector: 'app-resume-view',
@@ -19,28 +19,30 @@ import { JalaliDateService } from '../../../core/services/jalali-date.service';
   styleUrls: ['./resume-view.component.scss']
 })
 export class ResumeViewComponent {
-  @Input({ required: true }) resume!: EmployerResumeViewResponse;
+  /** Normalized resume presentation; accepts EmployerResumeViewResponse or ResumeResponseDto. */
+  @Input({ required: true }) resume!: ResumePresentation;
 
   private readonly jalaliDate = inject(JalaliDateService);
 
     // Convenience accessors for the template.
-  get workExperiences(): EmployerResumeSectionView[] { return this.resume.workExperiences ?? []; }
-  get educations(): EmployerResumeSectionView[] { return this.resume.educations ?? []; }
-  get skills(): EmployerResumeSkillView[] { return this.resume.skills ?? []; }
-  get languages(): EmployerResumeLanguageView[] { return this.resume.languages ?? []; }
-  get projects(): EmployerResumeProjectView[] { return this.resume.projects ?? []; }
-  get certifications(): EmployerResumeCertificationView[] { return this.resume.certifications ?? []; }
-  get portfolioLinks(): EmployerResumePortfolioLinkView[] { return this.resume.portfolioLinks ?? []; }
+  get professionalSummary(): string | null { return this.resume.professionalSummary ?? null; }
+  get workExperiences(): ResumeSectionPresentation[] { return this.resume.workExperiences ?? []; }
+  get educations(): ResumeSectionPresentation[] { return this.resume.educations ?? []; }
+  get skills(): ResumeSkillPresentation[] { return (this.resume.skills ?? []) as ResumeSkillPresentation[]; }
+  get languages(): ResumeLanguagePresentation[] { return (this.resume.languages ?? []) as ResumeLanguagePresentation[]; }
+  get projects(): ResumeProjectPresentation[] { return (this.resume.projects ?? []) as ResumeProjectPresentation[]; }
+  get certifications(): ResumeCertificationPresentation[] { return this.resume.certifications ?? []; }
+  get portfolioLinks(): ResumePortfolioPresentation[] { return (this.resume.portfolioLinks ?? []) as ResumePortfolioPresentation[]; }
 
-  sectionLabel(section: EmployerResumeSectionView): string {
+  sectionLabel(section: ResumeSectionPresentation): string {
     return section.primaryLabel ?? section.secondaryLabel ?? section.tertiaryLabel ?? '—';
   }
 
-  sectionSecondary(section: EmployerResumeSectionView): string | null {
+  sectionSecondary(section: ResumeSectionPresentation): string | null {
     return section.secondaryLabel;
   }
 
-  sectionTertiary(section: EmployerResumeSectionView): string | null {
+  sectionTertiary(section: ResumeSectionPresentation): string | null {
     return section.tertiaryLabel;
   }
 
@@ -54,7 +56,7 @@ export class ResumeViewComponent {
     return parts.join(' و ');
   }
 
-    dateRangeLabel(section: EmployerResumeSectionView | EmployerResumeProjectView): string {
+    dateRangeLabel(section: ResumeSectionPresentation | ResumeProjectPresentation): string {
     const fmt = (value: string | null) => value ? this.jalaliDate.toJalaliString(new Date(value)) : null;
     const start = fmt(section.startDate);
     const end = section.isCurrent ? 'اکنون' : fmt(section.endDate);
@@ -64,7 +66,7 @@ export class ResumeViewComponent {
     return value ? this.jalaliDate.toJalaliString(new Date(value)) : '—';
   }
 
-  certificationDateLabel(cert: EmployerResumeCertificationView): string {
+  certificationDateLabel(cert: ResumeCertificationPresentation): string {
     const issued = cert.issueDate ? this.jalaliDate.toJalaliString(new Date(cert.issueDate)) : '';
     const parts = issued ? [`صادر: ${issued}`] : [];
     if (cert.expiryDate) parts.push(`منقضی: ${this.jalaliDate.toJalaliString(new Date(cert.expiryDate))}`);

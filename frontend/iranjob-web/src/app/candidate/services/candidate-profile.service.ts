@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CandidateProfile, SaveCandidateProfileRequest } from '../models/candidate-profile.models';
+import { CandidateProfileCompletionResponse } from '../models/candidate-completion.models';
 
 @Injectable({
   providedIn: 'root'
@@ -22,5 +23,9 @@ export class CandidateProfileService {
 
   updateProfile(request: SaveCandidateProfileRequest): Observable<CandidateProfile> {
     return this.http.put<CandidateProfile>(this.apiUrl, request, { withCredentials: true });
+  }
+
+  getCompletion(): Observable<CandidateProfileCompletionResponse> {
+    return this.http.get<CandidateProfileCompletionResponse>(`${this.apiUrl}/completion`, { withCredentials: true });
   }
 }

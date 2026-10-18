@@ -1,5 +1,6 @@
 using FluentValidation;
 using IranJob.Modules.Candidates.Application.Abstractions;
+using IranJob.Modules.Candidates.Application.Contracts;
 using IranJob.Modules.Candidates.Domain.Entities;
 using IranJob.Modules.Candidates.Domain.Enums;
 using IranJob.Modules.Candidates.Infrastructure.Persistence;
@@ -116,6 +117,21 @@ public sealed class CandidateProfileService(
         where TEnum : struct, Enum =>
         string.IsNullOrWhiteSpace(value) ? null : Enum.Parse<TEnum>(value, ignoreCase: false);
 
+    public async Task<ProfileCompletionResponse?> GetCompletionStatusAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var profile = await dbContext.CandidateProfiles.AsNoTracking()
+            .SingleOrDefaultAsync(candidateProfile => candidateProfile.UserId == userId, cancellationToken);
+
+        if (profile is null)
+            return null;
+
+        var missing = GetMissingProfileFields(profile);
+        return new ProfileCompletionResponse(
+            CompletenessScore: CalculateProfileCompleteness(profile, missing),
+            HasProfile: true,
+            MissingFields: missing);
+    }
+
     private static CandidateProfileResult MapToResult(CandidateProfile profile) =>
         new(
             profile.Id,
@@ -136,4 +152,26 @@ public sealed class CandidateProfileService(
             profile.MilitaryStatus?.ToString(),
             profile.CreatedAt,
             profile.UpdatedAt);
+
+    private static string[] GetMissingProfileFields(CandidateProfile profile)
+    {
+        var missing = new List<string>();
+        if (string.IsNullOrWhiteSpace(profile.Headline)) missing.Add("Headline");
+        if (string.IsNullOrWhiteSpace(profile.City)) missing.Add("City");
+        if (string.IsNullOrWhiteSpace(profile.Province)) missing.Add("Province");
+        if (string.IsNullOrWhiteSpace(profile.Biography)) missing.Add("Biography");
+        if (profile.Gender is null) missing.Add("Gender");
+        if (profile.EmploymentStatus is null) missing.Add("EmploymentStatus");
+        if (profile.Availability is null) missing.Add("Availability");
+        return missing.ToArray();
+    }
+
+    private static int CalculateProfileCompleteness(CandidateProfile profile, string[] missing)
+    {
+        // Required: headline + city + province + biography + gender = 40 (10 each)
+        // Optional but recommended: employment status + availability + salary = 60
+        var max = 100;
+        var score = Math.Max(0, max - missing.Length * 10);
+        return score;
+    }
 }

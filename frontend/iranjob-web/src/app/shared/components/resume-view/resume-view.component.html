@@ -1,5 +1,15 @@
 <div class="resume-viewer">
   <section>
+    <h3>خلاصهٔ حرفه‌ای</h3>
+    <ng-container *ngIf="professionalSummary; else noSummary">
+      <p class="resume-summary">{{ professionalSummary }}</p>
+    </ng-container>
+    <ng-template #noSummary>
+      <p class="empty">خلاصه‌ای ثبت نشده است.</p>
+    </ng-template>
+  </section>
+
+  <section>
     <h3>سابقهٔ کاری</h3>
     <div *ngIf="workExperiences.length === 0" class="empty">بدون سابقه کاری.</div>
     <article *ngFor="let work of workExperiences" class="resume-item">

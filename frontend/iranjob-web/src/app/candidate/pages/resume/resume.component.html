@@ -192,6 +192,18 @@
           {{ isSaving ? 'در حال ذخیره…' : 'ذخیرهٔ رزومه' }}
         </button>
       </div>
+
+      <div class="preview-toggle">
+        <button type="button" class="text-button" [disabled]="!existingResume" (click)="togglePreview()">
+          {{ showPreview ? 'پنهان‌سازی پیش‌نمایش' : 'پیش‌نمایش رزومه' }}
+        </button>
+      </div>
+
+      <section *ngIf="showPreview" class="section preview-section">
+        <h2>پیش‌نمایش رزومه</h2>
+        <p *ngIf="!existingResume" class="empty">رزومه‌ای برای نمایش وجود ندارد یا هنوز ذخیره نشده است.</p>
+        <app-resume-view *ngIf="existingResume" [resume]="existingResume"></app-resume-view>
+      </section>
     </ng-container>
   </div>
 </div>

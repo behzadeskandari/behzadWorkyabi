@@ -444,6 +444,36 @@ public sealed class CandidateResumeService(
         return months < 0 ? 0 : months;
     }
 
+    public async Task<ResumeCompletionResponse?> GetCompletionStatusAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var resume = await LoadAsync(userId, cancellationToken);
+        if (resume is null)
+            return null;
+
+        var missing = GetMissingResumeSections(resume);
+        var isShared = resume.Status == ResumeStatus.ReadyToShare;
+        return new ResumeCompletionResponse(
+            CompletenessScore: resume.CalculateCompleteness(),
+            HasResume: true,
+            Status: resume.Status.ToString(),
+            IsShared: isShared,
+            HasCvFile: resume.CvFileName is not null,
+            MissingSections: missing);
+    }
+
+    private static string[] GetMissingResumeSections(CandidateResume resume)
+    {
+        var missing = new List<string>();
+        if (string.IsNullOrWhiteSpace(resume.ProfessionalSummary)) missing.Add("ProfessionalSummary");
+        if (resume.WorkExperiences.Count == 0) missing.Add("WorkExperiences");
+        if (resume.Educations.Count == 0) missing.Add("Educations");
+        if (resume.Skills.Count == 0) missing.Add("Skills");
+        if (resume.Languages.Count == 0) missing.Add("Languages");
+        if (resume.Projects.Count == 0) missing.Add("Projects");
+        if (resume.Certifications.Count == 0) missing.Add("Certifications");
+        return missing.ToArray();
+    }
+
     private static Dictionary<string, string[]> ToErrorDictionary(IList<ValidationFailure> errors) =>
         errors.GroupBy(error => error.PropertyName)
               .ToDictionary(group => group.Key, group => group.Select(error => error.ErrorMessage).ToArray());

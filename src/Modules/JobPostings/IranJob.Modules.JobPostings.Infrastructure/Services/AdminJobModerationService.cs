@@ -1,5 +1,4 @@
-﻿using IranJob.Modules.EmployerProfile.Domain.Entities;
-using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
+﻿using IranJob.Modules.EmployerProfile.Infrastructure.Persistence;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.JobPostings.Application.Contracts;
 using IranJob.Modules.JobPostings.Domain.Entities;

@@ -59,6 +59,7 @@ public sealed record EmployerResumeViewResponse(
     Guid ApplicationId,
     Guid CandidateProfileId,
     string? CandidateHeadline,
+    string? ProfessionalSummary,
     string Status,
     int CompletenessScore,
     bool HasCvFile,

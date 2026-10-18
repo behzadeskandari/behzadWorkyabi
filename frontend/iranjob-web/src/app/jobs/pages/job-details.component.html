@@ -45,8 +45,15 @@
         <div class="application-action" *ngIf="isCandidate || isAnonymous">
           <p *ngIf="isApplicationStateLoading" class="application-state" role="status">در حال بررسی وضعیت درخواست…</p>
           <p *ngIf="applicationMessage" class="application-message" role="status">{{ applicationMessage }}</p>
+
+          <p *ngIf="!application && !isApplicationStateLoading && !isReady && isCandidate" class="application-hint" role="status">
+            {{ readinessMessage }}
+            <a class="inline-link" routerLink="/candidate/profile">تکمیل پروفایل</a> یا
+            <a class="inline-link" routerLink="/candidate/resume">ساخت رزومه</a>.
+          </p>
+
           <button *ngIf="!application && !isApplicationStateLoading" type="button" class="apply-button"
-            [disabled]="isApplying" (click)="apply()">
+            [disabled]="isApplying || (isCandidate && !isReady)" (click)="apply()">
             {{ isApplying ? 'در حال ارسال…' : 'ارسال درخواست همکاری' }}
           </button>
           <ng-container *ngIf="application as existingApplication">

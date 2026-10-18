@@ -32,6 +32,8 @@ h1 { overflow-wrap: anywhere; margin: 0; font-size: clamp(1.5rem, 3vw, 2.25rem);
 .apply-button:disabled { cursor: wait; opacity: .65; }
 .application-state, .application-message { margin: 0; color: #17665f; line-height: 1.7; }
 .application-message { color: #8a4b19; }
+.application-hint { margin: 0; color: #8a4b19; line-height: 1.7; }
+.inline-link { color: #2563eb; text-decoration: underline; }
 @media (max-width: 760px) {
   .details-hero { align-items: flex-start; flex-wrap: wrap; padding: 1rem; }
   .details-hero img { width: 3.8rem; height: 3.8rem; }

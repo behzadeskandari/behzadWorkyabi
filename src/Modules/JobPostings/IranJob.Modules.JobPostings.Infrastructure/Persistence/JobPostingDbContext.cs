@@ -1,7 +1,8 @@
-using IranJob.Modules.JobPostings.Domain.Entities;
+﻿using IranJob.Modules.JobPostings.Domain.Entities;
 using IranJob.Modules.Candidates.Domain.Entities;
 using IranJob.Modules.ReferenceData.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+
 using EmployerProfileEntity = IranJob.Modules.EmployerProfile.Domain.Entities.EmployerProfile;
 
 namespace IranJob.Modules.JobPostings.Infrastructure.Persistence;
@@ -86,3 +87,4 @@ public sealed class JobPostingDbContext(DbContextOptions<JobPostingDbContext> op
         });
     }
 }
+

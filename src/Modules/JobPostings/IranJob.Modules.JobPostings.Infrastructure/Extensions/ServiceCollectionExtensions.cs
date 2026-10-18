@@ -3,6 +3,7 @@ using IranJob.BuildingBlocks.Infrastructure.Configuration;
 using IranJob.BuildingBlocks.Infrastructure.Events;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.JobPostings.Application.Validators;
+using IranJob.Modules.JobPostings.Domain.Events;
 using IranJob.Modules.JobPostings.Infrastructure.Persistence;
 using IranJob.Modules.JobPostings.Infrastructure.Services;
 using IranJob.Modules.Payments.Domain.Events;
@@ -33,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPublicJobSearchService, PublicJobSearchService>();
         services.AddScoped<IAdminJobModerationService, AdminJobModerationService>();
         services.AddScoped<IEventHandler<PaymentCompleted>, PaymentCompletedEventHandler>();
+        services.AddScoped<IEventHandler<JobApplicationStatusChanged>, JobApplicationNotificationHandler>();
         services.AddValidatorsFromAssemblyContaining<CreateJobPostingRequestValidator>();
         return services;
     }

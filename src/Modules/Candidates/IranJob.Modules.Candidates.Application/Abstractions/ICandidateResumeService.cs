@@ -62,6 +62,14 @@ public interface ICandidateResumeService
     /// If a CV file is present it is removed from disk as well.
     /// </summary>
     Task DeleteResumeAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a persisted-data-based summary of the candidate's resume
+    /// completeness (score, sharing status, CV presence and which sections
+    /// are missing) for the candidate dashboard / application-readiness guidance.
+    /// Returns null when the candidate has not created a resume yet.
+    /// </summary>
+    Task<ResumeCompletionResponse?> GetCompletionStatusAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

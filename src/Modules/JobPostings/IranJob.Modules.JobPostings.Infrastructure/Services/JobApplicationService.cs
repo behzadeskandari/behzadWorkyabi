@@ -1,22 +1,30 @@
+﻿using System.IO;
 using IranJob.Modules.Candidates.Domain.Entities;
 using IranJob.Modules.Candidates.Domain.Enums;
 using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.JobPostings.Application.Contracts;
 using IranJob.Modules.JobPostings.Domain.Entities;
+using IranJob.Modules.JobPostings.Domain.Events;
 using IranJob.Modules.JobPostings.Domain.Enums;
 using IranJob.Modules.JobPostings.Infrastructure.Persistence;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
+using IranJob.BuildingBlocks.Infrastructure.Events;
 using IranJob.SharedKernel.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+// EmployerProfile is referenced only for its UserId (the job owner).
+// The entity type is mapped in this DbContext via ConfigureExternalEntities
+// (schema "employers", ExcludeFromMigrations) — kept as a read-only projection source.
 using EmployerProfileEntity = IranJob.Modules.EmployerProfile.Domain.Entities.EmployerProfile;
+
 
 namespace IranJob.Modules.JobPostings.Infrastructure.Services;
 
 public sealed class JobApplicationService(
     JobPostingDbContext jobDbContext,
     CandidateDbContext candidateDbContext,
+    IEventDispatcher eventDispatcher,
     IOptions<FileStorageOptions> fileStorageOptions) : IJobApplicationService
 {
     public async Task<JobApplicationResponse> ApplyAsync(Guid userId, Guid jobId, CancellationToken cancellationToken)
@@ -52,6 +60,12 @@ public sealed class JobApplicationService(
 
             throw;
         }
+
+        // Dispatch the application-created event only after the row is committed.
+        // Recipients (employer) and titles are resolved by the subscribed handler.
+        await eventDispatcher.DispatchAsync(
+            JobApplicationStatusChanged.Create(application, JobApplicationTransition.Applied),
+            cancellationToken);
 
         return Map(await ProjectOwn(candidateProfileId, application.Id).SingleAsync(cancellationToken));
     }
@@ -90,6 +104,11 @@ public sealed class JobApplicationService(
 
         application.Withdraw();
         await jobDbContext.SaveChangesAsync(cancellationToken);
+
+        await eventDispatcher.DispatchAsync(
+            JobApplicationStatusChanged.Create(application, JobApplicationTransition.Withdrawn),
+            cancellationToken);
+
         return Map(await ProjectOwn(candidateProfileId, applicationId).SingleAsync(cancellationToken));
     }
 
@@ -107,6 +126,61 @@ public sealed class JobApplicationService(
         return await MapEmployerAsync(rows, cancellationToken);
     }
 
+    public async Task<EmployerApplicationResponse> ReviewApplicationAsync(
+        Guid employerUserId,
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Review(),
+            JobApplicationTransition.Reviewed,
+            cancellationToken);
+
+    public async Task<EmployerApplicationResponse> AcceptApplicationAsync(
+        Guid employerUserId,
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Accept(),
+            JobApplicationTransition.Accepted,
+            cancellationToken);
+
+    public async Task<EmployerApplicationResponse> RejectApplicationAsync(
+        Guid employerUserId,
+        Guid applicationId,
+        CancellationToken cancellationToken) =>
+        await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Reject(),
+            JobApplicationTransition.Rejected,
+            cancellationToken);
+
+    private async Task<EmployerApplicationResponse> UpdateEmployerApplicationStatusAsync(
+        Guid employerUserId,
+        Guid applicationId,
+        Action<JobApplication> applyTransition,
+        JobApplicationTransition transition,
+        CancellationToken cancellationToken)
+    {
+        var employerProfileId = await GetEmployerProfileIdAsync(employerUserId, cancellationToken);
+        var row = await (
+            from application in jobDbContext.JobApplications
+            join job in jobDbContext.JobPostings.AsNoTracking() on application.JobPostingId equals job.Id
+            where application.Id == applicationId && job.EmployerProfileId == employerProfileId
+            select new { application, job })
+            .SingleOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Application was not found.");
+
+        applyTransition(row.application);
+        await jobDbContext.SaveChangesAsync(cancellationToken);
+
+        // Dispatch the domain event only after the row is committed, matching
+        // the pattern used by ApplyAsync / WithdrawAsync.
+        await eventDispatcher.DispatchAsync(
+            JobApplicationStatusChanged.Create(row.application, transition),
+            cancellationToken);
+
+        var candidateProfile = await candidateDbContext.CandidateProfiles.AsNoTracking()
+            .FirstOrDefaultAsync(profile => profile.Id == row.application.CandidateProfileId, cancellationToken);
+
+        return MapEmployerDetail(row.application, row.job, candidateProfile);
+    }
+
     public async Task<EmployerApplicationResponse> GetEmployerApplicationByIdAsync(
         Guid employerUserId,
         Guid applicationId,
@@ -117,33 +191,15 @@ public sealed class JobApplicationService(
             from application in jobDbContext.JobApplications.AsNoTracking()
             join job in jobDbContext.JobPostings.AsNoTracking() on application.JobPostingId equals job.Id
             where application.Id == applicationId && job.EmployerProfileId == employerProfileId
-            select new { Application = application, Job = job })
+            select new { application, job })
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("Application was not found.");
 
         var candidateProfile = await candidateDbContext.CandidateProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(profile => profile.Id == row.Application.CandidateProfileId, cancellationToken);
+            .FirstOrDefaultAsync(profile => profile.Id == row.application.CandidateProfileId, cancellationToken);
 
-        return MapEmployerDetail(row.Application, row.Job, candidateProfile);
+        return MapEmployerDetail(row.application, row.job, candidateProfile);
     }
-
-    public async Task<EmployerApplicationResponse> ReviewApplicationAsync(
-        Guid employerUserId,
-        Guid applicationId,
-        CancellationToken cancellationToken) =>
-        await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Review(), cancellationToken);
-
-    public async Task<EmployerApplicationResponse> AcceptApplicationAsync(
-        Guid employerUserId,
-        Guid applicationId,
-        CancellationToken cancellationToken) =>
-        await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Accept(), cancellationToken);
-
-    public async Task<EmployerApplicationResponse> RejectApplicationAsync(
-        Guid employerUserId,
-        Guid applicationId,
-        CancellationToken cancellationToken) =>
-        await UpdateEmployerApplicationStatusAsync(employerUserId, applicationId, application => application.Reject(), cancellationToken);
 
     public async Task<EmployerCvAccessResponse> DownloadCandidateCvAsync(
         Guid employerUserId,
@@ -195,7 +251,6 @@ public sealed class JobApplicationService(
         CancellationToken cancellationToken)
     {
         var employerProfileId = await GetEmployerProfileIdAsync(employerUserId, cancellationToken);
-
         var application = await (
             from app in jobDbContext.JobApplications.AsNoTracking()
             join job in jobDbContext.JobPostings.AsNoTracking() on app.JobPostingId equals job.Id
@@ -203,11 +258,8 @@ public sealed class JobApplicationService(
             select app)
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("Application was not found.");
-
         var candidateProfile = await candidateDbContext.CandidateProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(profile => profile.Id == application.CandidateProfileId, cancellationToken)
-            ?? throw new NotFoundException("Candidate profile was not found.");
-
+            .FirstOrDefaultAsync(profile => profile.Id == application.CandidateProfileId, cancellationToken);
         var resume = await candidateDbContext.CandidateResumes.AsNoTracking()
             .Include(r => r.WorkExperiences)
             .Include(r => r.Educations)
@@ -218,10 +270,8 @@ public sealed class JobApplicationService(
             .Include(r => r.PortfolioLinks)
             .SingleOrDefaultAsync(r => r.UserId == candidateProfile.UserId, cancellationToken)
             ?? throw new NotFoundException("Candidate resume was not found.");
-
         if (resume.Status != ResumeStatus.ReadyToShare)
             throw new NotFoundException("Candidate resume is not shared with employers.");
-
         return MapEmployerResumeView(application, candidateProfile, resume);
     }
 
@@ -232,6 +282,7 @@ public sealed class JobApplicationService(
         application.Id,
         application.CandidateProfileId,
         candidateProfile?.Headline,
+        resume.ProfessionalSummary,
         resume.Status.ToString(),
         resume.CalculateCompleteness(),
         resume.CvFileName is not null && resume.CvFileContentType is not null,
@@ -327,7 +378,8 @@ public sealed class JobApplicationService(
         if (userId == Guid.Empty)
             throw new UnauthorizedException();
 
-        return await jobDbContext.Set<EmployerProfileEntity>().AsNoTracking()
+        return await jobDbContext.Set<EmployerProfileEntity>()
+            .AsNoTracking()
             .Where(profile => profile.UserId == userId)
             .Select(profile => profile.Id)
             .SingleOrDefaultAsync(cancellationToken) is var profileId && profileId != Guid.Empty
@@ -335,55 +387,73 @@ public sealed class JobApplicationService(
             : throw new NotFoundException("An employer profile is required to manage applications.");
     }
 
+    // ── Projection helpers ──────────────────────────────────────────
+
+    private sealed record ApplicationRow(
+        Guid Id,
+        Guid JobId,
+        string JobTitle,
+        string CompanyName,
+        JobApplicationStatus Status,
+        DateTimeOffset AppliedAt,
+        DateTimeOffset? UpdatedAt);
+
+    private sealed record EmployerApplicationRow(
+        Guid Id,
+        Guid JobId,
+        string JobTitle,
+        Guid CandidateProfileId,
+        JobApplicationStatus Status,
+        DateTimeOffset AppliedAt,
+        DateTimeOffset? UpdatedAt);
+
+    private IQueryable<ApplicationRow> ProjectOwn(Guid candidateProfileId, Guid applicationId) =>
+        ProjectOwnQuery(candidateProfileId).Where(row => row.Id == applicationId);
+
     private IQueryable<ApplicationRow> ProjectOwn(
         Guid candidateProfileId,
-        Guid? applicationId = null,
         bool orderInDatabase = false)
     {
-        var rows =
-            from application in jobDbContext.JobApplications.AsNoTracking()
-            join job in jobDbContext.JobPostings.AsNoTracking() on application.JobPostingId equals job.Id
-            join employer in jobDbContext.Set<EmployerProfileEntity>().AsNoTracking()
-                on job.EmployerProfileId equals employer.Id
-            where application.CandidateProfileId == candidateProfileId
-            select new { Application = application, Job = job, Employer = employer };
-
-        if (applicationId.HasValue)
-            rows = rows.Where(row => row.Application.Id == applicationId.Value);
-        else if (orderInDatabase)
-            rows = rows.OrderByDescending(row => row.Application.CreatedAt);
-
-        return rows.Select(row => new ApplicationRow(
-            row.Application.Id,
-            row.Job.Id,
-            row.Job.Title,
-            row.Employer.CompanyName,
-            row.Application.Status,
-            row.Application.CreatedAt,
-            row.Application.UpdatedAt));
+        var query = ProjectOwnQuery(candidateProfileId);
+        return orderInDatabase
+            ? query.OrderByDescending(row => row.AppliedAt)
+            : query;
     }
+
+    private IQueryable<ApplicationRow> ProjectOwnQuery(Guid candidateProfileId) =>
+        from app in jobDbContext.JobApplications.AsNoTracking()
+        join job in jobDbContext.JobPostings.AsNoTracking() on app.JobPostingId equals job.Id
+        join profile in jobDbContext.Set<EmployerProfileEntity>().AsNoTracking() on job.EmployerProfileId equals profile.Id
+        where app.CandidateProfileId == candidateProfileId
+        select new ApplicationRow(
+            app.Id,
+            job.Id,
+            job.Title,
+            profile.CompanyName,
+            app.Status,
+            app.CreatedAt,
+            app.UpdatedAt);
 
     private IQueryable<EmployerApplicationRow> ProjectEmployer(
         Guid employerProfileId,
         bool orderInDatabase = false)
     {
-        var rows =
-            from application in jobDbContext.JobApplications.AsNoTracking()
-            join job in jobDbContext.JobPostings.AsNoTracking() on application.JobPostingId equals job.Id
+        var query =
+            from app in jobDbContext.JobApplications.AsNoTracking()
+            join job in jobDbContext.JobPostings.AsNoTracking() on app.JobPostingId equals job.Id
             where job.EmployerProfileId == employerProfileId
             select new EmployerApplicationRow(
-                application.Id,
+                app.Id,
                 job.Id,
                 job.Title,
-                application.CandidateProfileId,
-                application.Status,
-                application.CreatedAt,
-                application.UpdatedAt);
+                app.CandidateProfileId,
+                app.Status,
+                app.CreatedAt,
+                app.UpdatedAt);
 
-        if (orderInDatabase)
-            rows = rows.OrderByDescending(row => row.AppliedAt);
-
-        return rows;
+        return orderInDatabase
+            ? query.OrderByDescending(row => row.AppliedAt)
+            : query;
     }
 
     private static JobApplicationResponse Map(ApplicationRow row) => new(
@@ -394,70 +464,6 @@ public sealed class JobApplicationService(
         row.Status.ToString(),
         row.AppliedAt,
         row.UpdatedAt);
-
-    private async Task<EmployerApplicationResponse> UpdateEmployerApplicationStatusAsync(
-        Guid employerUserId,
-        Guid applicationId,
-        Action<JobApplication> update,
-        CancellationToken cancellationToken)
-    {
-        var employerProfileId = await GetEmployerProfileIdAsync(employerUserId, cancellationToken);
-
-        var application = await (
-            from app in jobDbContext.JobApplications
-            join job in jobDbContext.JobPostings on app.JobPostingId equals job.Id
-            where app.Id == applicationId && job.EmployerProfileId == employerProfileId
-            select app)
-            .SingleOrDefaultAsync(cancellationToken)
-            ?? throw new NotFoundException("Application was not found.");
-
-        update(application);
-        await jobDbContext.SaveChangesAsync(cancellationToken);
-
-        return await BuildEmployerDetailAsync(application, cancellationToken);
-    }
-
-    private async Task<EmployerApplicationResponse> BuildEmployerDetailAsync(
-        JobApplication application,
-        CancellationToken cancellationToken)
-    {
-        var job = await jobDbContext.JobPostings.AsNoTracking()
-            .FirstOrDefaultAsync(posting => posting.Id == application.JobPostingId, cancellationToken)
-            ?? throw new NotFoundException("Job posting was not found.");
-
-        var candidateProfile = await candidateDbContext.CandidateProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(profile => profile.Id == application.CandidateProfileId, cancellationToken);
-
-        return MapEmployerDetail(application, job, candidateProfile);
-    }
-
-    private async Task<IReadOnlyList<EmployerApplicationListResponse>> MapEmployerAsync(
-        IReadOnlyList<EmployerApplicationRow> rows,
-        CancellationToken cancellationToken)
-    {
-        if (rows.Count == 0)
-            return Array.Empty<EmployerApplicationListResponse>();
-
-        var candidateIds = rows.Select(row => row.CandidateProfileId).Distinct().ToArray();
-        var candidateProfiles = await candidateDbContext.CandidateProfiles.AsNoTracking()
-            .Where(profile => candidateIds.Contains(profile.Id))
-            .ToDictionaryAsync(profile => profile.Id, cancellationToken);
-
-        return rows.Select(row =>
-        {
-            candidateProfiles.TryGetValue(row.CandidateProfileId, out var profile);
-            return new EmployerApplicationListResponse(
-                row.Id,
-                row.JobId,
-                row.JobTitle,
-                row.CandidateProfileId,
-                profile?.Headline,
-                profile?.City,
-                row.Status.ToString(),
-                row.AppliedAt,
-                row.UpdatedAt);
-        }).ToArray();
-    }
 
     private static EmployerApplicationResponse MapEmployerDetail(
         JobApplication application,
@@ -484,34 +490,51 @@ public sealed class JobApplicationService(
         application.CreatedAt,
         application.UpdatedAt);
 
-    private sealed record ApplicationRow(
-        Guid Id,
-        Guid JobId,
-        string JobTitle,
-        string CompanyName,
-        JobApplicationStatus Status,
-        DateTimeOffset AppliedAt,
-        DateTimeOffset? UpdatedAt);
+    private async Task<IReadOnlyList<EmployerApplicationListResponse>> MapEmployerAsync(
+        IReadOnlyList<EmployerApplicationRow> rows,
+        CancellationToken cancellationToken)
+    {
+        var candidateProfileIds = rows.Select(row => row.CandidateProfileId).ToArray();
 
-    private sealed record EmployerApplicationRow(
-        Guid Id,
-        Guid JobId,
-        string JobTitle,
-        Guid CandidateProfileId,
-        JobApplicationStatus Status,
-        DateTimeOffset AppliedAt,
-        DateTimeOffset? UpdatedAt);
+        var candidateHeadlines = await (
+            from profile in candidateDbContext.CandidateProfiles.AsNoTracking()
+            where candidateProfileIds.Contains(profile.Id)
+            select new { profile.Id, profile.Headline, profile.City })
+            .ToDictionaryAsync(row => row.Id, row => row, cancellationToken);
 
-    private static string GetDownloadFileName(string contentType) =>
-        contentType switch
+        return rows.Select(row =>
         {
-            "application/pdf" => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.pdf",
-            "application/msword" => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.doc",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.docx",
-            _ => $"cv_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}.bin"
+            var headline = candidateHeadlines.TryGetValue(row.CandidateProfileId, out var profile)
+                ? profile.Headline
+                : null;
+            var city = candidateHeadlines.TryGetValue(row.CandidateProfileId, out var profileCity)
+                ? profileCity.City
+                : null;
+            return new EmployerApplicationListResponse(
+                row.Id,
+                row.JobId,
+                row.JobTitle,
+                row.CandidateProfileId,
+                headline,
+                city,
+                row.Status.ToString(),
+                row.AppliedAt,
+                row.UpdatedAt);
+        }).ToArray();
+    }
+
+    private static string GetDownloadFileName(string contentType)
+    {
+        var ext = contentType switch
+        {
+            "application/pdf" => ".pdf",
+            "application/msword" => ".doc",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => ".docx",
+            _ => ".bin"
         };
+        return $"cv-{Guid.NewGuid():N}{ext}";
+    }
 
     private static DomainException AlreadyApplied() =>
         new("You have already applied to this job.");
 }
-

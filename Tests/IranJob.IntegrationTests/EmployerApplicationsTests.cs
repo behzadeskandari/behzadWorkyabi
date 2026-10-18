@@ -342,6 +342,7 @@ public sealed class EmployerApplicationsTests : IClassFixture<CustomWebApplicati
         payload.GetProperty("status").GetString().Should().Be("ReadyToShare");
         payload.GetProperty("completenessScore").GetInt32().Should().BeGreaterThan(0);
         payload.GetProperty("workExperiences").GetArrayLength().Should().Be(1);
+        payload.GetProperty("professionalSummary").GetString().Should().Be("Backend engineer with .NET experience.");
         payload.GetProperty("hasCvFile").GetBoolean().Should().BeTrue();
 
         var cv = await employer.GetAsync($"{EmployerApplicationsEndpoint}/{applicationId}/cv");
