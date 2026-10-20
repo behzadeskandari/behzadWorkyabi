@@ -69,6 +69,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthenticationAuditService, AuthenticationAuditService>();
         services.AddScoped<IUserLookupService, UserLookupService>();
         services.AddScoped<IAdminDashboardService, AdminDashboardService>();
+        // Resolves a user's email by user id for other modules (e.g. outbound
+        // notification emails) without exposing the Identity user store directly.
+        services.AddScoped<IranJob.SharedKernel.Abstractions.IUserEmailResolver, UserEmailResolver>();
 
                 services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 

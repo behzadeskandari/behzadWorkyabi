@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,12 +32,15 @@ export class JobSearchComponent implements OnInit {
   private readonly searchService = inject(PublicJobSearchService);
   private readonly categoryService = inject(JobCategoryService);
   private readonly skillService = inject(SkillService);
-    private readonly locationService = inject(LocationService);
+  private readonly locationService = inject(LocationService);
   private readonly employmentTypeService = inject(EmploymentTypeService);
   private readonly workArrangementService = inject(WorkArrangementService);
   private readonly salaryCurrencyService = inject(SalaryCurrencyService);
   private readonly jalaliDate = inject(JalaliDateService);
   private readonly retrySearch = new Subject<void>();
+  private skillSearchTerm = '';
+
+  @ViewChild('skillSearchInput', { static: false }) skillSearchInput!: ElementRef<HTMLInputElement>;
 
   readonly filters = this.fb.group({
     q: [''],
@@ -56,6 +59,7 @@ export class JobSearchComponent implements OnInit {
 
   categories: JobCategory[] = [];
   skills: Skill[] = [];
+  visibleSkills: Skill[] = [];
   countries: Country[] = [];
   provinces: Province[] = [];
   cities: City[] = [];
@@ -68,6 +72,7 @@ export class JobSearchComponent implements OnInit {
   filtersOpen = false;
   hasError = false;
   lookupError = false;
+  skillsLoading = false;
   filterValidationMessage = '';
 
   ngOnInit(): void {
@@ -210,9 +215,17 @@ export class JobSearchComponent implements OnInit {
       next: items => this.categories = items,
       error: () => this.lookupError = true
     });
+    this.skillsLoading = true;
     this.skillService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: items => this.skills = items,
-      error: () => this.lookupError = true
+      next: items => {
+        this.skills = items;
+        this.applySkillFilter();
+        this.skillsLoading = false;
+      },
+      error: () => {
+        this.lookupError = true;
+        this.skillsLoading = false;
+      }
     });
     this.locationService.getCountries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: items => this.countries = items,
@@ -230,6 +243,47 @@ export class JobSearchComponent implements OnInit {
       next: items => this.salaryCurrencies = items,
       error: () => this.lookupError = true
     });
+  }
+
+  onSkillSearch(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.skillSearchTerm = target.value.trim().toLowerCase();
+    this.applySkillFilter();
+  }
+
+  private applySkillFilter(): void {
+    if (!this.skillSearchTerm) {
+      this.visibleSkills = [...this.skills];
+      return;
+    }
+    this.visibleSkills = this.skills.filter(s => s.name.toLowerCase().includes(this.skillSearchTerm));
+  }
+
+  onSkillToggle(event: Event, skillId: string): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    const control = this.filters.controls.skillIds;
+    const current = control.value ?? [];
+    if (isChecked && !current.includes(skillId)) {
+      control.setValue([...current, skillId]);
+    } else if (!isChecked && current.includes(skillId)) {
+      control.setValue(current.filter(id => id !== skillId));
+    }
+  }
+
+  clearSelectedSkills(): void {
+    this.filters.controls.skillIds.setValue([]);
+  }
+
+  clearSkillSearch(): void {
+    this.skillSearchTerm = '';
+    if (this.skillSearchInput) {
+      this.skillSearchInput.nativeElement.value = '';
+    }
+    this.applySkillFilter();
+  }
+
+  _isSkillSelected(skillId: string): boolean {
+    return (this.filters.controls.skillIds.value ?? []).includes(skillId);
   }
 
   private readQuery(params: import('@angular/router').ParamMap): PublicJobSearchQuery {

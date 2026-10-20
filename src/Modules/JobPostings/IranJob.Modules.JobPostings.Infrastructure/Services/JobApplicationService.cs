@@ -158,9 +158,16 @@ public sealed class JobApplicationService(
         CancellationToken cancellationToken)
     {
         var employerProfileId = await GetEmployerProfileIdAsync(employerUserId, cancellationToken);
+        // NOTE: do NOT add AsNoTracking() to either join source here. In EF Core,
+        // AsNoTracking anywhere in a query disables change tracking for the ENTIRE
+        // query, so the projected `application` entity would come back untracked
+        // and SaveChangesAsync would silently skip the status update (the request
+        // still returns 200 built from the in-memory entity). A tracked-but-unmodified
+        // `job` row produces no extra UPDATE, so keeping the whole query tracked is
+        // both correct and cheap.
         var row = await (
             from application in jobDbContext.JobApplications
-            join job in jobDbContext.JobPostings.AsNoTracking() on application.JobPostingId equals job.Id
+            join job in jobDbContext.JobPostings on application.JobPostingId equals job.Id
             where application.Id == applicationId && job.EmployerProfileId == employerProfileId
             select new { application, job })
             .SingleOrDefaultAsync(cancellationToken)
@@ -407,8 +414,27 @@ public sealed class JobApplicationService(
         DateTimeOffset AppliedAt,
         DateTimeOffset? UpdatedAt);
 
-    private IQueryable<ApplicationRow> ProjectOwn(Guid candidateProfileId, Guid applicationId) =>
-        ProjectOwnQuery(candidateProfileId).Where(row => row.Id == applicationId);
+    private IQueryable<ApplicationRow> ProjectOwn(Guid candidateProfileId, Guid applicationId)
+    {
+        // Filter on the entity scalar `app.Id` inside the WHERE clause, BEFORE the
+        // ApplicationRow projection. EF Core's SQLite translator cannot translate a
+        // predicate that builds an ApplicationRow and then reads `.Id`; composing the
+        // filter here yields a single translatable JOIN ... WHERE ... SELECT.
+        return
+            from app in jobDbContext.JobApplications.AsNoTracking()
+            join job in jobDbContext.JobPostings.AsNoTracking() on app.JobPostingId equals job.Id
+            join profile in jobDbContext.Set<EmployerProfileEntity>().AsNoTracking() on job.EmployerProfileId equals profile.Id
+            where app.CandidateProfileId == candidateProfileId && app.Id == applicationId
+            select new ApplicationRow(
+                app.Id,
+                job.Id,
+                job.Title,
+                profile.CompanyName,
+                app.Status,
+                app.CreatedAt,
+                app.UpdatedAt);
+    }
+
 
     private IQueryable<ApplicationRow> ProjectOwn(
         Guid candidateProfileId,

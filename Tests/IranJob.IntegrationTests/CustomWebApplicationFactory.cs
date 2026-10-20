@@ -29,8 +29,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     // to the same in-memory cache; the keep-alive connections below keep the databases alive
     // for the lifetime of the test server. Default Timeout=30 sets a 30s busy_timeout so
     // concurrent writers wait instead of surfacing SQLITE_BUSY / NullReference.
-    private const string InMemoryDatabaseProvider = "Data Source=InMemory;Mode=Memory;Cache=Shared;Default Timeout=30";
-    private const string InMemoryIdentityProvider = "Data Source=InMemoryIdentity;Mode=Memory;Cache=Shared;Default Timeout=30";
+    // The data source name is unique PER factory instance. xUnit constructs one
+    // CustomWebApplicationFactory per test class (PublicJobSearchTests creates its own
+    // `new()`), so a unique name isolates each class's in-memory database and stops
+    // parallel classes from racing on a single shared schema.
+    private readonly string InMemoryDatabaseProvider = $"Data Source=InMemory-{Guid.NewGuid():N};Mode=Memory;Cache=Shared;Default Timeout=30";
+    private readonly string InMemoryIdentityProvider = $"Data Source=InMemoryIdentity-{Guid.NewGuid():N};Mode=Memory;Cache=Shared;Default Timeout=30";
     private SqliteConnection? _keepAliveConnection;
     private SqliteConnection? _identityKeepAliveConnection;
     private readonly SemaphoreSlim _jobDatabaseLock = new(1, 1);
@@ -135,19 +139,27 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         // Identity module
         services.RemoveAll<ApplicationDbContext>();
+        services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
         services.RemoveAll<IdentityDbContext>();
+        services.RemoveAll<DbContextOptions<IdentityDbContext>>();
         services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(InMemoryIdentityProvider));
         services.AddDbContext<IdentityDbContext>(options => options.UseSqlite(InMemoryIdentityProvider));
 
-        // Other modules — full RemoveAll on the context type so that EF Core's
-        // internal TryAdd does not skip our SQLite registration when the Program's
-        // Add...Module calls already registered SQL Server options.
+        // Other modules — full RemoveAll on the context type AND its DbContextOptions
+        // so that EF Core's internal TryAdd does not skip our SQLite registration when
+        // the Program's Add...Module calls already registered SQL Server options.
         services.RemoveAll<CandidateDbContext>();
+        services.RemoveAll<DbContextOptions<CandidateDbContext>>();
         services.RemoveAll<JobPostingDbContext>();
+        services.RemoveAll<DbContextOptions<JobPostingDbContext>>();
         services.RemoveAll<EmployerDbContext>();
+        services.RemoveAll<DbContextOptions<EmployerDbContext>>();
         services.RemoveAll<ReferenceDataDbContext>();
+        services.RemoveAll<DbContextOptions<ReferenceDataDbContext>>();
         services.RemoveAll<PaymentDbContext>();
+        services.RemoveAll<DbContextOptions<PaymentDbContext>>();
         services.RemoveAll<NotificationDbContext>();
+        services.RemoveAll<DbContextOptions<NotificationDbContext>>();
         services.AddDbContext<CandidateDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<JobPostingDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<EmployerDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
@@ -181,19 +193,33 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         var paymentDbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
         var notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
 
-        await applicationDbContext.Database.EnsureCreatedAsync();
-        await identityDbContext.Database.EnsureCreatedAsync();
+        // Database.EnsureCreatedAsync is a no-op once ANY table already exists in the
+        // shared in-memory database: its CreateDatabase step sees sqlite_master is
+        // non-empty and skips CreateTables. With several DbContexts sharing one SQLite
+        // cache, only whichever context ran first (while the DB was still empty) actually
+        // created tables (Identity + JobPosting in practice); every other module's schema
+        // was silently skipped, surfacing as "no such table: JobCategories" -> HTTP 500.
+        //
+        // Generate the model-derived CREATE script for each context and execute it
+        // explicitly so all schemas are built. The SQLite provider still strips the
+        // logical schemas (reference_data, jobs, identity, ...) it ignores, exactly as
+        // EnsureCreated does, so the generated tables are unqualified.
         await _jobDatabaseLock.WaitAsync();
         try
         {
             if (!_jobDatabaseInitialized)
             {
-                await jobPostingDbContext.Database.EnsureCreatedAsync();
-                await candidateDbContext.Database.EnsureCreatedAsync();
-                await referenceDataDbContext.Database.EnsureCreatedAsync();
-                await employerDbContext.Database.EnsureCreatedAsync();
-                await paymentDbContext.Database.EnsureCreatedAsync();
-                await notificationDbContext.Database.EnsureCreatedAsync();
+                // FK enforcement is off in the SQLite provider's default mode, so
+                // cross-context foreign keys do not block table creation regardless of
+                // the order in which the schemas are created.
+                await EnsureSchemaAsync(identityDbContext);
+                await EnsureSchemaAsync(referenceDataDbContext);
+                await EnsureSchemaAsync(employerDbContext);
+                await EnsureSchemaAsync(candidateDbContext);
+                await EnsureSchemaAsync(jobPostingDbContext);
+                await EnsureSchemaAsync(paymentDbContext);
+                await EnsureSchemaAsync(notificationDbContext);
+                await EnsureSchemaAsync(applicationDbContext);
                 _jobDatabaseInitialized = true;
             }
         }
@@ -203,6 +229,21 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         }
 
         await IdentitySeedData.SeedAsync(Services);
+    }
+
+    /// <summary>
+    /// Creates the database schema for <paramref name="context"/>'s model without the
+    /// "database already exists" short-circuit that <see cref="Database.EnsureCreated"/>
+    /// imposes, which skips <c>CreateTables</c> when the shared in-memory database already
+    /// holds tables created by another context.
+    /// </summary>
+    private static async Task EnsureSchemaAsync(DbContext context)
+    {
+        var script = context.Database.GenerateCreateScript();
+        if (!string.IsNullOrWhiteSpace(script))
+        {
+            await context.Database.ExecuteSqlRawAsync(script);
+        }
     }
 
     protected override void Dispose(bool disposing)

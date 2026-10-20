@@ -3,8 +3,10 @@ using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using IranJob.Modules.JobPostings.Domain.Events;
 using IranJob.Modules.JobPostings.Infrastructure.Persistence;
 using IranJob.Modules.Notifications.Application.Abstractions;
+using IranJob.Modules.Notifications.Application.Contracts;
 using IranJob.Modules.Notifications.Domain.Enums;
 using EmployerProfileEntity = IranJob.Modules.EmployerProfile.Domain.Entities.EmployerProfile;
+using IranJob.SharedKernel.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -22,6 +24,8 @@ public sealed class JobApplicationNotificationHandler(
     JobPostingDbContext jobDbContext,
     CandidateDbContext candidateDbContext,
     INotificationService notificationService,
+    IEmailService emailService,
+    IUserEmailResolver userEmailResolver,
     ILogger<JobApplicationNotificationHandler> logger)
     : IEventHandler<JobApplicationStatusChanged>
 {
@@ -81,6 +85,49 @@ public sealed class JobApplicationNotificationHandler(
             title!,
             relatedResourceId,
             cancellationToken);
+
+        // Best-effort email mirror of the in-app notification. Failures are logged and
+        // swallowed (inside IEmailService) so they never affect the business operation.
+        await SendEmailMirrorAsync(recipientUserId, type.Value, title!, cancellationToken);
+    }
+
+    /// <summary>
+    /// Resolves the recipient's email and sends a plain-text mirror of the in-app
+    /// notification. This is best-effort: a missing email or transport failure is
+    /// logged and ignored so the application transition (already committed) is
+    /// never affected.
+    /// </summary>
+    private async Task SendEmailMirrorAsync(
+        Guid recipientUserId,
+        NotificationType type,
+        string title,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var recipientEmail = await userEmailResolver.ResolveEmailAsync(recipientUserId, cancellationToken);
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                logger.LogDebug(
+                    "No email address for user {User}; skipping email mirror for {Type}.",
+                    recipientUserId, type);
+                return;
+            }
+
+            await emailService.SendAsync(
+                new EmailMessage(
+                    To: recipientEmail,
+                    Subject: $"IranJob — {title}",
+                    Body: $"{title}\n\nبرای مشاهده جزئیات وارد حساب کاربری خود در ایران‌جاب شوید."),
+                cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(
+                exception,
+                "Failed to send email mirror for user {User} transition {Type}.",
+                recipientUserId, type);
+        }
     }
 
     private async Task<(NotificationType? type, Guid recipientUserId, string? title, Guid? relatedResourceId)>
@@ -116,13 +163,25 @@ public sealed class JobApplicationNotificationHandler(
     private async Task<(NotificationType? type, Guid recipientUserId, string? title, Guid? relatedResourceId)>
         ResolveCandidateAsync(JobApplicationStatusChanged @event, string title, CancellationToken ct)
     {
-        // Resolve the candidate profile owner's user id via the candidate module context.
-        var candidateUserId = await (
-            from app in jobDbContext.JobApplications.AsNoTracking()
-            join profile in candidateDbContext.CandidateProfiles.AsNoTracking()
-                on app.CandidateProfileId equals profile.Id
-            where app.Id == @event.ApplicationId
-            select profile.UserId)
+        // Resolve the candidate profile id first via the job-postings context, then
+        // the owning user id via the candidates context. These MUST be two separate
+        // queries: composing a single LINQ query across two different DbContext
+        // instances throws "Cannot use multiple context instances within a single
+        // query execution".
+        var candidateProfileId = await jobDbContext.JobApplications.AsNoTracking()
+            .Where(app => app.Id == @event.ApplicationId)
+            .Select(app => app.CandidateProfileId)
+            .FirstOrDefaultAsync(ct);
+
+        if (candidateProfileId == Guid.Empty)
+        {
+            logger.LogWarning("Could not resolve candidate profile for application {Application}.", @event.ApplicationId);
+            return (null, Guid.Empty, null, null);
+        }
+
+        var candidateUserId = await candidateDbContext.CandidateProfiles.AsNoTracking()
+            .Where(profile => profile.Id == candidateProfileId)
+            .Select(profile => profile.UserId)
             .FirstOrDefaultAsync(ct);
 
         if (candidateUserId == Guid.Empty)

@@ -31,6 +31,8 @@
     <ProjectReference Include="..\..\src\Modules\Identity\IranJob.Modules.Identity.Domain\IranJob.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\IranJob.Modules.Identity.Application\IranJob.Modules.Identity.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Identity\IranJob.Modules.Identity.Infrastructure\IranJob.Modules.Identity.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\src\Modules\Notifications\IranJob.Modules.Notifications.Application\IranJob.Modules.Notifications.Application.csproj" />
+      <ProjectReference Include="..\..\src\Modules\Notifications\IranJob.Modules.Notifications.Infrastructure\IranJob.Modules.Notifications.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

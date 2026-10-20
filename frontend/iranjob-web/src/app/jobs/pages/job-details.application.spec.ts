@@ -7,6 +7,8 @@ import { JobApplicationService } from '../../candidate/applications/job-applicat
 import { JobDetailsComponent } from './job-details.component';
 import { PublicJobDetails } from '../models/public-job.models';
 import { PublicJobSearchService } from '../services/public-job-search.service';
+import { CandidateProfileCompletionResponse } from '../../candidate/models/candidate-completion.models';
+import { CandidateProfileService } from '../../candidate/services/candidate-profile.service';
 import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
 import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
 import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
@@ -38,6 +40,16 @@ describe('JobDetailsComponent application action', () => {
     workArrangementService.getAll.and.returnValue(of([]));
     const salaryCurrencyService = jasmine.createSpyObj<SalaryCurrencyService>('SalaryCurrencyService', ['getAll']);
     salaryCurrencyService.getAll.and.returnValue(of([]));
+    // JobDetailsComponent now asks CandidateProfileService for application
+    // readiness, so the service is stubbed like the rest of the dependencies.
+    const candidateProfileService = jasmine.createSpyObj<CandidateProfileService>('CandidateProfileService', ['getCompletion']);
+    candidateProfileService.getCompletion.and.returnValue(of({
+      profileCompletenessScore: 100,
+      hasProfile: true,
+      missingProfileFields: [],
+      resume: null,
+      readiness: { isReady: true, hasRequiredProfile: true, hasRecommendedResume: true, requiredMissing: [], recommendedMissing: [], message: '' }
+    }));
     TestBed.configureTestingModule({
       imports: [JobDetailsComponent],
       providers: [
@@ -48,6 +60,7 @@ describe('JobDetailsComponent application action', () => {
         { provide: EmploymentTypeService, useValue: employmentTypeService },
         { provide: WorkArrangementService, useValue: workArrangementService },
         { provide: SalaryCurrencyService, useValue: salaryCurrencyService },
+        { provide: CandidateProfileService, useValue: candidateProfileService },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: job.id }) } } }
       ]
     });

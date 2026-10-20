@@ -33,7 +33,6 @@ namespace IranJob.Modules.EmployerProfile.Domain.Entities
         {
             // Required by EF Core
         }
-
         public static EmployerProfile Create(
             Guid userId,
             string companyName,
@@ -149,7 +148,7 @@ namespace IranJob.Modules.EmployerProfile.Domain.Entities
             CompanyName = companyName.Trim();
             Industry = industry.Trim();
             CompanySize = companySize.Trim();
-            // City and Province are immutable after creation — intentionally not updated here.
+            // City and Province are immutable after creation ï¿½ intentionally not updated here.
             CompanyDescription = companyDescription?.Trim();
             WebsiteUrl = websiteUrl?.Trim();
             LinkedInUrl = linkedInUrl?.Trim();

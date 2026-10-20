@@ -69,7 +69,7 @@ export class CandidateDashboardComponent implements OnInit {
       Certifications: { label: 'گواهینامه‌ها', editRoute: '/candidate/resume' }
     };
     return this.completion.resume.missingSections
-      .map(key => map[key] ?? { label: key, editRoute: '/candidate/resume' });
+      .map(key => ({ key, label: map[key]?.label ?? key, editRoute: map[key]?.editRoute ?? '/candidate/resume' }));
   }
 
   get profilePct(): number {

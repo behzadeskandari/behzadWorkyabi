@@ -1,5 +1,6 @@
 ﻿using System.Threading.RateLimiting;
 using Asp.Versioning;
+using IranJob.Api;
 using IranJob.Api.Services;
 using IranJob.BuildingBlocks.Infrastructure.Extensions;
 using IranJob.BuildingBlocks.Infrastructure.Logging;
@@ -20,6 +21,7 @@ using IranJob.Modules.ReferenceData.Presentation.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -148,6 +150,13 @@ await app.ApplyReferenceDataMigrationsAsync();
 await app.ApplyJobPostingsMigrationsAsync();
 await app.ApplyPaymentsMigrationsAsync();
 await app.ApplyNotificationsMigrationsAsync();
+
+// Development-only seed for local developer UX (never runs in Production)
+if (app.Environment.IsDevelopment())
+{
+    await DevSeedData.SeedAsync(app.Services, app.Environment, app.Services.GetRequiredService<ILogger<Program>>());
+}
+
 
 if (app.Environment.IsDevelopment())
 {

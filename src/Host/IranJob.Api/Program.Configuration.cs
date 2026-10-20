@@ -27,11 +27,14 @@ using IranJob.Modules.JobPostings.Presentation.Controllers;
 using IranJob.Modules.Notifications.Infrastructure.Extensions;
 using IranJob.Modules.Payments.Infrastructure.Extensions;
 using IranJob.Modules.Payments.Presentation.Controllers;
+using IranJob.BuildingBlocks.Infrastructure.Middleware;
 using IranJob.Modules.ReferenceData.Infrastructure.Extensions;
 using IranJob.Modules.ReferenceData.Presentation.Controllers;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -148,13 +151,12 @@ public partial class Program
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        // The IApplicationBuilder passed here is actually a WebApplication at runtime
-        // (when used via UseStartup inside ConfigureWebHostDefaults), but the compiler
-        // only sees IApplicationBuilder — so cast for the WebApplication-specific
-        // extension methods.
-        var webApp = (WebApplication)app;
+        // When invoked via UseStartup<Program>() (integration-test factory), the
+        // IApplicationBuilder is an ApplicationBuilder — not a WebApplication.
+        // Therefore we must not cast to WebApplication and must use endpoint-routing
+        // APIs (UseRouting/UseEndpoints) instead of WebApplication.Map* extension methods.
 
-        if (env.IsDevelopment())
+        if (env.IsDevelopment() || env.IsEnvironment("Testing"))
         {
             app.UseSwagger();
             app.UseSwaggerUI(options =>
@@ -164,21 +166,6 @@ public partial class Program
         }
 
         app.UseExceptionHandler();
-        app.UseCors("Frontend");
-        webApp.UseInfrastructureMiddleware();
-        webApp.UseIdentityModule();
-
-        webApp.MapControllers();
-
-        webApp.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-        {
-            Predicate = registration => registration.Tags.Contains("live")
-        });
-
-        webApp.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-        {
-            Predicate = registration => registration.Tags.Contains("ready")
-        });
 
         var uploadsPath = Path.Combine(env.ContentRootPath, "uploads");
 
@@ -188,6 +175,33 @@ public partial class Program
         {
             FileProvider = new PhysicalFileProvider(uploadsPath),
             RequestPath = "/uploads"
+        });
+
+        app.UseRouting();
+        app.UseCors("Frontend");
+
+        // Inline UseInfrastructureMiddleware (WebApplication extension)
+        app.UseMiddleware<CorrelationIdMiddleware>();
+        app.UseMiddleware<RequestLoggingMiddleware>();
+
+        // Inline UseIdentityModule (WebApplication extension)
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseRateLimiter();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+
+            endpoints.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = registration => registration.Tags.Contains("live")
+            });
+
+            endpoints.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                Predicate = registration => registration.Tags.Contains("ready")
+            });
         });
     }
 }

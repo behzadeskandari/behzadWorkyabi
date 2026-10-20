@@ -1,5 +1,65 @@
-<section class="home">
-  <h1>{{ title }}</h1>
-  <p class="welcome">{{ welcomeMessage }}</p>
-  <p class="subtitle">زیرساخت فاز صفر با موفقیت آماده شده است.</p>
+<section class="home" dir="rtl">
+  <header class="home-header">
+    <h1>{{ title }}</h1>
+    <p class="welcome">{{ welcomeMessage }}</p>
+    <p class="subtitle">
+      <a class="text-button" routerLink="/jobs" aria-label="جست‌وجو و فیلتر آگهی‌های شغلی">جست‌وجوی آگهی‌های شغلی</a>
+    </p>
+  </header>
+
+  <section class="featured-jobs">
+    <h2 class="section-title">آخرین فرصت‌های شغلی</h2>
+
+    <p *ngIf="!isLoading && !hasError && !results.totalCount" class="state-card empty-state" role="status">
+      <span>در حال حاضر فرصت شغلی جدیدی منتشر نشده است. به زودی برگردید!</span>
+    </p>
+
+    <p *ngIf="isLoading" class="state-card" role="status">در حال بارگذاری فرصت‌های شغلی...</p>
+
+    <div *ngIf="hasError" class="state-card error-state" role="alert">
+      <p>بارگذاری فرصت‌های شغلی انجام نشد. اتصال خود را بررسی و دوباره تلاش کنید.</p>
+      <button type="button" class="text-button" (click)="retrySearch()">تلاش دوباره</button>
+    </div>
+
+    <div *ngIf="!isLoading && !hasError && results.items.length" class="job-results">
+      <a *ngFor="let job of results.items"
+         class="job-card"
+         [routerLink]="['/jobs', job.id]"
+         [attr.aria-label]="'جزئیات شغل ' + job.title + ' در ' + job.companyName">
+        <div class="card-topline">
+          <img *ngIf="job.companyLogoUrl" [src]="job.companyLogoUrl" [alt]="'نشان ' + job.companyName" loading="lazy" />
+          <div class="card-title">
+            <h3>{{ job.title }}</h3>
+            <p>{{ job.companyName }}</p>
+          </div>
+          <span class="category-pill">{{ job.category }}</span>
+        </div>
+        <p class="job-description">{{ job.description }}</p>
+        <ul class="job-facts" aria-label="اطلاعات شغل">
+          <li>{{ job.city }}، {{ job.province }}</li>
+          <li>{{ job.country }}</li>
+          <li>{{ job.employmentType }}</li>
+          <li>{{ job.workArrangement }}</li>
+          <li *ngIf="job.salaryMinimum || job.salaryMaximum">{{ job.salaryCurrency }}</li>
+        </ul>
+        <ul class="skill-list" aria-label="مهارت‌ها">
+          <li *ngFor="let skill of job.skills">{{ skill }}</li>
+        </ul>
+        <div class="card-bottomline">
+          <time [attr.datetime]="job.publishedAt">{{ formatDate(job.publishedAt) }}</time>
+          <span class="see-more">جزئیات بیشتر</span>
+        </div>
+      </a>
+    </div>
+
+    <nav *ngIf="!isLoading && !hasError && results.totalPages > 1" class="pagination" aria-label="صفحه‌های نتایج">
+      <button type="button" [disabled]="results.page <= 1" (click)="previousPage()">قبلی</button>
+      <span>صفحهٔ {{ formatCount(results.page) }} از {{ formatCount(results.totalPages) }}</span>
+      <button type="button" [disabled]="results.page >= results.totalPages" (click)="nextPage()">بعدی</button>
+    </nav>
+
+    <div class="view-all-container" *ngIf="!isLoading && !hasError && results.totalCount">
+      <a class="primary-button" routerLink="/jobs">مشاهدهٔ همهٔ فرصت‌ها</a>
+    </div>
+  </section>
 </section>

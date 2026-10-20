@@ -29,6 +29,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationService, NotificationService>();
         services.AddValidatorsFromAssemblyContaining<NotificationService>();
 
+        // Outbound email. Bound from the "Email" section; disabled by default so
+        // environments without an SMTP server (tests, local dev) no-op cleanly.
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddScoped<IEmailService, SmtpEmailService>();
+
         return services;
     }
 }

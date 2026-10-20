@@ -27,10 +27,31 @@
         </label>
 
         <label>مهارت‌ها
-          <select formControlName="skillIds" multiple size="5" aria-label="انتخاب یک یا چند مهارت">
-            <option *ngFor="let skill of skills" [value]="skill.id">{{ skill.name }}</option>
-          </select>
-          <small>با انتخاب چند مهارت، فقط آگهی‌هایی نمایش داده می‌شوند که همهٔ آن‌ها را داشته باشند.</small>
+          <div class="skill-filter-controls">
+            <input #skillSearchInput type="search" placeholder="جست‌وجوی مهارت..."
+                   (input)="onSkillSearch($event)" aria-label="جست‌وجوی مهارت" />
+            <span class="skill-selected-count" aria-live="polite">
+              {{ filters.controls.skillIds.value?.length ?? 0 }} / {{ skills.length }} منتخب شده
+            </span>
+            <button *ngIf="(filters.controls.skillIds.value?.length ?? 0) > 0" type="button" class="text-button clear-all"
+                    (click)="clearSelectedSkills()" aria-label="حذف تمام مهارت‌های انتخاب شده">
+              پاک کردن همه
+            </button>
+          </div>
+          <div class="skill-checkbox-group" role="group" [attr.aria-label]="'انتخاب مهارت‌ها (' + (visibleSkills.length) + ' مهارت)'">
+            <label *ngFor="let skill of visibleSkills" class="skill-checkbox">
+              <input type="checkbox"
+                     [value]="skill.id"
+                     (change)="onSkillToggle($event, skill.id)"
+                     [checked]="_isSkillSelected(skill.id)" />
+              {{ skill.name }}
+            </label>
+            <p *ngIf="visibleSkills.length === 0 && !skillsLoading" class="skill-empty">
+              مهارتی یافت نشد. جست‌وجوی خود را عوض کنید یا
+              <button type="button" class="text-button" (click)="clearSkillSearch()">جست‌وجو را پاک کنید</button>
+            </p>
+          </div>
+          <small>با انتخاب چند مهارت، فقط آگهی‌هایی نمایش داده می‌شوند که همهٔ مهارت‌های انتخابی را داشته باشند (حالت AND).</small>
         </label>
 
         <fieldset class="location-filters">
