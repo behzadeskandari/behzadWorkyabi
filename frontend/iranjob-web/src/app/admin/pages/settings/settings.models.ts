@@ -1,9 +1,11 @@
 export interface SettingsSection {
+  appVersion: string;
   key: string;
   label: string;
   description: string;
   source: string;
   value: unknown;
+
 }
 
 export interface SettingsResponse {

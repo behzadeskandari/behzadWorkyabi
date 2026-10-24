@@ -13,7 +13,7 @@ const EMPTY_PAGE: PublicJobSearchPage = { items: [], page: 1, pageSize: 12, tota
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })

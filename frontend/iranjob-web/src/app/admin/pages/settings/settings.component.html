@@ -23,22 +23,25 @@
   }
 
   @if (settings() && !isLoading()) {
-    <div class="save-notice" *ngIf="saveStatus().status !== 'idle' && saveStatus().message" [class]="'save-notice--' + saveStatus().status">
+    <div class="save-notice"
+         *ngIf="saveStatus().status !== 'idle' && saveStatus().message"
+         [class]="'save-notice--' + saveStatus().status">
       {{ saveStatus().message }}
     </div>
 
     <div class="settings-grid">
-      <!-- Payment Fee Section -->
+
+      <!-- ==================== Payment Fee ==================== -->
       <section class="settings-card">
         <div class="settings-card__header">
           <h2>{{ settings()!.paymentFee.label }}</h2>
           <span class="settings-card__source">{{ settings()!.paymentFee.source }}</span>
         </div>
         <p class="settings-card__description">{{ settings()!.paymentFee.description }}</p>
+
         <div class="settings-card__content">
           <div class="setting-field">
             <label>مبلغ payment fee</label>
-            <span class="setting-value">{{ getSectionValue(settings()!.paymentFee) }}</span>
             @if (editState().paymentFee && !isReadOnly(settings()!.paymentFee)) {
               <input
                 type="number"
@@ -46,19 +49,26 @@
                 [(ngModel)]="workingPaymentFee.amount"
                 placeholder="مبلغ (ریال)"
               />
+            } @else {
+              <span class="setting-value">{{ getSectionValue(settings()!.paymentFee) }}</span>
+            }
+          </div>
+
+          <div class="setting-field">
+            <label>واحد پولی</label>
+            @if (editState().paymentFee && !isReadOnly(settings()!.paymentFee)) {
               <input
                 type="text"
                 class="input"
                 [(ngModel)]="workingPaymentFee.currency"
                 placeholder="واحد پولی"
               />
+            } @else {
+              <span class="setting-value">{{ getPaymentFeeCurrency() }}</span>
             }
           </div>
-          <div class="setting-field">
-            <label>واحد پولی</label>
-            <span class="setting-value">{{ getPaymentFeeCurrency() }}</span>
-          </div>
         </div>
+
         <div class="settings-card__actions">
           @if (editState().paymentFee && !isReadOnly(settings()!.paymentFee)) {
             <button type="button" class="btn btn--secondary" (click)="cancelEdit('paymentFee')">لغو</button>
@@ -66,30 +76,51 @@
               ذخیره
             </button>
           } @else {
-            <button type="button" class="btn btn--action" (click)="toggleEdit('paymentFee')" [disabled]="isReadOnly(settings()!.paymentFee)">
+            <button type="button" class="btn btn--action"
+                    (click)="toggleEdit('paymentFee')"
+                    [disabled]="isReadOnly(settings()!.paymentFee)">
               {{ isReadOnly(settings()!.paymentFee) ? 'فقط خواندنی' : 'ویرایش' }}
             </button>
           }
         </div>
       </section>
 
-      <!-- Email Notifications Section -->
+      <!-- ==================== Email Notifications ==================== -->
       <section class="settings-card">
         <div class="settings-card__header">
           <h2>{{ settings()!.emailNotifications.label }}</h2>
           <span class="settings-card__source">{{ settings()!.emailNotifications.source }}</span>
         </div>
         <p class="settings-card__description">{{ settings()!.emailNotifications.description }}</p>
+
         <div class="settings-card__content">
           <div class="setting-field">
             <label>فعال بودن اعلان‌های ایمیل</label>
-            <span class="setting-value">{{ getEmailNotificationsEnabled() }}</span>
+            @if (editState().emailNotifications) {
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="workingEmailNotifications.enabled" />
+                فعال
+              </label>
+            } @else {
+              <span class="setting-value">{{ getEmailNotificationsEnabled() }}</span>
+            }
           </div>
+
           <div class="setting-field">
             <label>آدرس فرستنده</label>
-            <span class="setting-value">{{ getEmailFromAddress() }}</span>
+            @if (editState().emailNotifications) {
+              <input
+                type="email"
+                class="input"
+                [(ngModel)]="workingEmailNotifications.fromAddress"
+                placeholder="example@domain.com"
+              />
+            } @else {
+              <span class="setting-value">{{ getEmailFromAddress() }}</span>
+            }
           </div>
         </div>
+
         <div class="settings-card__actions">
           @if (editState().emailNotifications) {
             <button type="button" class="btn btn--secondary" (click)="cancelEdit('emailNotifications')">لغو</button>
@@ -97,28 +128,51 @@
               ذخیره
             </button>
           } @else {
-            <button type="button" class="btn btn--action" (click)="toggleEdit('emailNotifications')">ویرایش</button>
+            <button type="button" class="btn btn--action" (click)="toggleEdit('emailNotifications')">
+              ویرایش
+            </button>
           }
         </div>
       </section>
 
-      <!-- App Info Section -->
+      <!-- ==================== App Info ==================== -->
       <section class="settings-card">
         <div class="settings-card__header">
           <h2>{{ settings()!.appInfo.label }}</h2>
           <span class="settings-card__source">{{ settings()!.appInfo.source }}</span>
         </div>
         <p class="settings-card__description">{{ settings()!.appInfo.description }}</p>
+
         <div class="settings-card__content">
           <div class="setting-field">
             <label>نام برنامه</label>
-            <span class="setting-value">{{ getAppName() }}</span>
+            @if (editState().appInfo) {
+              <input
+                type="text"
+                class="input"
+                [(ngModel)]="workingAppInfo.name"
+                placeholder="نام برنامه"
+              />
+            } @else {
+              <span class="setting-value">{{ getAppName() }}</span>
+            }
           </div>
+
           <div class="setting-field">
             <label>نسخه برنامه</label>
-            <span class="setting-value">{{ getAppVersion() }}</span>
+            @if (editState().appInfo) {
+              <input
+                type="text"
+                class="input"
+                [(ngModel)]="workingAppInfo.version"
+                placeholder="مثلاً 1.0.0"
+              />
+            } @else {
+              <span class="setting-value">{{ getAppVersion() }}</span>
+            }
           </div>
         </div>
+
         <div class="settings-card__actions">
           @if (editState().appInfo) {
             <button type="button" class="btn btn--secondary" (click)="cancelEdit('appInfo')">لغو</button>
@@ -126,12 +180,14 @@
               ذخیره
             </button>
           } @else {
-            <button type="button" class="btn btn--action" (click)="toggleEdit('appInfo')">ویرایش</button>
+            <button type="button" class="btn btn--action" (click)="toggleEdit('appInfo')">
+              ویرایش
+            </button>
           }
         </div>
       </section>
 
-      <!-- Raw Settings Section -->
+      <!-- ==================== Raw Settings ==================== -->
       <section class="settings-card settings-card--raw">
         <div class="settings-card__header">
           <h2>تنظیمات خام</h2>
@@ -140,7 +196,10 @@
         <div class="settings-card__content settings-card__raw-content">
           <table class="raw-table">
             <thead>
-              <tr><th>کلید</th><th>مقدار</th></tr>
+              <tr>
+                <th>کلید</th>
+                <th>مقدار</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let entry of settings()!.all | keyvalue">
@@ -151,6 +210,7 @@
           </table>
         </div>
       </section>
+
     </div>
   }
 </div>

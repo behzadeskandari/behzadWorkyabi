@@ -9,7 +9,7 @@ import { JalaliDateService } from '../../../core/services/jalali-date.service';
 @Component({
   selector: 'app-employer-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })

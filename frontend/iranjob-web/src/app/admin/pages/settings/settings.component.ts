@@ -209,14 +209,14 @@ export class SettingsComponent implements OnInit {
     const s = this.settings();
     if (!s) return '-';
     const val = s.appInfo.value as any;
-    return typeof val?.name === 'string' ? val.name : '-';
+    return typeof val == 'string' ? val : '-';
   }
 
   getAppVersion(): string {
     const s = this.settings();
     if (!s) return '-';
-    const val = s.appInfo.value as any;
-    return typeof val?.version === 'string' ? val.version : '-';
+    const val = s.appInfo.appVersion as any;
+    return typeof val == 'string' ? val : '-';
   }
 
   clearSaveStatus(): void {

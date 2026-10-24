@@ -31,9 +31,9 @@
             <input #skillSearchInput type="search" placeholder="جست‌وجوی مهارت..."
                    (input)="onSkillSearch($event)" aria-label="جست‌وجوی مهارت" />
             <span class="skill-selected-count" aria-live="polite">
-              {{ filters.controls.skillIds.value?.length ?? 0 }} / {{ skills.length }} منتخب شده
-            </span>
-            <button *ngIf="(filters.controls.skillIds.value?.length ?? 0) > 0" type="button" class="text-button clear-all"
+            {{ filters.controls.skillIds.value.length }} / {{ skills.length }} منتخب شده
+          </span>
+            <button *ngIf="(filters.controls.skillIds.value.length ) > 0" type="button" class="text-button clear-all"
                     (click)="clearSelectedSkills()" aria-label="حذف تمام مهارت‌های انتخاب شده">
               پاک کردن همه
             </button>
