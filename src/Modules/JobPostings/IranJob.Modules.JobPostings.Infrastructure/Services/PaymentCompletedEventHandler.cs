@@ -1,7 +1,6 @@
 using IranJob.BuildingBlocks.Infrastructure.Events;
 using IranJob.Modules.JobPostings.Application.Abstractions;
 using IranJob.Modules.Payments.Domain.Events;
-using IranJob.SharedKernel.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace IranJob.Modules.JobPostings.Infrastructure.Services;
@@ -27,22 +26,9 @@ public sealed class PaymentCompletedEventHandler(
             return;
         }
 
-        try
-        {
-            var response = await jobPostingService.PublishByIdAsync(jobPostingId.Value, cancellationToken);
-            logger.LogInformation(
-                "Payment {PaymentId} for job posting {JobId} verified; job posting published.",
-                domainEvent.PaymentId, jobPostingId.Value);
-        }
-        catch (Exception exception) when (exception is DomainException or NotFoundException)
-        {
-            // The job could already be published, closed, or removed between
-            // payment initiation and verification. These are expected race or
-            // lifecycle conditions, not critical errors.
-            logger.LogWarning(
-                exception,
-                "Payment {PaymentId} completed for job posting {JobId} but publishing was skipped: {Message}",
-                domainEvent.PaymentId, jobPostingId.Value, exception.Message);
-        }
+        await jobPostingService.PublishByIdAsync(jobPostingId.Value, cancellationToken);
+        logger.LogInformation(
+            "Payment {PaymentId} for job posting {JobId} verified; job posting is published.",
+            domainEvent.PaymentId, jobPostingId.Value);
     }
 }

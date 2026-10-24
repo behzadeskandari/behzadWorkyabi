@@ -1,0 +1,25 @@
+<main class="payment-return" dir="rtl">
+  <h1>وضعیت پرداخت انتشار آگهی</h1>
+  <p *ngIf="isLoading" role="status">در حال دریافت تأیید نهایی از سرور...</p>
+  <p *ngIf="errorMessage" class="payment-return__error" role="alert">{{ errorMessage }}</p>
+
+  <section *ngIf="payment && !isLoading" class="payment-return__result" aria-live="polite">
+    <ng-container [ngSwitch]="payment.status">
+      <p *ngSwitchCase="'Paid'" class="payment-return__success">
+        پرداخت توسط درگاه تأیید شده است.
+        <span *ngIf="payment.publicationStatus === 'Completed'">آگهی منتشر شده است.</span>
+        <span *ngIf="payment.publicationStatus === 'Pending'">انتشار آگهی در حال تکمیل است؛ وضعیت را دوباره بررسی کنید.</span>
+        <span *ngIf="payment.publicationStatus === 'Blocked'">پرداخت ثبت شده، اما انتشار آگهی نیازمند بررسی است.</span>
+      </p>
+      <p *ngSwitchCase="'Failed'" class="payment-return__error">پرداخت ناموفق بود. می‌توانید آگهی را دوباره منتشر کنید.</p>
+      <p *ngSwitchDefault class="payment-return__pending">پرداخت هنوز تأیید نشده است. بازگشت از درگاه به‌تنهایی رسید پرداخت محسوب نمی‌شود.</p>
+    </ng-container>
+    <button *ngIf="payment.status === 'Paid' && payment.publicationStatus === 'Pending'" type="button" (click)="refreshStatus()">
+      بررسی دوباره وضعیت انتشار
+    </button>
+  </section>
+
+  <nav class="payment-return__links">
+    <a routerLink="/employer/jobs">بازگشت به آگهی‌های من</a>
+  </nav>
+</main>

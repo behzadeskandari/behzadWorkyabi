@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { EmploymentType, JobPosting, JobPostingStatus, WorkArrangement } from '../../models/job-posting.models';
 import { JobPostingService } from '../../services/job-posting.service';
 
@@ -13,6 +14,7 @@ import { JobPostingService } from '../../services/job-posting.service';
 })
 export class EmployerJobListComponent implements OnInit {
   private readonly jobService = inject(JobPostingService);
+  private readonly router = inject(Router);
 
   jobs: JobPosting[] = [];
   isLoading = true;
@@ -46,7 +48,18 @@ export class EmployerJobListComponent implements OnInit {
         : this.jobService.close(job.id);
 
     operation.subscribe({
-      next: updated => this.jobs = this.jobs.map(item => item.id === updated.id ? updated : item),
+      next: updated => {
+        this.jobs = this.jobs.map(item => item.id === updated.id ? updated : item);
+        if (action !== 'publish') return;
+        const publication = this.jobService.publicationAction(updated);
+        if (publication.kind === 'redirect') {
+          window.location.assign(publication.url);
+        } else if (publication.kind === 'check-status') {
+          void this.router.navigate(['/employer/payments/return'], { queryParams: { paymentId: publication.paymentId } });
+        } else if (publication.kind === 'invalid') {
+          this.errorMessage = 'انتشار آگهی انجام نشد یا اطلاعات پرداخت کامل نیست. وضعیت آگهی را بررسی کنید.';
+        }
+      },
       error: () => {
         this.errorMessage = 'تغییر وضعیت آگهی انجام نشد.';
         this.pendingJobId = null;

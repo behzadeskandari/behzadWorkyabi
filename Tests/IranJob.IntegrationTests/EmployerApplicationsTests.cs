@@ -22,6 +22,104 @@ public sealed class EmployerApplicationsTests : IClassFixture<CustomWebApplicati
     public EmployerApplicationsTests(CustomWebApplicationFactory factory) => this.factory = factory;
 
     [Fact]
+    public async Task ApplicationParticipants_CanMessage_ReadAndRejectUnrelatedAccess()
+    {
+        var (employer, jobId, _) = await CreateEmployerJobAsync(JobState.Published);
+        var candidate = await CreateCandidateAsync(createProfile: true);
+        var applicationResponse = await candidate.PostAsJsonAsync($"/api/v1/jobs/{jobId}/applications",
+            new { userId = Guid.NewGuid(), candidateProfileId = Guid.NewGuid() }, json);
+        applicationResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var applicationId = (await applicationResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        var createdResponse = await employer.PostAsJsonAsync("/api/v1/messages/conversations", new
+        {
+            jobPostingId = jobId, jobApplicationId = applicationId, subject = (string?)null
+        }, json);
+        createdResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var created = await createdResponse.Content.ReadFromJsonAsync<JsonElement>(json);
+        var conversationId = created.GetProperty("id").GetGuid();
+        created.GetProperty("otherParticipantName").GetString().Should().Be("Candidate");
+
+        var candidateView = await candidate.GetAsync($"/api/v1/messages/conversations/{conversationId}");
+        candidateView.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var send = await candidate.PostAsJsonAsync("/api/v1/messages/send", new
+        {
+            conversationId, content = "  Hello employer  ",
+            senderUserId = Guid.NewGuid(), senderProfileId = Guid.NewGuid()
+        }, json);
+        send.StatusCode.Should().Be(HttpStatusCode.OK);
+        var sent = await send.Content.ReadFromJsonAsync<JsonElement>(json);
+        sent.GetProperty("content").GetString().Should().Be("Hello employer");
+        sent.GetProperty("isMine").GetBoolean().Should().BeTrue();
+
+        var secondSend = await candidate.PostAsJsonAsync("/api/v1/messages/send", new
+        { conversationId, content = "Second message" }, json);
+        secondSend.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var history = await employer.GetAsync($"/api/v1/messages/conversations/{conversationId}/messages");
+        history.StatusCode.Should().Be(HttpStatusCode.OK);
+        var messages = await history.Content.ReadFromJsonAsync<JsonElement>(json);
+        messages.GetArrayLength().Should().Be(2);
+        messages[0].GetProperty("isMine").GetBoolean().Should().BeFalse();
+        messages[0].GetProperty("content").GetString().Should().Be("Hello employer");
+        messages[1].GetProperty("content").GetString().Should().Be("Second message");
+
+        var pageTwo = await employer.GetAsync($"/api/v1/messages/conversations/{conversationId}/messages?page=2&pageSize=1");
+        var lastPage = await pageTwo.Content.ReadFromJsonAsync<JsonElement>(json);
+        lastPage.GetArrayLength().Should().Be(1);
+        lastPage[0].GetProperty("content").GetString().Should().Be("Second message");
+
+        var list = await employer.GetAsync("/api/v1/messages/conversations");
+        var listRows = await list.Content.ReadFromJsonAsync<JsonElement>(json);
+        listRows[0].GetProperty("unreadCount").GetInt32().Should().Be(2);
+        var unread = await employer.GetAsync("/api/v1/messages/unread");
+        (await unread.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("totalUnread").GetInt32().Should().Be(2);
+
+        (await employer.PostAsync($"/api/v1/messages/conversations/{conversationId}/read", null))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await employer.PostAsync($"/api/v1/messages/conversations/{conversationId}/read", null))
+            .StatusCode.Should().Be(HttpStatusCode.NoContent);
+        unread = await employer.GetAsync("/api/v1/messages/unread");
+        (await unread.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("totalUnread").GetInt32().Should().Be(0);
+
+        var (otherEmployer, _, _) = await CreateEmployerJobAsync(JobState.Published);
+        (await otherEmployer.GetAsync($"/api/v1/messages/conversations/{conversationId}"))
+            .StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await otherEmployer.GetAsync($"/api/v1/messages/conversations/{conversationId}/messages"))
+            .StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        var duplicateRequest = await candidate.PostAsJsonAsync("/api/v1/messages/conversations", new
+        { jobPostingId = jobId, jobApplicationId = applicationId, subject = (string?)null }, json);
+        duplicateRequest.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await duplicateRequest.Content.ReadFromJsonAsync<JsonElement>(json))
+            .GetProperty("id").GetGuid().Should().NotBe(conversationId);
+
+        var invalidMessage = await candidate.PostAsJsonAsync("/api/v1/messages/send", new
+        { conversationId, content = "   " }, json);
+        invalidMessage.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task EmployerCannotStartConversationForAnotherEmployersApplication()
+    {
+        var (owner, jobId, _) = await CreateEmployerJobAsync(JobState.Published);
+        var (unrelatedEmployer, _, _) = await CreateEmployerJobAsync(JobState.Published);
+        var candidate = await CreateCandidateAsync(createProfile: true);
+        var applicationResponse = await candidate.PostAsJsonAsync($"/api/v1/jobs/{jobId}/applications",
+            new { userId = Guid.NewGuid(), candidateProfileId = Guid.NewGuid() }, json);
+        applicationResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var applicationId = (await applicationResponse.Content.ReadFromJsonAsync<JsonElement>(json)).GetProperty("id").GetGuid();
+
+        var ownerResult = await owner.PostAsJsonAsync("/api/v1/messages/conversations", new
+        { jobPostingId = jobId, jobApplicationId = applicationId, subject = (string?)null }, json);
+        ownerResult.StatusCode.Should().Be(HttpStatusCode.OK);
+        var denied = await unrelatedEmployer.PostAsJsonAsync("/api/v1/messages/conversations", new
+        { jobPostingId = jobId, jobApplicationId = applicationId, subject = (string?)null }, json);
+        denied.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
     public async Task Employer_Lists_Details_Reviews_Accepts_Rejects_Application()
     {
         var (employer, jobId, jobTitle) = await CreateEmployerJobAsync(JobState.Published);

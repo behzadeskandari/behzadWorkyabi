@@ -23,6 +23,18 @@ export const routes: Routes = [
         canActivate: [authGuard]
       },
       {
+        path: 'messages', canActivate: [authGuard],
+        loadComponent: () => import('./messages/messages-page.component').then(m => m.MessagesPageComponent)
+      },
+      {
+        path: 'messages/:id', canActivate: [authGuard],
+        loadComponent: () => import('./messages/messages-page.component').then(m => m.MessagesPageComponent)
+      },
+      {
+        path: 'notifications', canActivate: [authGuard],
+        loadComponent: () => import('./notifications/notifications-page.component').then(m => m.NotificationsPageComponent)
+      },
+      {
         path: 'candidate/profile',
         canActivate: [authGuard],
         loadComponent: () =>
@@ -43,6 +55,18 @@ export const routes: Routes = [
           import('./candidate/applications/application-list.component').then(m => m.ApplicationListComponent)
       },
       {
+        path: 'candidate/saved-jobs',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['Candidate'] },
+        loadComponent: () => import('./jobs/pages/saved-jobs.component').then(m => m.SavedJobsComponent)
+      },
+      {
+        path: 'candidate/job-alerts',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['Candidate'] },
+        loadComponent: () => import('./jobs/pages/job-alerts.component').then(m => m.JobAlertsComponent)
+      },
+      {
         path: 'candidate/dashboard',
         canActivate: [authGuard, roleGuard],
         data: { roles: ['Candidate'] },
@@ -61,6 +85,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./employer/pages/profile/profile.component').then(m => m.EmployerProfileComponent)
+      },
+      {
+        path: 'employer/payments/return',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['Employer'] },
+        loadComponent: () => import('./employer/pages/payment-return.component').then(m => m.EmployerPaymentReturnComponent)
       },
       {
         path: 'jobs',

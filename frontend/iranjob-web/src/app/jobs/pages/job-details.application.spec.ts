@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -12,6 +13,7 @@ import { CandidateProfileService } from '../../candidate/services/candidate-prof
 import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
 import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
 import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
+import { CandidateJobPreferencesService } from '../services/candidate-job-preferences.service';
 
 describe('JobDetailsComponent application action', () => {
   const job: PublicJobDetails = {
@@ -50,6 +52,12 @@ describe('JobDetailsComponent application action', () => {
       resume: null,
       readiness: { isReady: true, hasRequiredProfile: true, hasRecommendedResume: true, requiredMissing: [], recommendedMissing: [], message: '' }
     }));
+    const preferences = {
+      checkSaved: jasmine.createSpy('checkSaved').and.returnValue(of([])),
+      save: jasmine.createSpy('save').and.returnValue(of(undefined)),
+      remove: jasmine.createSpy('remove').and.returnValue(of(undefined)),
+      savedIds: signal<ReadonlySet<string>>(new Set())
+    };
     TestBed.configureTestingModule({
       imports: [JobDetailsComponent],
       providers: [
@@ -61,6 +69,7 @@ describe('JobDetailsComponent application action', () => {
         { provide: WorkArrangementService, useValue: workArrangementService },
         { provide: SalaryCurrencyService, useValue: salaryCurrencyService },
         { provide: CandidateProfileService, useValue: candidateProfileService },
+        { provide: CandidateJobPreferencesService, useValue: preferences },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: job.id }) } } }
       ]
     });

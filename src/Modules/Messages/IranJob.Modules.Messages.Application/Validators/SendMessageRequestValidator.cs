@@ -12,7 +12,10 @@ public sealed class SendMessageRequestValidator : AbstractValidator<SendMessageR
             .WithMessage("Conversation id is required.");
 
         RuleFor(x => x.Content)
+            .NotEmpty()
+            .Must(content => !string.IsNullOrWhiteSpace(content))
+            .WithMessage("Message content cannot be blank.")
             .MaximumLength(20000)
-            .WithMessage("Message content cannot exceed 20,000 characters.");
+            .WithMessage("Message content is required and cannot exceed 20,000 characters.");
     }
 }

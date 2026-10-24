@@ -2,8 +2,8 @@ namespace IranJob.Modules.Messages.Application.Contracts;
 
 /// <summary>
 /// Request to start or retrieve a conversation. The two required identifiers
-/// must reference a published job posting and (for candidates) an application by
-/// that candidate to that job. The subject is optional; the API derives a sensible
+/// must reference a published job posting and an eligible application to that job.
+/// The subject is optional; the API derives a sensible
 /// default from the job title when omitted.
 /// </summary>
 public sealed record CreateConversationRequest(

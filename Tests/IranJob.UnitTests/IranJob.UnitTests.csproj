@@ -33,6 +33,7 @@
     <ProjectReference Include="..\..\src\Modules\Identity\IranJob.Modules.Identity.Infrastructure\IranJob.Modules.Identity.Infrastructure.csproj" />
       <ProjectReference Include="..\..\src\Modules\Notifications\IranJob.Modules.Notifications.Application\IranJob.Modules.Notifications.Application.csproj" />
       <ProjectReference Include="..\..\src\Modules\Notifications\IranJob.Modules.Notifications.Infrastructure\IranJob.Modules.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Messages\IranJob.Modules.Messages.Application\IranJob.Modules.Messages.Application.csproj" />
   </ItemGroup>
 
 </Project>

@@ -33,17 +33,20 @@ public sealed class ZarinPalClient(
             metadata = request.Metadata
         };
 
-        var response = await httpClient.PostAsJsonAsync(_options.RequestUrl, payload, cancellationToken);
+        var requestUrl = _options.Sandbox ? _options.SandboxRequestUrl : _options.RequestUrl;
+        var response = await httpClient.PostAsJsonAsync(requestUrl, payload, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        using var document = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken: cancellationToken);
+        using var document = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken: cancellationToken)
+            ?? throw new InvalidDataException("Payment provider returned an empty response.");
         var root = document.RootElement;
-        var code = root.TryGetProperty("code", out var c) ? c.GetInt32() : -1;
-        var message = root.TryGetProperty("message", out var m) ? m.GetString() ?? string.Empty : string.Empty;
+        var data = GetObject(root, "data");
+        var code = ReadCode(data, root);
+        var message = ReadMessage(data, root);
         var authority = string.Empty;
-        if (root.TryGetProperty("data", out var data) && data.ValueKind is JsonValueKind.Object)
+        if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("authority", out var authorityElement))
         {
-            if (data.TryGetProperty("authority", out var a)) authority = a.GetString() ?? string.Empty;
+            authority = authorityElement.ToString();
         }
 
         logger.LogInformation("ZarinPal payment request returned code {Code}.", code);
@@ -60,18 +63,53 @@ public sealed class ZarinPalClient(
             currency = request.Currency
         };
 
-        var response = await httpClient.PostAsJsonAsync(_options.VerifyUrl, payload, cancellationToken);
+        var verifyUrl = _options.Sandbox ? _options.SandboxVerifyUrl : _options.VerifyUrl;
+        var response = await httpClient.PostAsJsonAsync(verifyUrl, payload, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        using var document = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken: cancellationToken);
+        using var document = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken: cancellationToken)
+            ?? throw new InvalidDataException("Payment provider returned an empty response.");
         var root = document.RootElement;
-        var code = root.TryGetProperty("code", out var c) ? c.GetInt32() : -1;
-        var message = root.TryGetProperty("message", out var m) ? m.GetString() ?? string.Empty : string.Empty;
-        var referenceId = root.TryGetProperty("data", out var data) && data.TryGetProperty("ref_id", out var r)
-            ? r.GetString()
+        var data = GetObject(root, "data");
+        var code = ReadCode(data, root);
+        var message = ReadMessage(data, root);
+        var referenceId = data.ValueKind == JsonValueKind.Object && data.TryGetProperty("ref_id", out var referenceElement)
+            ? referenceElement.ToString()
             : null;
 
-        logger.LogInformation("ZarinPal verification for authority {Authority} returned code {Code}.", request.Authority, code);
+        logger.LogInformation("ZarinPal verification returned code {Code}.", code);
         return new ZarinPalVerifyResult(code, message, referenceId);
+    }
+
+    private static JsonElement GetObject(JsonElement element, string propertyName) =>
+        element.TryGetProperty(propertyName, out var property) && property.ValueKind == JsonValueKind.Object
+            ? property
+            : default;
+
+    private static int ReadCode(JsonElement data, JsonElement root)
+    {
+        if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("code", out var code))
+            return ParseCode(code);
+        if (root.TryGetProperty("code", out var rootCode))
+            return ParseCode(rootCode);
+        if (root.TryGetProperty("errors", out var errors)
+            && errors.ValueKind == JsonValueKind.Array
+            && errors.GetArrayLength() > 0
+            && errors[0].ValueKind == JsonValueKind.Object
+            && errors[0].TryGetProperty("code", out var errorCode))
+            return ParseCode(errorCode);
+        return -1;
+    }
+
+    private static int ParseCode(JsonElement code) =>
+        code.ValueKind == JsonValueKind.Number && code.TryGetInt32(out var numeric)
+            ? numeric
+            : int.TryParse(code.ToString(), out var parsed) ? parsed : -1;
+
+    private static string ReadMessage(JsonElement data, JsonElement root)
+    {
+        if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("message", out var dataMessage))
+            return dataMessage.ToString();
+        return root.TryGetProperty("message", out var rootMessage) ? rootMessage.ToString() : string.Empty;
     }
 }

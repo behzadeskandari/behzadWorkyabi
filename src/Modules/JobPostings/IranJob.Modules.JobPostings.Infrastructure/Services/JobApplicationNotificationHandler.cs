@@ -83,6 +83,7 @@ public sealed class JobApplicationNotificationHandler(
             recipientUserId,
             type.Value,
             title!,
+            title!,
             relatedResourceId,
             cancellationToken);
 

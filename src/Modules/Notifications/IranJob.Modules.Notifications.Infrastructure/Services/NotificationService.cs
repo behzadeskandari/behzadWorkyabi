@@ -45,7 +45,15 @@ public sealed class NotificationService(
             .OrderByDescending(notification => notification.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(notification => Map(notification))
+            .Select(notification => new NotificationDto(
+                notification.Id,
+                notification.Type,
+                notification.Title,
+                notification.Message,
+                notification.RelatedResourceId,
+                notification.CreatedAt,
+                notification.IsRead,
+                notification.ReadAt))
             .ToListAsync(cancellationToken);
 
         return new NotificationListResponse(items, total, unread, page, pageSize);
@@ -79,7 +87,14 @@ public sealed class NotificationService(
                     .SetProperty(notification => notification.ReadAt, DateTime.UtcNow),
                 cancellationToken);
 
-        return affected > 0;
+        if (affected > 0)
+            return true;
+
+        // Repeated mark-as-read requests are idempotent for this recipient.
+        return await dbContext.Notifications.AsNoTracking()
+            .AnyAsync(notification => notification.RecipientUserId == recipientUserId
+                                      && notification.Id == notificationId,
+                cancellationToken);
     }
 
     public async Task<int> MarkAllReadAsync(Guid recipientUserId, CancellationToken cancellationToken = default)
@@ -100,6 +115,7 @@ public sealed class NotificationService(
         Guid recipientUserId,
         NotificationType type,
         string title,
+        string message,
         Guid? relatedResourceId = null,
         CancellationToken cancellationToken = default)
     {
@@ -123,7 +139,7 @@ public sealed class NotificationService(
             return existing;
         }
 
-        var notification = Notification.Create(recipientUserId, type, title, relatedResourceId);
+        var notification = Notification.Create(recipientUserId, type, title, message, relatedResourceId);
         dbContext.Notifications.Add(notification);
         await dbContext.SaveChangesAsync(cancellationToken);
         return notification.Id;
@@ -136,13 +152,4 @@ public sealed class NotificationService(
         if (pageSize is < 1 or > 100)
             throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be between 1 and 100.");
     }
-
-    private static NotificationDto Map(Notification notification) => new(
-        notification.Id,
-        notification.Type,
-        notification.Title,
-        notification.RelatedResourceId,
-        notification.CreatedAt,
-        notification.IsRead,
-        notification.ReadAt);
 }

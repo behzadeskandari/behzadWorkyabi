@@ -14,6 +14,8 @@ import { JalaliDateService } from '../../core/services/jalali-date.service';
 import { City, Country, EmploymentType, JobCategory, Province, SalaryCurrency, Skill, WorkArrangement } from '../../reference-data/models/reference-data.models';
 import { PublicJobSearchItem, PublicJobSearchPage, PublicJobSearchQuery, PublicJobSort } from '../models/public-job.models';
 import { PublicJobSearchService } from '../services/public-job-search.service';
+import { CandidateJobPreferencesService } from '../services/candidate-job-preferences.service';
+import { AuthService } from '../../auth/services/auth.service';
 
 const EMPTY_PAGE: PublicJobSearchPage = { items: [], page: 1, pageSize: 12, totalCount: 0, totalPages: 0 };
 
@@ -37,6 +39,8 @@ export class JobSearchComponent implements OnInit {
   private readonly workArrangementService = inject(WorkArrangementService);
   private readonly salaryCurrencyService = inject(SalaryCurrencyService);
   private readonly jalaliDate = inject(JalaliDateService);
+  readonly preferences = inject(CandidateJobPreferencesService);
+  private readonly authService = inject(AuthService);
   private readonly retrySearch = new Subject<void>();
   private skillSearchTerm = '';
 
@@ -74,6 +78,9 @@ export class JobSearchComponent implements OnInit {
   lookupError = false;
   skillsLoading = false;
   filterValidationMessage = '';
+  saveError = false;
+  savedStateLoading = false;
+  private savedStateSequence = 0;
 
   ngOnInit(): void {
     this.loadLookups();
@@ -99,7 +106,39 @@ export class JobSearchComponent implements OnInit {
       this.results = page;
       this.hasError = error;
       this.isLoading = false;
+      if (this.authService.hasRole('Candidate')) {
+        this.loadSavedState(page.items.map(item => item.id));
+      }
     });
+  }
+
+  retrySavedState(): void { this.loadSavedState(this.results.items.map(item => item.id)); }
+
+  private loadSavedState(jobIds: string[]): void {
+    const sequence = ++this.savedStateSequence;
+    this.savedStateLoading = true;
+    this.saveError = false;
+    this.preferences.checkSaved(jobIds).subscribe({
+      next: () => { if (sequence === this.savedStateSequence) this.savedStateLoading = false; },
+      error: () => { if (sequence === this.savedStateSequence) { this.savedStateLoading = false; this.saveError = true; } }
+    });
+  }
+
+  toggleSaved(jobId: string): void {
+    if (!this.authService.hasRole('Candidate')) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    this.saveError = false;
+    const operation = this.preferences.savedIds().has(jobId)
+      ? this.preferences.remove(jobId) : this.preferences.save(jobId);
+    operation.subscribe({ error: () => this.saveError = true });
+  }
+
+  get canSaveJobs(): boolean { return !this.authService.isAuthenticated() || this.authService.hasRole('Candidate'); }
+  isSaved(jobId: string): boolean {
+    return this.authService.hasRole('Candidate') && !this.savedStateLoading && !this.saveError
+      && this.preferences.savedIds().has(jobId);
   }
 
   applyFilters(): void {

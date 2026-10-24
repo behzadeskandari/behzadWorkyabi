@@ -2,6 +2,7 @@
 using Asp.Versioning;
 using IranJob.Api;
 using IranJob.Api.Services;
+using IranJob.Api.Configuration;
 using IranJob.BuildingBlocks.Infrastructure.Extensions;
 using IranJob.BuildingBlocks.Infrastructure.Logging;
 using IranJob.Modules.Candidates.Infrastructure.Extensions;
@@ -14,6 +15,8 @@ using IranJob.Modules.Identity.Presentation.Controllers;
 using IranJob.Modules.JobPostings.Infrastructure.Extensions;
 using IranJob.Modules.JobPostings.Presentation.Controllers;
 using IranJob.Modules.Notifications.Infrastructure.Extensions;
+using IranJob.Modules.Messages.Infrastructure.Extensions;
+using IranJob.Modules.Messages.Presentation.Controllers;
 using IranJob.Modules.Payments.Infrastructure.Extensions;
 using IranJob.Modules.Payments.Presentation.Controllers;
 using IranJob.Modules.ReferenceData.Infrastructure.Extensions;
@@ -26,6 +29,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+ProductionConfigurationValidator.Validate(builder.Configuration, builder.Environment.EnvironmentName);
 
 builder.Host.UseSerilog((context, services, configuration) =>
 {
@@ -49,6 +53,7 @@ builder.Services.AddReferenceDataModule(builder.Configuration);
 builder.Services.AddJobPostingsModule(builder.Configuration);
 builder.Services.AddPaymentsModule(builder.Configuration);
 builder.Services.AddNotificationsModule(builder.Configuration);
+builder.Services.AddMessagesModule(builder.Configuration);
 
 var rateOptions = builder.Configuration.GetSection(IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions.SectionName).Get<IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions>()
     ?? new IranJob.Modules.Identity.Infrastructure.Configuration.RateLimitingOptions();
@@ -77,7 +82,8 @@ builder.Services.AddControllers()
     .AddApplicationPart(typeof(JobCategoriesController).Assembly)
     .AddApplicationPart(typeof(EmployerJobsController).Assembly)
         .AddApplicationPart(typeof(PaymentController).Assembly)
-    .AddApplicationPart(typeof(IranJob.Modules.Notifications.Presentation.Controllers.NotificationsController).Assembly);
+    .AddApplicationPart(typeof(IranJob.Modules.Notifications.Presentation.Controllers.NotificationsController).Assembly)
+    .AddApplicationPart(typeof(MessagesController).Assembly);
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services
@@ -128,17 +134,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Frontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:4200")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            .WithExposedHeaders("X-CSRF-TOKEN", "X-Correlation-ID");
-    });
-});
+builder.Services.AddFrontendCors(builder.Configuration, builder.Environment.EnvironmentName);
 
 var app = builder.Build();
 
@@ -150,6 +146,7 @@ await app.ApplyReferenceDataMigrationsAsync();
 await app.ApplyJobPostingsMigrationsAsync();
 await app.ApplyPaymentsMigrationsAsync();
 await app.ApplyNotificationsMigrationsAsync();
+await app.ApplyMessagesMigrationsAsync();
 
 // Development-only seed for local developer UX (never runs in Production)
 if (app.Environment.IsDevelopment())

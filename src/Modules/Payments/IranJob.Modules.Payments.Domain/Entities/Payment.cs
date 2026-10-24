@@ -19,6 +19,7 @@ public sealed class Payment
     public long Amount { get; private set; }
     public Currency Currency { get; private set; }
     public PaymentStatus Status { get; private set; } = PaymentStatus.Pending;
+    public PaymentPublicationStatus PublicationStatus { get; private set; } = PaymentPublicationStatus.NotRequired;
     public PaymentMethod PaymentMethod { get; private set; } = PaymentMethod.ZarinPal;
     public string Authority { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
@@ -65,6 +66,8 @@ public sealed class Payment
         Authority = authority.Trim();
     }
 
+    public void SetCallbackUrl(string? callbackUrl) => CallbackUrl = callbackUrl;
+
     public void Complete(string? referenceId = null)
     {
         if (Status != PaymentStatus.Pending)
@@ -72,7 +75,27 @@ public sealed class Payment
 
         Status = PaymentStatus.Paid;
         PaidAt = DateTimeOffset.UtcNow;
+        BumpConcurrencyToken();
+        PublicationStatus = RelatedJobPostingId.HasValue
+            ? PaymentPublicationStatus.Pending
+            : PaymentPublicationStatus.NotRequired;
         AddDomainEvent(new PaymentCompleted(Id, EmployerProfileId, RelatedJobPostingId, referenceId));
+    }
+
+    public void MarkPublicationCompleted()
+    {
+        if (Status != PaymentStatus.Paid || !RelatedJobPostingId.HasValue)
+            throw new DomainException("Only a paid job-publication payment can complete publication.");
+        PublicationStatus = PaymentPublicationStatus.Completed;
+        BumpConcurrencyToken();
+    }
+
+    public void MarkPublicationBlocked()
+    {
+        if (Status != PaymentStatus.Paid || !RelatedJobPostingId.HasValue)
+            throw new DomainException("Only a paid job-publication payment can be blocked from publication.");
+        PublicationStatus = PaymentPublicationStatus.Blocked;
+        BumpConcurrencyToken();
     }
 
     public void Fail(string reason)
@@ -84,6 +107,7 @@ public sealed class Payment
 
         Status = PaymentStatus.Failed;
         FailedAt = DateTimeOffset.UtcNow;
+        BumpConcurrencyToken();
         var text = (reason ?? string.Empty).Trim();
         FailureReason = text.Length > 1000 ? text[..1000] : text;
         AddDomainEvent(new PaymentFailed(Id, EmployerProfileId, RelatedJobPostingId));
@@ -96,6 +120,8 @@ public sealed class Payment
     public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
 
     public void ClearDomainEvents() => _domainEvents.Clear();
+
+    private void BumpConcurrencyToken() => RowVersion = Guid.NewGuid().ToByteArray();
 }
 
 

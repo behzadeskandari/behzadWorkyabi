@@ -12,6 +12,9 @@ public sealed class JobPostingDbContext(DbContextOptions<JobPostingDbContext> op
     public DbSet<JobPosting> JobPostings => Set<JobPosting>();
     public DbSet<JobPostingSkill> JobPostingSkills => Set<JobPostingSkill>();
     public DbSet<JobApplication> JobApplications => Set<JobApplication>();
+    public DbSet<SavedJob> SavedJobs => Set<SavedJob>();
+    public DbSet<JobAlert> JobAlerts => Set<JobAlert>();
+    public DbSet<JobAlertSkill> JobAlertSkills => Set<JobAlertSkill>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

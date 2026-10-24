@@ -12,6 +12,7 @@ import { CandidateProfileService } from '../../candidate/services/candidate-prof
 import { EmploymentTypeService } from '../../reference-data/services/employment-type.service';
 import { WorkArrangementService } from '../../reference-data/services/work-arrangement.service';
 import { SalaryCurrencyService } from '../../reference-data/services/salary-currency.service';
+import { CandidateJobPreferencesService } from '../services/candidate-job-preferences.service';
 import { EmploymentType, SalaryCurrency, WorkArrangement } from '../../reference-data/models/reference-data.models';
 
 @Component({
@@ -32,6 +33,7 @@ export class JobDetailsComponent implements OnInit {
   private readonly employmentTypeService = inject(EmploymentTypeService);
   private readonly workArrangementService = inject(WorkArrangementService);
   private readonly salaryCurrencyService = inject(SalaryCurrencyService);
+  readonly preferences = inject(CandidateJobPreferencesService);
   private readonly destroyRef = inject(DestroyRef);
 
   job: PublicJobDetails | null = null;
@@ -46,6 +48,10 @@ export class JobDetailsComponent implements OnInit {
   applicationMessage = '';
   isReady = true;
   readinessMessage = '';
+  savedStateLoading = false;
+  savedStateError = false;
+  savingJobState = false;
+  saveJobError = false;
 
   get isCandidate(): boolean {
     return this.authService.hasRole('Candidate');
@@ -67,6 +73,14 @@ export class JobDetailsComponent implements OnInit {
       next: job => {
         this.job = job;
         if (this.isCandidate) {
+          this.savedStateLoading = true;
+          this.savedStateError = false;
+          this.preferences.checkSaved([job.id]).subscribe({
+            next: () => this.savedStateLoading = false,
+            error: () => { this.savedStateLoading = false; this.savedStateError = true; }
+          });
+        }
+        if (this.isCandidate) {
           this.loadReadiness();
           this.loadApplicationState();
         }
@@ -77,6 +91,34 @@ export class JobDetailsComponent implements OnInit {
       },
       complete: () => this.isLoading = false
     });
+  }
+
+  get canSaveJobs(): boolean { return this.isCandidate || this.isAnonymous; }
+  get isJobSaved(): boolean { return this.isCandidate && !this.savedStateLoading && !this.savedStateError
+    && !!this.job && this.preferences.savedIds().has(this.job.id); }
+
+  retrySavedState(): void {
+    if (!this.job || !this.isCandidate) return;
+    this.savedStateLoading = true;
+    this.savedStateError = false;
+    this.preferences.checkSaved([this.job.id]).subscribe({
+      next: () => this.savedStateLoading = false,
+      error: () => { this.savedStateLoading = false; this.savedStateError = true; }
+    });
+  }
+
+  toggleSavedJob(): void {
+    if (!this.job) return;
+    if (this.isAnonymous) {
+      void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+    if (!this.isCandidate || this.savedStateLoading || this.savedStateError || this.savingJobState) return;
+    this.savingJobState = true;
+    this.saveJobError = false;
+    const action = this.isJobSaved
+      ? this.preferences.remove(this.job.id) : this.preferences.save(this.job.id);
+    action.subscribe({ next: () => this.savingJobState = false, error: () => { this.savingJobState = false; this.saveJobError = true; } });
   }
 
   private loadReferenceData(): void {

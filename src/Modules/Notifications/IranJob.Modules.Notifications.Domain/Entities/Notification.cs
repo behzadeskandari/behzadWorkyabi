@@ -16,6 +16,7 @@ public sealed class Notification : Entity
     public Guid RecipientUserId { get; private set; }
     public NotificationType Type { get; private set; }
     public string Title { get; private set; } = default!;
+    public string Message { get; private set; } = default!;
     public string? LocalizedKey { get; private set; }
     public Guid? RelatedResourceId { get; private set; }
     public bool IsRead { get; private set; }
@@ -25,18 +26,28 @@ public sealed class Notification : Entity
         Guid recipientUserId,
         NotificationType type,
         string title,
+        string message,
         Guid? relatedResourceId = null)
     {
         if (recipientUserId == Guid.Empty)
             throw new ArgumentException("Recipient user id is required.", nameof(recipientUserId));
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Title is required.", nameof(title));
+        if (string.IsNullOrWhiteSpace(message))
+            throw new ArgumentException("Message is required.", nameof(message));
+        if (title.Length > 500)
+            throw new ArgumentOutOfRangeException(nameof(title), "Title cannot exceed 500 characters.");
+        if (message.Length > 2000)
+            throw new ArgumentOutOfRangeException(nameof(message), "Message cannot exceed 2000 characters.");
+        if (!Enum.IsDefined(type))
+            throw new ArgumentOutOfRangeException(nameof(type));
 
         return new Notification
         {
             RecipientUserId = recipientUserId,
             Type = type,
             Title = title,
+            Message = message,
             RelatedResourceId = relatedResourceId,
             CreatedAt = DateTime.UtcNow
         };

@@ -1,6 +1,7 @@
 using IranJob.Modules.Identity.Application.Abstractions;
 using IranJob.Modules.Identity.Domain.Constants;
 using IranJob.Modules.Identity.Domain.Entities;
+using IranJob.Modules.Identity.Infrastructure.Persistence;
 using IranJob.SharedKernel.Exceptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,27 +14,39 @@ namespace IranJob.Modules.Identity.Infrastructure.Services;
 /// No business logic or filesystem operations -- pure data projection.
 /// </summary>
 public sealed class AdminDashboardService(
-    UserManager<ApplicationUser> userManager) : IAdminDashboardService
+    UserManager<ApplicationUser> userManager,
+    IdentityDbContext dbContext) : IAdminDashboardService
 {
     private const int RecentRegistrationDays = 7;
 
     public async Task<SystemStatsResult> GetSystemStatsAsync(CancellationToken cancellationToken = default)
     {
-        var users = await userManager.Users.AsNoTracking().ToListAsync(cancellationToken);
-
-        var totalUsers = users.Count;
-        var activeUsers = users.Count(user => user.IsActive);
-        var lockedOutUsers = users.Count(user => user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow);
-
         var recentThreshold = DateTimeOffset.UtcNow.AddDays(-RecentRegistrationDays);
-        var recentRegistrations = users.Count(user => user.CreatedAt >= recentThreshold);
-
-        var usersByRole = new Dictionary<string, int>();
-        foreach (var roleName in IdentityRoles.All)
+        var users = userManager.Users.AsNoTracking();
+        var totalUsers = await users.CountAsync(cancellationToken);
+        var activeUsers = await users.CountAsync(user => user.IsActive, cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        int lockedOutUsers;
+        int recentRegistrations;
+        if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
-            var roleUsers = await userManager.GetUsersInRoleAsync(roleName);
-            usersByRole[roleName] = roleUsers?.Count ?? 0;
+            // SQLite cannot translate DateTimeOffset comparisons for this model.
+            var dateValues = await users.Select(user => new { user.LockoutEnd, user.CreatedAt }).ToListAsync(cancellationToken);
+            lockedOutUsers = dateValues.Count(user => user.LockoutEnd.HasValue && user.LockoutEnd > now);
+            recentRegistrations = dateValues.Count(user => user.CreatedAt >= recentThreshold);
         }
+        else
+        {
+            lockedOutUsers = await users.CountAsync(user => user.LockoutEnd.HasValue && user.LockoutEnd > now, cancellationToken);
+            recentRegistrations = await users.CountAsync(user => user.CreatedAt >= recentThreshold, cancellationToken);
+        }
+
+        var roleCounts = await (from userRole in dbContext.UserRoles.AsNoTracking()
+                                join role in dbContext.Roles.AsNoTracking() on userRole.RoleId equals role.Id
+                                group userRole by role.Name into roleGroup
+                                select new { Role = roleGroup.Key, Count = roleGroup.Select(x => x.UserId).Distinct().Count() })
+            .ToDictionaryAsync(item => item.Role!, item => item.Count, cancellationToken);
+        var usersByRole = IdentityRoles.All.ToDictionary(role => role, role => roleCounts.GetValueOrDefault(role));
 
         return new SystemStatsResult(
             TotalUsers: totalUsers,
@@ -79,37 +92,7 @@ public sealed class AdminDashboardService(
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var totalCount = await userManager.Users.AsNoTracking()
-            .CountAsync(cancellationToken);
-
-        // SQLite stores DateTimeOffset as TEXT and cannot translate ORDER BY on it.
-        // We load all users and sort client-side so the same code path works
-        // with SQL Server (production) and SQLite (tests).
-        var users = userManager.Users.AsNoTracking()
-            .AsEnumerable()
-            .OrderByDescending(user => user.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-
-        var items = new List<AdminUserDto>(users.Count);
-        foreach (var user in users)
-        {
-            var roles = await userManager.GetRolesAsync(user);
-            items.Add(new AdminUserDto(
-                user.Id,
-                user.FirstName,
-                user.LastName,
-                user.Email ?? string.Empty,
-                user.PhoneNumber,
-                user.IsActive,
-                user.CreatedAt,
-                user.LastLoginAt,
-                user.LockoutEnd,
-                roles.ToList()));
-        }
-
-        return new UserListResult(items, totalCount, page, pageSize);
+        return await GetUsersAsync(page, pageSize, cancellationToken: cancellationToken);
     }
 
     public async Task<UserListResult> GetUsersAsync(
@@ -140,36 +123,41 @@ public sealed class AdminDashboardService(
             query = query.Where(u => u.IsActive == isActive.Value);
         }
 
-        // Role filtering requires materialization because GetUsersInRoleAsync is not IQueryable
-        List<ApplicationUser> filteredUsers;
-
         if (!string.IsNullOrWhiteSpace(role))
         {
-            var usersInRole = await userManager.GetUsersInRoleAsync(role);
-            var roleUserIds = usersInRole.Select(u => u.Id).ToHashSet();
+            var roleEntity = await dbContext.Roles.AsNoTracking()
+                .Where(item => item.NormalizedName == role.ToUpperInvariant())
+                .Select(item => item.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (roleEntity == Guid.Empty)
+                return new UserListResult([], 0, page, pageSize);
+            query = query.Where(user => dbContext.UserRoles.Any(userRole => userRole.UserId == user.Id && userRole.RoleId == roleEntity));
+        }
 
-            filteredUsers = await query
-                .Where(u => roleUserIds.Contains(u.Id))
-                .ToListAsync(cancellationToken);
+        var totalCount = await query.CountAsync(cancellationToken);
+        var offset = (int)Math.Min((long)(page - 1) * pageSize, int.MaxValue);
+        List<ApplicationUser> pagedUsers;
+        if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            // SQLite cannot order DateTimeOffset values in this model.
+            pagedUsers = (await query.ToListAsync(cancellationToken))
+                .OrderByDescending(user => user.CreatedAt)
+                .Skip(offset).Take(pageSize).ToList();
         }
         else
         {
-            filteredUsers = await query.ToListAsync(cancellationToken);
+            pagedUsers = await query.OrderByDescending(user => user.CreatedAt).ThenBy(user => user.Id)
+                .Skip(offset).Take(pageSize).ToListAsync(cancellationToken);
         }
 
-        var totalCount = filteredUsers.Count;
-
-        var pagedUsers = filteredUsers
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-
-        var items = new List<AdminUserDto>(pagedUsers.Count);
-        foreach (var user in pagedUsers)
-        {
-            var roles = await userManager.GetRolesAsync(user);
-            items.Add(new AdminUserDto(
+        var pageIds = pagedUsers.Select(user => user.Id).ToArray();
+        var rolesByUser = await (from userRole in dbContext.UserRoles.AsNoTracking()
+                                 join roleEntity in dbContext.Roles.AsNoTracking() on userRole.RoleId equals roleEntity.Id
+                                 where pageIds.Contains(userRole.UserId)
+                                 select new { userRole.UserId, Role = roleEntity.Name! })
+            .ToListAsync(cancellationToken);
+        var rolesLookup = rolesByUser.GroupBy(item => item.UserId).ToDictionary(group => group.Key, group => group.Select(item => item.Role).ToList());
+        var items = pagedUsers.Select(user => new AdminUserDto(
                 user.Id,
                 user.FirstName,
                 user.LastName,
@@ -179,8 +167,7 @@ public sealed class AdminDashboardService(
                 user.CreatedAt,
                 user.LastLoginAt,
                 user.LockoutEnd,
-                roles.ToList()));
-        }
+                rolesLookup.GetValueOrDefault(user.Id, []))).ToList();
 
         return new UserListResult(items, totalCount, page, pageSize);
     }

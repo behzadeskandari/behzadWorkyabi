@@ -39,6 +39,11 @@ namespace IranJob.Modules.Notifications.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("datetime2");
 

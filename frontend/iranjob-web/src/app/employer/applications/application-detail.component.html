@@ -5,6 +5,7 @@
   <article *ngIf="application as item" class="application-card">
     <p class="eyebrow">جزئیات درخواست همکاری</p>
     <h1>{{ item.jobTitle }}</h1>
+    <button type="button" class="primary-button" [disabled]="isStartingConversation" (click)="startConversation()">{{ isStartingConversation ? 'در حال آماده‌سازی گفتگو…' : 'ارسال پیام به کارجو' }}</button>
 
     <div class="status-section">
       <span class="status-badge" [ngClass]="statusClass(item.status)">{{ statusLabel(item.status) }}</span>

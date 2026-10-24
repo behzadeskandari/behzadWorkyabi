@@ -1,0 +1,33 @@
+<main class="notifications" dir="rtl">
+  <header class="notifications__header">
+    <div>
+      <h1>اعلان‌ها</h1>
+      <p>آخرین رویدادهای مرتبط با حساب کاربری شما</p>
+    </div>
+    @if (notifications.unreadCount() > 0) {
+      <button type="button" class="secondary" (click)="markAllRead()">خواندن همه</button>
+    }
+  </header>
+
+  @if (error()) { <p class="state error" role="alert">دریافت اعلان‌ها ناموفق بود. دوباره تلاش کنید.</p> }
+  @if (loading() && items().length === 0) { <p class="state" role="status">در حال دریافت اعلان‌ها…</p> }
+  @if (!loading() && items().length === 0 && !error()) { <p class="state">اعلانی برای نمایش وجود ندارد.</p> }
+
+  <section class="list" aria-label="فهرست اعلان‌ها">
+    @for (item of items(); track item.id) {
+      <article class="notification" [class.notification--unread]="!item.isRead">
+        <button type="button" class="notification__body" (click)="open(item)" [attr.aria-label]="item.title + ': ' + item.message">
+          <span class="notification__title">{{ item.title }}</span>
+          <span class="notification__message">{{ item.message }}</span>
+          <time [attr.datetime]="item.createdAt">{{ dates.formatDisplayDateTime(item.createdAt) }}</time>
+        </button>
+        @if (!item.isRead) {
+          <button type="button" class="read-button" (click)="markRead(item)" aria-label="علامت‌گذاری به‌عنوان خوانده‌شده">خواندم</button>
+        }
+      </article>
+    }
+  </section>
+
+  @if (loading() && items().length > 0) { <p class="state" role="status">در حال دریافت…</p> }
+  @if (hasMore && !loading()) { <button class="load-more" type="button" (click)="loadMore()">اعلان‌های بیشتر</button> }
+</main>

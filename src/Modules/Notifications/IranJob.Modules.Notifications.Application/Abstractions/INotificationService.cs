@@ -44,6 +44,7 @@ public interface INotificationService
         Guid recipientUserId,
         NotificationType type,
         string title,
+        string message,
         Guid? relatedResourceId = null,
         CancellationToken cancellationToken = default);
 }

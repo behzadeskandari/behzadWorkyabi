@@ -28,6 +28,7 @@ h1 { overflow-wrap: anywhere; margin: 0; font-size: clamp(1.5rem, 3vw, 2.25rem);
 .error-state .primary-button { display: inline-block; margin-top: .4rem; background: #087c79; color: white; }
 .application-action { display: grid; gap: .55rem; margin-top: 1rem; }
 .apply-button, .application-link { display: inline-flex; align-items: center; justify-content: center; min-height: 2.8rem; padding: .6rem .8rem; border: 1px solid #087c79; border-radius: .6rem; background: #087c79; color: #fff; font: inherit; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; }
+.save-job-action { min-height:2.6rem; border:1px solid #087c79; border-radius:.6rem; padding:.5rem .8rem; background:#fff; color:#087c79; font:inherit; cursor:pointer; }
 .application-link { background: #fff; color: #087c79; }
 .apply-button:disabled { cursor: wait; opacity: .65; }
 .application-state, .application-message { margin: 0; color: #17665f; line-height: 1.7; }

@@ -20,6 +20,9 @@ public sealed class NotificationConfiguration : IEntityTypeConfiguration<Notific
         builder.Property(notification => notification.Title)
             .IsRequired()
             .HasMaxLength(500);
+        builder.Property(notification => notification.Message)
+            .IsRequired()
+            .HasMaxLength(2000);
         builder.Property(notification => notification.LocalizedKey)
             .HasMaxLength(200);
         builder.Property(notification => notification.RelatedResourceId);

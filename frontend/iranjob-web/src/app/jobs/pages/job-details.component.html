@@ -43,6 +43,11 @@
           <div *ngIf="formatSalary(currentJob) as salary"><dt>حقوق</dt><dd>{{ salary }}</dd></div>
         </dl>
         <div class="application-action" *ngIf="isCandidate || isAnonymous">
+          <button *ngIf="canSaveJobs && job" type="button" class="save-job-action" (click)="toggleSavedJob()" [disabled]="savedStateLoading || savedStateError || savingJobState" [attr.aria-pressed]="isJobSaved">
+            {{ savedStateLoading ? 'در حال بررسی…' : savingJobState ? 'در حال ذخیره…' : isJobSaved ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره شغل' }}
+          </button>
+          <p *ngIf="savedStateError" class="application-state" role="alert">وضعیت ذخیره‌سازی دریافت نشد. <button type="button" (click)="retrySavedState()">تلاش دوباره</button></p>
+          <p *ngIf="saveJobError" class="application-state" role="alert">ذخیره‌سازی تغییر نکرد. لطفاً دوباره تلاش کنید.</p>
           <p *ngIf="isApplicationStateLoading" class="application-state" role="status">در حال بررسی وضعیت درخواست…</p>
           <p *ngIf="applicationMessage" class="application-message" role="status">{{ applicationMessage }}</p>
 

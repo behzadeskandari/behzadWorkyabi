@@ -21,7 +21,7 @@ namespace IranJob.Modules.EmployerProfile.Infrastructure.Persistence
                 .Build();
 
             var connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? "Server=localhost,1433;Database=IranJob;User Id=sa;Password=Your_strong_Password123;TrustServerCertificate=True;Encrypt=False";
+                ?? "Server=localhost,1433;Database=IranJob;Integrated Security=True;TrustServerCertificate=True;Encrypt=False";
 
             var optionsBuilder = new DbContextOptionsBuilder<EmployerDbContext>();
             optionsBuilder.UseSqlServer(connectionString, sql =>

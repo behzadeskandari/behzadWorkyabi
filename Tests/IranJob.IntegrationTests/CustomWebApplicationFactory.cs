@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using IranJob.BuildingBlocks.Infrastructure.Persistence;
 using IranJob.Modules.Candidates.Infrastructure.Persistence;
 using IranJob.Modules.Identity.Infrastructure.Persistence;
@@ -19,6 +21,8 @@ using IranJob.Modules.Payments.Infrastructure.Configuration;
 using IranJob.Modules.Payments.Infrastructure.Persistence;
 using IranJob.Modules.Payments.Infrastructure.Services;
 using IranJob.Modules.Notifications.Infrastructure.Persistence;
+using IranJob.Modules.Notifications.Application.Abstractions;
+using IranJob.Modules.Messages.Infrastructure.Persistence;
 using IranJob.IntegrationTests.TestStubs;
 
 namespace IranJob.IntegrationTests;
@@ -77,6 +81,15 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         return Host.CreateDefaultBuilder(Array.Empty<string>())
             .UseEnvironment("Testing")
+            .ConfigureLogging(logging =>
+            {
+                // The default Windows EventLog provider requires elevated event
+                // source access in the sandbox. Tests should report startup errors
+                // through the console provider instead of masking them with that
+                // platform permission failure.
+                logging.ClearProviders();
+                logging.AddConsole();
+            })
             .ConfigureWebHostDefaults(webHostBuilder =>
             {
                 webHostBuilder.UseStartup<Program>();
@@ -137,6 +150,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     /// </summary>
     private void ApplySqliteRegistrations(IServiceCollection services)
     {
+        // Tests run in an isolated sandbox where the user's Windows DPAPI key
+        // directory may contain keys this process cannot decrypt or write.
+        // A process-local provider is sufficient for test antiforgery/session data.
+        services.RemoveAll<IDataProtectionProvider>();
+        services.AddSingleton<IDataProtectionProvider, EphemeralDataProtectionProvider>();
+
         // Identity module
         services.RemoveAll<ApplicationDbContext>();
         services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
@@ -160,17 +179,27 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         services.RemoveAll<DbContextOptions<PaymentDbContext>>();
         services.RemoveAll<NotificationDbContext>();
         services.RemoveAll<DbContextOptions<NotificationDbContext>>();
+        services.RemoveAll<MessagesDbContext>();
+        services.RemoveAll<DbContextOptions<MessagesDbContext>>();
+        services.RemoveAll<IEmailService>();
         services.AddDbContext<CandidateDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<JobPostingDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<EmployerDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<ReferenceDataDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<PaymentDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
         services.AddDbContext<NotificationDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddDbContext<MessagesDbContext>(options => options.UseSqlite(InMemoryDatabaseProvider));
+        services.AddScoped<IEmailService, FailingMessageEmailService>();
 
         // Payments module: in-memory SQLite, fee-free by default so existing
         // job-lifecycle tests publish immediately. Set a non-zero fee in
         // payment tests to exercise the gateway flow.
-        services.Configure<PaymentOptions>(options => { options.PublishFeeAmount = PublishFeeAmount; });
+        services.Configure<PaymentOptions>(options =>
+        {
+            options.PublishFeeAmount = PublishFeeAmount;
+            options.ZarinPal.Sandbox = true;
+            options.ZarinPal.CallbackUrl = "https://jobs.example.test/employer/payments/return";
+        });
         services.AddSingleton<IZarinPalClient, StubZarinPalClient>();
         services.AddScoped<IPaymentService, PaymentService>();
 
@@ -192,6 +221,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         var referenceDataDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
         var paymentDbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
         var notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+        var messagesDbContext = scope.ServiceProvider.GetRequiredService<MessagesDbContext>();
 
         // Database.EnsureCreatedAsync is a no-op once ANY table already exists in the
         // shared in-memory database: its CreateDatabase step sees sqlite_master is
@@ -219,6 +249,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 await EnsureSchemaAsync(jobPostingDbContext);
                 await EnsureSchemaAsync(paymentDbContext);
                 await EnsureSchemaAsync(notificationDbContext);
+                await EnsureSchemaAsync(messagesDbContext);
                 await EnsureSchemaAsync(applicationDbContext);
                 _jobDatabaseInitialized = true;
             }

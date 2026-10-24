@@ -14,7 +14,8 @@ namespace IranJob.Modules.JobPostings.Infrastructure.Services;
 public sealed class AdminJobModerationService(
     JobPostingDbContext jobDbContext,
     EmployerDbContext employerDbContext,
-    ReferenceDataDbContext referenceDataDbContext) : IAdminJobModerationService
+    ReferenceDataDbContext referenceDataDbContext,
+    IJobAlertMatcher alertMatcher) : IAdminJobModerationService
 {
     public async Task<AdminJobPageResult> GetJobsAsync(
         int page,
@@ -135,6 +136,8 @@ public sealed class AdminJobModerationService(
 
         applyModeration(posting);
         await jobDbContext.SaveChangesAsync(cancellationToken);
+        if (posting.Status == JobPostingStatus.Published)
+            await alertMatcher.NotifyMatchesAsync(posting.Id, cancellationToken);
         return await BuildDetailAsync(posting, cancellationToken);
     }
 

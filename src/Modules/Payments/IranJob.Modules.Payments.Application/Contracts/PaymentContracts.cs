@@ -17,14 +17,6 @@ public sealed record PaymentInfo(
 
 }
 
-/// <summary>Request body for a generic employer-initiated payment (e.g. future credit top-up).</summary>
-public sealed record CreatePaymentRequest(
-    Guid? JobPostingId,
-    long Amount,
-    string Currency,
-    string? Description,
-    string? CallbackUrl);
-
 /// <summary>Result returned after a payment (job-publish fee) is initiated with the gateway.</summary>
 public sealed record PaymentInitiationResponse(
     Guid PaymentId,
@@ -41,6 +33,7 @@ public sealed record PaymentInitiationResponse(
 public sealed record PaymentVerifyResponse(
     Guid PaymentId,
     string Status,
+    string PublicationStatus,
     Guid? JobPostingId,
     string? Message);
 
@@ -51,6 +44,7 @@ public sealed record PaymentResponse(
     long Amount,
     string Currency,
     string Status,
+    string PublicationStatus,
     string PaymentMethod,
     string Authority,
     Guid? JobPostingId,

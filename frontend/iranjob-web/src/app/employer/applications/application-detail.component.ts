@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EmployerResumeViewResponse, EmployerApplicationDetail, ApplicationStatus } from '../models/employer-application.models';
 import { EmployerApplicationsService } from '../services/employer-applications.service';
 import { JalaliDateService } from '../../core/services/jalali-date.service';
 import { ResumeViewComponent } from '../../shared/components/resume-view/resume-view.component';
+import { MessagesService } from '../../messages/messages.service';
 
 @Component({
   selector: 'app-employer-application-detail',
@@ -16,6 +17,9 @@ import { ResumeViewComponent } from '../../shared/components/resume-view/resume-
 export class EmployerApplicationDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly applicationService = inject(EmployerApplicationsService);
+  private readonly messages = inject(MessagesService);
+  private readonly router = inject(Router);
+  isStartingConversation = false;
 
     application: EmployerApplicationDetail | null = null;
   resume: EmployerResumeViewResponse | null = null;
@@ -50,6 +54,16 @@ export class EmployerApplicationDetailComponent implements OnInit {
         this.errorMessage = 'درخواست موردنظر پیدا نشد یا بارگذاری آن ناموفق بود.';
       },
       complete: () => (this.isLoading = false)
+    });
+  }
+
+  startConversation(): void {
+    if (!this.application || this.isStartingConversation) return;
+    this.isStartingConversation = true;
+    this.messages.create(this.application.jobId, this.application.id).subscribe({
+      next: conversation => void this.router.navigate(['/messages', conversation.id]),
+      error: () => { this.errorMessage = 'شروع گفتگو ناموفق بود.'; this.isStartingConversation = false; },
+      complete: () => this.isStartingConversation = false
     });
   }
 

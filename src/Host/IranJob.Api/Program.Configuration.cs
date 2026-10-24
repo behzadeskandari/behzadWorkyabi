@@ -13,6 +13,7 @@
 using System.Threading.RateLimiting;
 using Asp.Versioning;
 using IranJob.Api.Services;
+using IranJob.Api.Configuration;
 using IranJob.BuildingBlocks.Infrastructure.Extensions;
 using IranJob.Modules.Candidates.Infrastructure.Extensions;
 using IranJob.Modules.Candidates.Presentation.Controllers;
@@ -25,6 +26,8 @@ using IranJob.Modules.Notifications.Presentation.Controllers;
 using IranJob.Modules.JobPostings.Infrastructure.Extensions;
 using IranJob.Modules.JobPostings.Presentation.Controllers;
 using IranJob.Modules.Notifications.Infrastructure.Extensions;
+using IranJob.Modules.Messages.Infrastructure.Extensions;
+using IranJob.Modules.Messages.Presentation.Controllers;
 using IranJob.Modules.Payments.Infrastructure.Extensions;
 using IranJob.Modules.Payments.Presentation.Controllers;
 using IranJob.BuildingBlocks.Infrastructure.Middleware;
@@ -38,6 +41,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 public partial class Program
@@ -56,6 +60,7 @@ public partial class Program
         services.AddJobPostingsModule(_configuration);
         services.AddPaymentsModule(_configuration);
         services.AddNotificationsModule(_configuration);
+        services.AddMessagesModule(_configuration);
 
         var rateOptions = _configuration.GetSection(RateLimitingOptions.SectionName)
             .Get<RateLimitingOptions>() ?? new RateLimitingOptions();
@@ -84,7 +89,8 @@ public partial class Program
             .AddApplicationPart(typeof(JobCategoriesController).Assembly)
             .AddApplicationPart(typeof(EmployerJobsController).Assembly)
             .AddApplicationPart(typeof(PaymentController).Assembly)
-            .AddApplicationPart(typeof(NotificationsController).Assembly);
+            .AddApplicationPart(typeof(NotificationsController).Assembly)
+            .AddApplicationPart(typeof(MessagesController).Assembly);
 
         services.AddEndpointsApiExplorer();
 
@@ -136,17 +142,8 @@ public partial class Program
             });
         });
 
-        services.AddCors(options =>
-        {
-            options.AddPolicy("Frontend", policy =>
-            {
-                policy.WithOrigins("http://localhost:4200")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials()
-                    .WithExposedHeaders("X-CSRF-TOKEN", "X-Correlation-ID");
-            });
-        });
+        FrontendCors.AddFrontendCors(services, _configuration,
+            _configuration["ASPNETCORE_ENVIRONMENT"] ?? Environments.Development);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

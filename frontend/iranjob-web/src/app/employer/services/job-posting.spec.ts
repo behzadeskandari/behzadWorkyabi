@@ -6,6 +6,9 @@ import { EmployerJobListComponent } from '../pages/jobs/job-list.component';
 import { EmployerJobFormComponent } from '../pages/jobs/job-form.component';
 import { JobPosting } from '../models/job-posting.models';
 import { JobPostingService } from './job-posting.service';
+import { environment } from '../../../environments/environment';
+
+const api = `${environment.apiBaseUrl}/api/v1`;
 
 describe('JobPostingService and employer job pages', () => {
   let httpMock: HttpTestingController;
@@ -32,35 +35,60 @@ describe('JobPostingService and employer job pages', () => {
     const request = validRequest();
     const job = jobResponse();
     service.getOwn().subscribe();
-    httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs').flush([job]);
+    httpMock.expectOne(`${api}/employers/jobs`).flush([job]);
 
     service.getById(job.id).subscribe();
-    httpMock.expectOne(`http://localhost:5158/api/v1/employers/jobs/${job.id}`).flush(job);
+    httpMock.expectOne(`${api}/employers/jobs/${job.id}`).flush(job);
 
     service.create(request).subscribe();
-    const createRequest = httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs');
+    const createRequest = httpMock.expectOne(`${api}/employers/jobs`);
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush(job);
 
     service.update(job.id, request).subscribe();
-    const updateRequest = httpMock.expectOne(`http://localhost:5158/api/v1/employers/jobs/${job.id}`);
+    const updateRequest = httpMock.expectOne(`${api}/employers/jobs/${job.id}`);
     expect(updateRequest.request.method).toBe('PUT');
     updateRequest.flush(job);
 
     service.publish(job.id).subscribe();
-    const publishRequest = httpMock.expectOne(`http://localhost:5158/api/v1/employers/jobs/${job.id}/publish`);
+    const publishRequest = httpMock.expectOne(`${api}/employers/jobs/${job.id}/publish`);
     expect(publishRequest.request.method).toBe('POST');
     publishRequest.flush(job);
 
     service.unpublish(job.id).subscribe();
-    const unpublishRequest = httpMock.expectOne(`http://localhost:5158/api/v1/employers/jobs/${job.id}/unpublish`);
+    const unpublishRequest = httpMock.expectOne(`${api}/employers/jobs/${job.id}/unpublish`);
     expect(unpublishRequest.request.method).toBe('POST');
     unpublishRequest.flush(job);
 
     service.close(job.id).subscribe();
-    const closeRequest = httpMock.expectOne(`http://localhost:5158/api/v1/employers/jobs/${job.id}/close`);
+    const closeRequest = httpMock.expectOne(`${api}/employers/jobs/${job.id}/close`);
     expect(closeRequest.request.method).toBe('POST');
     closeRequest.flush(job);
+  });
+
+  it('distinguishes immediate publication, provider redirect, and status checks', () => {
+    const service = TestBed.inject(JobPostingService);
+    expect(service.publicationAction({ ...jobResponse(), status: 'Published' })).toEqual({ kind: 'published' });
+
+    const paymentRequired = {
+      ...jobResponse(),
+      paymentInfo: {
+        paymentId: 'payment-1', authority: 'opaque', redirectUrl: 'https://gateway.example/pay/opaque',
+        amount: 1000, currency: 'IRR', status: 'Pending', paymentMethod: 'ZarinPal', isCompleted: false
+      }
+    };
+    expect(service.publicationAction(paymentRequired)).toEqual({
+      kind: 'redirect', url: 'https://gateway.example/pay/opaque'
+    });
+
+    expect(service.publicationAction({
+      ...paymentRequired,
+      paymentInfo: { ...paymentRequired.paymentInfo, status: 'Paid', redirectUrl: '' }
+    })).toEqual({ kind: 'check-status', paymentId: 'payment-1' });
+    expect(service.publicationAction({
+      ...paymentRequired,
+      paymentInfo: { ...paymentRequired.paymentInfo, redirectUrl: 'http://insecure.example/pay' }
+    })).toEqual({ kind: 'invalid' });
   });
 
   it('loads the employer job list and exposes draft publishing', () => {
@@ -68,7 +96,7 @@ describe('JobPostingService and employer job pages', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="status"]')).not.toBeNull();
 
-    httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs').flush([jobResponse()]);
+    httpMock.expectOne(`${api}/employers/jobs`).flush([jobResponse()]);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Senior .NET Engineer');
     const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
@@ -76,7 +104,7 @@ describe('JobPostingService and employer job pages', () => {
     expect(publishButton).toBeDefined();
     publishButton?.click();
 
-    const publishRequest = httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs/job-1/publish');
+    const publishRequest = httpMock.expectOne(`${api}/employers/jobs/job-1/publish`);
     expect(publishRequest.request.method).toBe('POST');
     publishRequest.flush({ ...jobResponse(), status: 'Published' });
     fixture.detectChanges();
@@ -86,7 +114,7 @@ describe('JobPostingService and employer job pages', () => {
     const closeButton = Array.from(closeButtons).find(button => button.textContent?.includes('بستن آگهی'));
     expect(closeButton).toBeDefined();
     closeButton?.click();
-    const closeRequest = httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs/job-1/close');
+    const closeRequest = httpMock.expectOne(`${api}/employers/jobs/job-1/close`);
     closeRequest.flush({ ...jobResponse(), status: 'Closed' });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('بسته‌شده');
@@ -98,9 +126,9 @@ describe('JobPostingService and employer job pages', () => {
     spyOn(router, 'navigate');
     const fixture = TestBed.createComponent(EmployerJobFormComponent);
     fixture.detectChanges();
-    httpMock.expectOne('http://localhost:5158/api/v1/job-categories').flush([]);
-    httpMock.expectOne('http://localhost:5158/api/v1/skills').flush([]);
-    httpMock.expectOne('http://localhost:5158/api/v1/locations/countries').flush([]);
+    httpMock.expectOne(`${api}/job-categories`).flush([]);
+    httpMock.expectOne(`${api}/skills`).flush([]);
+    httpMock.expectOne(`${api}/locations/countries`).flush([]);
 
     fixture.componentInstance.jobForm.patchValue({
       title: 'Frontend Engineer',
@@ -116,7 +144,7 @@ describe('JobPostingService and employer job pages', () => {
     fixture.detectChanges();
 
     fixture.componentInstance.saveDraft();
-    const request = httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs');
+    const request = httpMock.expectOne(`${api}/employers/jobs`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body.categoryId).toBe('category-1');
     expect(request.request.body.skillIds).toEqual(['skill-1']);
@@ -133,11 +161,11 @@ describe('JobPostingService and employer job pages', () => {
     const fixture = TestBed.createComponent(EmployerJobFormComponent);
     fixture.detectChanges();
 
-    httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs/job-1').flush(jobResponse());
+    httpMock.expectOne(`${api}/employers/jobs/job-1`).flush(jobResponse());
     fixture.detectChanges();
-    httpMock.expectOne('http://localhost:5158/api/v1/job-categories').flush([]);
-    httpMock.expectOne('http://localhost:5158/api/v1/skills').flush([]);
-    httpMock.expectOne('http://localhost:5158/api/v1/locations/countries').flush([]);
+    httpMock.expectOne(`${api}/job-categories`).flush([]);
+    httpMock.expectOne(`${api}/skills`).flush([]);
+    httpMock.expectOne(`${api}/locations/countries`).flush([]);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.jobForm.controls.title.value).toBe('Senior .NET Engineer');
@@ -148,13 +176,13 @@ describe('JobPostingService and employer job pages', () => {
   it('blocks invalid form submission and maps API validation errors', () => {
     const fixture = TestBed.createComponent(EmployerJobFormComponent);
     fixture.detectChanges();
-    httpMock.expectOne('http://localhost:5158/api/v1/job-categories').flush([]);
-    httpMock.expectOne('http://localhost:5158/api/v1/skills').flush([]);
-    httpMock.expectOne('http://localhost:5158/api/v1/locations/countries').flush([]);
+    httpMock.expectOne(`${api}/job-categories`).flush([]);
+    httpMock.expectOne(`${api}/skills`).flush([]);
+    httpMock.expectOne(`${api}/locations/countries`).flush([]);
 
     fixture.componentInstance.saveDraft();
     expect(fixture.componentInstance.jobForm.invalid).toBeTrue();
-    httpMock.expectNone('http://localhost:5158/api/v1/employers/jobs');
+    httpMock.expectNone(`${api}/employers/jobs`);
 
     fixture.componentInstance.jobForm.patchValue({
       title: 'Frontend Engineer',
@@ -166,7 +194,7 @@ describe('JobPostingService and employer job pages', () => {
       cityId: 'city-1'
     });
     fixture.componentInstance.saveDraft();
-    httpMock.expectOne('http://localhost:5158/api/v1/employers/jobs').flush({
+    httpMock.expectOne(`${api}/employers/jobs`).flush({
       errors: { Title: ['Title is invalid.'] }
     }, { status: 400, statusText: 'Bad Request' });
 

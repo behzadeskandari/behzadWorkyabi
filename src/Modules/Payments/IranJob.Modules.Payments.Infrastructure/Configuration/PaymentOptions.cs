@@ -33,9 +33,13 @@ public sealed class ZarinPalOptions
     /// <summary>URL ZarinPal redirects the payer's browser to after payment (Angular callback page).</summary>
     public string CallbackUrl { get; set; } = string.Empty;
 
-    public string RequestUrl { get; set; } = "https://api.zarinpal.com/pg/v4/PaymentRequest.json";
+    public string RequestUrl { get; set; } = "https://api.zarinpal.com/pg/v4/payment/request.json";
 
-    public string VerifyUrl { get; set; } = "https://api.zarinpal.com/pg/v4/PaymentVerification.json";
+    public string VerifyUrl { get; set; } = "https://api.zarinpal.com/pg/v4/payment/verify.json";
+
+    public string SandboxRequestUrl { get; set; } = "https://sandbox.zarinpal.com/pg/v4/payment/request.json";
+
+    public string SandboxVerifyUrl { get; set; } = "https://sandbox.zarinpal.com/pg/v4/payment/verify.json";
 
     public string StartPaySandboxUrl { get; set; } = "https://sandbox.zarinpal.com/pg/StartPay/{0}";
 

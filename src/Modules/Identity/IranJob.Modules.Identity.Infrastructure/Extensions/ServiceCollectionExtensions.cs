@@ -75,8 +75,6 @@ public static class ServiceCollectionExtensions
 
                 services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
-        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
-
         services.AddAuthentication(authenticationOptions =>
             {
                 authenticationOptions.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;

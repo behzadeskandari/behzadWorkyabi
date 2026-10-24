@@ -8,7 +8,10 @@ using IranJob.Modules.JobPostings.Infrastructure.Persistence;
 using IranJob.Modules.Payments.Application.Abstractions;
 using IranJob.Modules.Payments.Application.Contracts;
 using IranJob.Modules.Payments.Domain.Enums;
+using IranJob.Modules.Payments.Domain.Entities;
+using IranJob.Modules.Payments.Infrastructure.Configuration;
 using IranJob.Modules.Payments.Infrastructure.Persistence;
+using IranJob.Modules.Payments.Infrastructure.Services;
 using IranJob.Modules.ReferenceData.Domain.Entities;
 using IranJob.Modules.ReferenceData.Infrastructure.Persistence;
 using IranJob.BuildingBlocks.Infrastructure.Events;
@@ -16,6 +19,9 @@ using IranJob.IntegrationTests.TestStubs;
 using IranJob.Modules.Payments.Domain.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using IranJob.SharedKernel.Events;
 
 // Serialise payment tests — the StubZarinPalClient is a singleton and cannot
 // tolerate parallel writes to its VerifyResult / RequestResult properties.
@@ -36,6 +42,7 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
     private const string EmployerProfileEndpoint = "/api/v1/employers/profile";
     private const string PaymentsInitiateEndpoint = "/api/v1/employers/payments/initiate";
     private const string PaymentsVerifyEndpoint = "/api/v1/employers/payments/verify";
+    private const string PaymentsEndpoint = "/api/v1/employers/payments";
     private const long PublishFee = 10000;
 
     private readonly CustomWebApplicationFactory factory;
@@ -61,6 +68,7 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
         paymentInfo.GetProperty("paymentId").GetGuid().Should().NotBeEmpty();
         paymentInfo.GetProperty("amount").GetInt64().Should().Be(PublishFee);
         paymentInfo.GetProperty("currency").GetString().Should().Be("IRR");
+        paymentInfo.GetProperty("redirectUrl").GetString().Should().StartWith("https://sandbox.zarinpal.com/pg/StartPay/");
         paymentInfo.GetProperty("status").GetString().Should().Be("Pending");
         paymentInfo.GetProperty("completed").GetBoolean().Should().BeFalse();
         var paymentId = paymentInfo.GetProperty("paymentId").GetGuid();
@@ -77,6 +85,33 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
         payment.RelatedJobPostingId.Should().Be(jobId);
         payment.Authority.Should().NotBeNullOrEmpty();
         payment.RowVersion.Should().NotBeNull().And.HaveCount(8);
+
+        var providerRequest = GetStub().LastRequest;
+        providerRequest.Should().NotBeNull();
+        providerRequest!.Amount.Should().Be(PublishFee);
+        providerRequest.Currency.Should().Be("IRR");
+        providerRequest.CallbackUrl.Should().Contain($"paymentId={paymentId:D}");
+
+        var repeatedPublish = await client.PostAsync($"{JobsEndpoint}/{jobId}/publish", null);
+        repeatedPublish.StatusCode.Should().Be(HttpStatusCode.OK);
+        var repeatedBody = await repeatedPublish.Content.ReadFromJsonAsync<JsonElement>(json);
+        repeatedBody.GetProperty("paymentInfo").GetProperty("paymentId").GetGuid().Should().Be(paymentId);
+        (await paymentDb.Payments.CountAsync(p => p.RelatedJobPostingId == jobId)).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task EmployerCannotInitiatePaymentForAnotherEmployersJob()
+    {
+        var stub = GetStub();
+        stub.Reset();
+        var (_, _, jobId) = await CreateEmployerAndDraftJobAsync();
+        var otherEmployer = await CreateAuthenticatedClientAsync("Employer");
+        await CreateEmployerProfileAsync(otherEmployer);
+
+        var response = await otherEmployer.PostAsync($"{JobsEndpoint}/{jobId}/publish", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        stub.LastRequest.Should().BeNull("the ownership check must happen before contacting the provider");
     }
 
     [Fact]
@@ -87,15 +122,14 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
 
         var verifyResponse = await client.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await verifyResponse.Content.ReadFromJsonAsync<JsonElement>(json);
-        body.GetProperty("status").GetString().Should().Be("Failed");
+        verifyResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         using var scope = factory.Services.CreateScope();
         var paymentDb = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
         var payment = await paymentDb.Payments.AsNoTracking().FirstAsync(p => p.Id == paymentId);
-        payment.Status.Should().Be(PaymentStatus.Failed);
-        payment.FailedAt.Should().NotBeNull();
+        payment.Status.Should().Be(PaymentStatus.Pending);
+        GetStub().VerifyCallCount.Should().Be(1);
+        payment.FailedAt.Should().BeNull();
     }
 
     [Fact]
@@ -104,13 +138,15 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
         var (client, _, _, _, authority) = await CreateEmployerJobAndInitiatePaymentAsync();
         var paymentId = await GetPaymentIdByAuthorityAsync(authority);
 
-        var verifyResponse = await client.GetAsync(
+        var anonymousClient = factory.CreateClient();
+        var verifyResponse = await anonymousClient.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        verifyResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var stub = GetStub();
         stub.LastVerifyRequest.Should().NotBeNull();
         stub.LastVerifyRequest!.Amount.Should().Be(PublishFee);
+        stub.LastVerifyRequest.Currency.Should().Be("IRR");
         stub.LastVerifyRequest.Authority.Should().Be(authority);
 
         using var scope = factory.Services.CreateScope();
@@ -118,6 +154,7 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
         var payment = await paymentDb.Payments.AsNoTracking().FirstAsync(p => p.Id == paymentId);
         payment.Status.Should().Be(PaymentStatus.Paid);
         payment.PaidAt.Should().NotBeNull();
+        payment.PublicationStatus.Should().Be(PaymentPublicationStatus.Completed);
     }
 
     [Fact]
@@ -149,7 +186,7 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
 
         var verifyResponse = await client.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        verifyResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         await Task.Delay(200);
         using (var scope = factory.Services.CreateScope())
@@ -171,18 +208,47 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
 
         var firstResponse = await client.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var firstBody = await firstResponse.Content.ReadFromJsonAsync<JsonElement>(json);
-        firstBody.GetProperty("status").GetString().Should().Be("Paid");
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var secondResponse = await client.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        secondResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var secondBody = await secondResponse.Content.ReadFromJsonAsync<JsonElement>(json);
-        secondBody.GetProperty("status").GetString().Should().Be("Paid");
-        secondBody.GetProperty("message").GetString().Should().Be("Already verified");
+        secondResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         stub.VerifyCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RetryAfterTransientPublicationDispatchFailure_RecoversPersistedPayment()
+    {
+        var dispatcher = new FailOncePaymentEventDispatcher();
+        using var scope = factory.Services.CreateScope();
+        var paymentDb = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+        var jobId = Guid.NewGuid();
+        var payment = Payment.Create(Guid.NewGuid(), PublishFee, Currency.IRR, jobId, "publish", null);
+        payment.SetAuthority("recovery-test-authority");
+        paymentDb.Payments.Add(payment);
+        await paymentDb.SaveChangesAsync();
+
+        var service = new PaymentService(
+            paymentDb,
+            GetStub(),
+            dispatcher,
+            Options.Create(new PaymentOptions { PublishFeeAmount = PublishFee }),
+            NullLogger<PaymentService>.Instance);
+
+        var firstAttempt = () => service.VerifyByCallbackAsync("recovery-test-authority", "OK", CancellationToken.None);
+        await firstAttempt.Should().ThrowAsync<IOException>();
+
+        var persisted = await paymentDb.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id);
+        persisted.Status.Should().Be(PaymentStatus.Paid);
+        persisted.PublicationStatus.Should().Be(PaymentPublicationStatus.Pending);
+
+        await service.VerifyByCallbackAsync("recovery-test-authority", "OK", CancellationToken.None);
+
+        persisted = await paymentDb.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id);
+        persisted.Status.Should().Be(PaymentStatus.Paid);
+        persisted.PublicationStatus.Should().Be(PaymentPublicationStatus.Completed);
+        dispatcher.PaymentCompletedDispatchCount.Should().Be(2);
     }
 
             [Fact]
@@ -202,7 +268,7 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
 
         var responses = await Task.WhenAll(tasks);
         responses.Should().HaveCount(2);
-        responses.Should().OnlyContain(r => r.StatusCode == HttpStatusCode.OK,
+        responses.Should().OnlyContain(r => r.StatusCode == HttpStatusCode.NoContent,
             "shared-cache + per-DbContext connections isolate concurrent verifies; no 409/500");
 
         using var scope = factory.Services.CreateScope();
@@ -218,16 +284,18 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task CrossUserPaymentVerification_ReturnsForbidden()
+    public async Task CallbackIsAnonymous_ButPaymentStatusIsEmployerScoped()
     {
-        var (clientA, _, _, _, authority) = await CreateEmployerJobAndInitiatePaymentAsync();
+        var (_, _, _, paymentId, authority) = await CreateEmployerJobAndInitiatePaymentAsync();
 
         var clientB = await CreateAuthenticatedClientAsync("Employer");
         await CreateEmployerProfileAsync(clientB);
 
-        var response = await clientB.GetAsync(
+        var response = await factory.CreateClient().GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var otherEmployerStatus = await clientB.GetAsync($"{PaymentsEndpoint}/{paymentId}");
+        otherEmployerStatus.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -255,21 +323,20 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
-    public async Task CanceledPayment_ResultsInFailedStatus()
+    public async Task CanceledReturn_DoesNotChangePaymentStateWithoutProviderVerification()
     {
         var (client, _, _, paymentId, authority) =
             await CreateEmployerJobAndInitiatePaymentAsync();
 
         var response = await client.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=cancel");
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var body = await response.Content.ReadFromJsonAsync<JsonElement>(json);
-        body.GetProperty("status").GetString().Should().Be("Failed");
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         using var scope = factory.Services.CreateScope();
         var paymentDb = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
         var payment = await paymentDb.Payments.AsNoTracking().FirstAsync(p => p.Id == paymentId);
-        payment.Status.Should().Be(PaymentStatus.Failed);
+        payment.Status.Should().Be(PaymentStatus.Pending);
+        GetStub().VerifyCallCount.Should().Be(0);
     }
 
     [Fact]
@@ -279,7 +346,7 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
 
         var verifyResponse = await client.GetAsync(
             $"{PaymentsVerifyEndpoint}?authority={authority}&status=1");
-        verifyResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        verifyResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
         var rawBody = await verifyResponse.Content.ReadAsStringAsync();
         var lowerBody = rawBody.ToLowerInvariant();
         lowerBody.Should().NotContain("merchant_id");
@@ -287,21 +354,39 @@ public sealed class PaymentTests : IClassFixture<CustomWebApplicationFactory>
         lowerBody.Should().NotContain("secret");
         lowerBody.Should().NotContain("apikey");
 
-        var createPaymentRequest = new CreatePaymentRequest(null, 5000, "IRR", "Test", null);
+        var lastProviderRequest = GetStub().LastRequest;
         var initiateResponse = await client.PostAsJsonAsync(
-            PaymentsInitiateEndpoint, createPaymentRequest, json);
-        initiateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        var initiateBody = await initiateResponse.Content.ReadAsStringAsync();
-        var lowerInitiate = initiateBody.ToLowerInvariant();
-        lowerInitiate.Should().NotContain("merchant_id");
-        lowerInitiate.Should().NotContain("merchantid");
-        lowerInitiate.Should().NotContain("secret");
-        lowerInitiate.Should().NotContain("apikey");
+            PaymentsInitiateEndpoint,
+            new { jobPostingId = Guid.NewGuid(), amount = 1, currency = "IRR", description = "Test", callbackUrl = "https://attacker.invalid" },
+            json);
+        initiateResponse.StatusCode.Should().Be(HttpStatusCode.MethodNotAllowed);
+        GetStub().LastRequest.Should().Be(lastProviderRequest,
+            "payment initiation must use the server-validated job-publish flow");
     }
 
     private StubZarinPalClient GetStub() =>
         factory.Services.GetRequiredService<IZarinPalClient>() as StubZarinPalClient
         ?? throw new InvalidOperationException("StubZarinPalClient is not registered.");
+
+    private sealed class FailOncePaymentEventDispatcher : IEventDispatcher
+    {
+        public int PaymentCompletedDispatchCount { get; private set; }
+
+        public Task DispatchAsync<TEvent>(TEvent domainEvent, CancellationToken cancellationToken = default)
+            where TEvent : IDomainEvent => DispatchAsync((IDomainEvent)domainEvent, cancellationToken);
+
+        public Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
+        {
+            if (domainEvent is PaymentCompleted)
+            {
+                PaymentCompletedDispatchCount++;
+                if (PaymentCompletedDispatchCount == 1)
+                    throw new IOException("Simulated transient publication dispatch failure.");
+            }
+
+            return Task.CompletedTask;
+        }
+    }
 
     private async Task<Guid> GetPaymentIdByAuthorityAsync(string authority)
     {

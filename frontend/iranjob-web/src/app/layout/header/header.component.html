@@ -5,7 +5,16 @@
       <a routerLink="/" routerLinkActive="active"  [routerLinkActiveOptions]="{ exact: true }">خانه</a>
       <a routerLink="/jobs" routerLinkActive="active">فرصت های شغلی</a>
       @if (authService.isAuthenticated()) {
+        <a class="notification-link" routerLink="/notifications" routerLinkActive="active" aria-label="اعلان‌ها">
+          اعلان‌ها
+          @if (notifications.unreadCount() > 0) {
+            <span class="notification-count">{{ notifications.unreadCount() > 99 ? '۹۹+' : notifications.unreadCount() }}</span>
+          }
+        </a>
+        <a routerLink="/messages" routerLinkActive="active">پیام‌ها</a>
         @if (authService.hasRole('Candidate')) {
+          <a routerLink="/candidate/saved-jobs" routerLinkActive="active">شغل‌های ذخیره‌شده</a>
+          <a routerLink="/candidate/job-alerts" routerLinkActive="active">هشدارهای شغلی</a>
                     <a routerLink="/candidate/profile" routerLinkActive="active">پروفایل کارجو</a>
           <a routerLink="/candidate/resume" routerLinkActive="active">رزومه</a>
           <a routerLink="/candidate/applications" routerLinkActive="active">درخواست‌های من</a>

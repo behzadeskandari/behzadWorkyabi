@@ -12,6 +12,7 @@
     </dl>
     <div class="actions">
       <a class="secondary-button" [routerLink]="['/jobs', item.jobId]">مشاهده موقعیت شغلی</a>
+      <button type="button" class="secondary-button" [disabled]="isStartingConversation || item.status === 'Withdrawn'" (click)="startConversation()">{{ isStartingConversation ? 'در حال آماده‌سازی گفتگو…' : 'پیام به کارفرما' }}</button>
       <button *ngIf="item.status === 'Applied'" type="button" class="text-button" [disabled]="isWithdrawing" (click)="withdraw()">
         {{ isWithdrawing ? 'در حال لغو…' : 'لغو درخواست' }}
       </button>

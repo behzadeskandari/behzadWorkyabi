@@ -1,4 +1,4 @@
-﻿using IranJob.BuildingBlocks.Infrastructure.Events;
+using IranJob.BuildingBlocks.Infrastructure.Events;
 using IranJob.Modules.Payments.Application.Abstractions;
 using IranJob.Modules.Payments.Application.Contracts;
 using IranJob.Modules.Payments.Domain.Entities;
@@ -11,6 +11,7 @@ using IranJob.SharedKernel.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace IranJob.Modules.Payments.Infrastructure.Services;
 
@@ -30,9 +31,29 @@ public sealed class PaymentService(
     private readonly PaymentOptions _options = options.Value;
     public async Task<PaymentInitiationResponse> InitiateForJobPublishAsync(Guid employerProfileId, Guid jobPostingId, CancellationToken cancellationToken)
     {
+        var prior = await dbContext.Payments
+            .Where(payment => payment.EmployerProfileId == employerProfileId
+                && payment.RelatedJobPostingId == jobPostingId
+                && (payment.Status == PaymentStatus.Pending || payment.Status == PaymentStatus.Paid))
+            .FirstOrDefaultAsync(cancellationToken);
+        if (prior is not null)
+        {
+            if (prior.Status == PaymentStatus.Paid)
+            {
+                await RetryPublicationAsync(prior, cancellationToken);
+                return CompletedInitiation(prior, jobPostingId);
+            }
+            if (!string.IsNullOrWhiteSpace(prior.Authority))
+                return GatedInitiation(prior, jobPostingId, prior.Authority);
+        }
+
         var fee = _options.PublishFeeAmount;
         var payment = Payment.Create(employerProfileId, fee, ParseCurrency(_options.PublishFeeCurrency),
             jobPostingId, _options.PublishFeeDescription, _options.ZarinPal.CallbackUrl);
+        var callbackUrl = string.IsNullOrWhiteSpace(_options.ZarinPal.CallbackUrl)
+            ? null
+            : QueryHelpers.AddQueryString(_options.ZarinPal.CallbackUrl, "paymentId", payment.Id.ToString("D"));
+        payment.SetCallbackUrl(callbackUrl);
 
         if (fee <= 0)
         {
@@ -43,18 +64,18 @@ public sealed class PaymentService(
 
         var result = await zarinPal.RequestAsync(
             new ZarinPalRequest(_options.ZarinPal.MerchantId, fee, _options.PublishFeeDescription,
-                _options.ZarinPal.CallbackUrl, _options.PublishFeeCurrency), cancellationToken);
+                callbackUrl ?? string.Empty, _options.PublishFeeCurrency), cancellationToken);
 
         if (result.Code == 100 && !string.IsNullOrWhiteSpace(result.Authority))
         {
             payment.SetAuthority(result.Authority);
             await SaveAndDispatchAsync(payment, cancellationToken);
-            logger.LogInformation("Payment {PaymentId} initiated for job {JobId}; authority {Authority}.",
-                payment.Id, jobPostingId, payment.Authority);
+            logger.LogInformation("Payment {PaymentId} initiated for job {JobId}.",
+                payment.Id, jobPostingId);
             return GatedInitiation(payment, jobPostingId, result.Authority);
         }
 
-        // Gateway rejected the request â€” the payment must NOT be marked completed.
+        // Gateway rejected the request — the payment must NOT be marked completed.
         // B1: The job must remain in Draft until a verified successful payment exists.
         payment.Fail($"Gateway error: {result.Message} (code {result.Code})");
         await SaveAndDispatchAsync(payment, cancellationToken);
@@ -67,33 +88,7 @@ public sealed class PaymentService(
             payment.PaymentMethod.ToString(), jobPostingId, false);
 
 
-    public async Task<PaymentInitiationResponse> InitiateAsync(Guid employerProfileId, CreatePaymentRequest request, CancellationToken cancellationToken)
-    {
-        var payment = Payment.Create(employerProfileId, request.Amount,
-            ParseCurrency(request.Currency), request.JobPostingId,
-            request.Description ?? string.Empty, request.CallbackUrl);
-
-        var result = await zarinPal.RequestAsync(
-            new ZarinPalRequest(_options.ZarinPal.MerchantId, request.Amount, request.Description ?? string.Empty,
-                request.CallbackUrl ?? _options.ZarinPal.CallbackUrl, request.Currency), cancellationToken);
-
-        if (result.Code == 100 && !string.IsNullOrWhiteSpace(result.Authority))
-        {
-            payment.SetAuthority(result.Authority);
-        }
-        else
-        {
-            payment.Fail($"Gateway error: {result.Message} (code {result.Code})");
-        }
-
-        await SaveAndDispatchAsync(payment, cancellationToken);
-        var isGated = result.Code == 100 && !string.IsNullOrWhiteSpace(result.Authority);
-        return isGated
-            ? GatedInitiation(payment, request.JobPostingId, result.Authority)
-            : FailedInitiation(payment, request.JobPostingId);
-    }
-
-    public async Task<PaymentVerifyResponse> VerifyByCallbackAsync(string authority, string zarinStatus, Guid employerProfileId, CancellationToken cancellationToken)
+    public async Task<PaymentVerifyResponse> VerifyByCallbackAsync(string authority, string zarinStatus, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(authority))
             throw new NotFoundException("Payment authority was not provided.");
@@ -102,24 +97,18 @@ public sealed class PaymentService(
             .FirstOrDefaultAsync(payment => payment.Authority == authority, cancellationToken)
             ?? throw new NotFoundException("Payment was not found.");
 
-        // B10: Employers cannot access or manipulate another employer's transactions.
-        if (payment.EmployerProfileId != employerProfileId)
-            throw new ForbiddenException("You are not authorized to verify this payment.");
-
-        // B8: Repeated callbacks must not complete a payment or grant an entitlement twice.
         if (payment.Status == PaymentStatus.Paid)
-            return new PaymentVerifyResponse(payment.Id, payment.Status.ToString(), payment.RelatedJobPostingId, "Already verified");
-        if (payment.Status == PaymentStatus.Failed)
-            return new PaymentVerifyResponse(payment.Id, payment.Status.ToString(), payment.RelatedJobPostingId, "Already failed");
-
-        var canceled = zarinStatus is "0" or "cancel" or "-1"
-            || string.Equals(zarinStatus, "canceled", StringComparison.OrdinalIgnoreCase);
-        if (canceled)
         {
-            payment.Fail("Payment was canceled by the user.");
-            await SaveAndDispatchWithRetryAsync(payment, cancellationToken);
-            return new PaymentVerifyResponse(payment.Id, payment.Status.ToString(), payment.RelatedJobPostingId, "Canceled");
+            await RetryPublicationAsync(payment, cancellationToken);
+            return ToVerifyResponse(payment, "Payment was already verified.");
         }
+        if (payment.Status == PaymentStatus.Failed)
+            return ToVerifyResponse(payment, "Payment has already failed.");
+
+        // Provider query parameters are hints only. A non-success return never
+        // changes persisted state; successful-looking returns require server verification.
+        if (!IsSuccessfulReturnStatus(zarinStatus))
+            return ToVerifyResponse(payment, "The provider did not confirm success; payment remains pending.");
 
         var verification = await zarinPal.VerifyAsync(
             new ZarinPalVerifyRequest(_options.ZarinPal.MerchantId, payment.Amount, authority, payment.Currency.ToString()),
@@ -130,21 +119,22 @@ public sealed class PaymentService(
             try
             {
                 payment.Complete(verification.ReferenceId);
-                await SaveAndDispatchWithRetryAsync(payment, cancellationToken);
-                return new PaymentVerifyResponse(payment.Id, payment.Status.ToString(), payment.RelatedJobPostingId, verification.Message);
             }
             catch (DomainException)
             {
-                // B9: A concurrent callback already transitioned this payment to Paid.
-                // Reload the authoritative state and return it without double-processing.
                 await dbContext.Entry(payment).ReloadAsync(cancellationToken);
-                return new PaymentVerifyResponse(payment.Id, payment.Status.ToString(), payment.RelatedJobPostingId, "Already verified");
+                if (payment.Status != PaymentStatus.Paid)
+                    throw;
             }
+
+            await SaveAndDispatchWithRetryAsync(payment, cancellationToken);
+            return ToVerifyResponse(payment, verification.Message);
         }
 
-        payment.Fail($"Verification failed: {verification.Message} (code {verification.Code})");
-        await SaveAndDispatchWithRetryAsync(payment, cancellationToken);
-        return new PaymentVerifyResponse(payment.Id, payment.Status.ToString(), payment.RelatedJobPostingId, verification.Message);
+        // Verification failures may be transient or indicate an early callback.
+        // Keep the payment retryable until the provider confirms a terminal result.
+        logger.LogWarning("Provider verification did not confirm payment {PaymentId}; provider code {Code}.", payment.Id, verification.Code);
+        return ToVerifyResponse(payment, "Payment is not verified yet and can be checked again.");
     }
 
     private async Task SaveAndDispatchWithRetryAsync(Payment payment, CancellationToken ct)
@@ -165,10 +155,15 @@ public sealed class PaymentService(
     }
 
 
-    public async Task<PaymentResponse?> GetAsync(Guid paymentId, CancellationToken cancellationToken)
+    public async Task<PaymentResponse?> GetForEmployerAsync(Guid paymentId, Guid employerProfileId, CancellationToken cancellationToken)
     {
-        var payment = await dbContext.Payments.AsNoTracking().FirstOrDefaultAsync(payment => payment.Id == paymentId, cancellationToken);
-        return payment is null ? null : Map(payment);
+        var payment = await dbContext.Payments.SingleOrDefaultAsync(
+            item => item.Id == paymentId && item.EmployerProfileId == employerProfileId, cancellationToken);
+        if (payment is null)
+            return null;
+        if (payment.Status == PaymentStatus.Paid && payment.PublicationStatus == PaymentPublicationStatus.Pending)
+            await RetryPublicationAsync(payment, cancellationToken);
+        return Map(payment);
     }
 
     public Task<bool> HasCompletedPaymentForJobAsync(Guid jobPostingId, CancellationToken cancellationToken) =>
@@ -206,15 +201,50 @@ public sealed class PaymentService(
 
     private static PaymentResponse Map(Payment payment) => new(
         payment.Id, payment.EmployerProfileId, payment.Amount, payment.Currency.ToString(),
-        payment.Status.ToString(), payment.PaymentMethod.ToString(), payment.Authority,
+        payment.Status.ToString(), payment.PublicationStatus.ToString(), payment.PaymentMethod.ToString(), payment.Authority,
         payment.RelatedJobPostingId, payment.CreatedAt, payment.PaidAt, payment.FailureReason);
+
+    private static bool IsSuccessfulReturnStatus(string status) =>
+        string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase) || status == "1";
+
+    private static PaymentVerifyResponse ToVerifyResponse(Payment payment, string? message) =>
+        new(payment.Id, payment.Status.ToString(), payment.PublicationStatus.ToString(), payment.RelatedJobPostingId, message);
+
+    private async Task RetryPublicationAsync(Payment payment, CancellationToken ct)
+    {
+        if (payment.PublicationStatus != PaymentPublicationStatus.Pending || !payment.RelatedJobPostingId.HasValue)
+            return;
+
+        var completionEvent = new IranJob.Modules.Payments.Domain.Events.PaymentCompleted(
+            payment.Id, payment.EmployerProfileId, payment.RelatedJobPostingId, null);
+        try
+        {
+            await dispatcher.DispatchAsync(completionEvent, ct);
+            payment.MarkPublicationCompleted();
+            await dbContext.SaveChangesAsync(ct);
+        }
+        catch (Exception exception) when (exception is DomainException or NotFoundException)
+        {
+            payment.MarkPublicationBlocked();
+            await dbContext.SaveChangesAsync(ct);
+            logger.LogWarning(exception, "Paid payment {PaymentId} cannot publish job {JobId} under its current lifecycle state.",
+                payment.Id, payment.RelatedJobPostingId);
+        }
+    }
 
     private async Task DispatchEventsAsync(Payment payment, CancellationToken cancellationToken)
     {
         var events = payment.DomainEvents.ToArray();
         payment.ClearDomainEvents();
         foreach (IDomainEvent domainEvent in events)
+        {
+            if (domainEvent is IranJob.Modules.Payments.Domain.Events.PaymentCompleted)
+            {
+                await RetryPublicationAsync(payment, cancellationToken);
+                continue;
+            }
             await dispatcher.DispatchAsync(domainEvent, cancellationToken);
+        }
     }
 }
 

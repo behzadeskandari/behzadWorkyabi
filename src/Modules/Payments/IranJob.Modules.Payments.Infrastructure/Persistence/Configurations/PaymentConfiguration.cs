@@ -15,6 +15,7 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(payment => payment.Amount).IsRequired();
         builder.Property(payment => payment.Currency).HasConversion<string>().HasMaxLength(10).IsRequired();
         builder.Property(payment => payment.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(payment => payment.PublicationStatus).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(payment => payment.PaymentMethod).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(payment => payment.Authority).HasMaxLength(200);
         builder.Property(payment => payment.Description).HasMaxLength(500);

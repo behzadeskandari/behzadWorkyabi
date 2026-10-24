@@ -1,0 +1,12 @@
+<main class="saved-page" dir="rtl">
+  <header><div><h1>شغل‌های ذخیره‌شده</h1><p>فرصت‌هایی که برای بررسی بعدی نگه داشته‌اید</p></div><a routerLink="/candidate/job-alerts">مدیریت هشدارهای شغلی</a></header>
+  @if (loading) { <p class="state" role="status">در حال بارگذاری…</p> }
+  @if (error) { <p class="state error" role="alert">بارگذاری انجام نشد. دوباره تلاش کنید. <button type="button" (click)="load()">تلاش دوباره</button></p> }
+  @if (!loading && !error && !items.length && total === 0) { <p class="state">هنوز شغلی ذخیره نکرده‌اید.</p> }
+  <section class="saved-list">
+    @for (item of items; track item.jobPostingId) {
+      <article>@if (item.isAvailable) { <a [routerLink]="['/jobs', item.jobPostingId]"><span class="title">{{ item.title }}</span><span>{{ item.companyName }} · {{ item.category }} · {{ item.city }}</span></a> } @else { <span class="unavailable">{{ item.title }}</span> }<time [attr.datetime]="item.savedAt">ذخیره‌شده در {{ dates.formatDisplayDateTime(item.savedAt) }}</time><button type="button" (click)="remove(item)">حذف از ذخیره‌شده‌ها</button></article>
+    }
+  </section>
+  @if (total > pageSize) { <nav aria-label="صفحه‌های شغل‌های ذخیره‌شده"><button type="button" [disabled]="page <= 1" (click)="page = page - 1; load()">قبلی</button><span>صفحه {{ page }}</span><button type="button" [disabled]="page * pageSize >= total" (click)="page = page + 1; load()">بعدی</button></nav> }
+</main>

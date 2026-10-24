@@ -37,4 +37,27 @@ export class JobPostingService {
   close(id: string): Observable<JobPosting> {
     return this.http.post<JobPosting>(`${this.apiUrl}/${encodeURIComponent(id)}/close`, null, { withCredentials: true });
   }
+
+  publicationAction(job: JobPosting):
+    | { kind: 'published' }
+    | { kind: 'redirect'; url: string }
+    | { kind: 'check-status'; paymentId: string }
+    | { kind: 'invalid' } {
+    const payment = job.paymentInfo;
+    if (!payment)
+      return job.status === 'Published' ? { kind: 'published' } : { kind: 'invalid' };
+    if (payment.status === 'Paid')
+      return { kind: 'check-status', paymentId: payment.paymentId };
+    if (payment.status !== 'Pending' || !payment.redirectUrl)
+      return { kind: 'invalid' };
+
+    try {
+      const redirect = new URL(payment.redirectUrl);
+      if (redirect.protocol !== 'https:' || redirect.username || redirect.password)
+        return { kind: 'invalid' };
+      return { kind: 'redirect', url: redirect.toString() };
+    } catch {
+      return { kind: 'invalid' };
+    }
+  }
 }

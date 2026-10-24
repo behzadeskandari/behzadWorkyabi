@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
 import { SystemStats } from '../../models/admin.models';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
@@ -24,6 +25,7 @@ export class AdminDashboardComponent implements OnInit {
   loadStats(): void {
     this.isLoading = true;
     this.error = null;
+    this.stats = null;
     this.adminService.getStats().subscribe({
       next: (stats) => {
         this.stats = stats;

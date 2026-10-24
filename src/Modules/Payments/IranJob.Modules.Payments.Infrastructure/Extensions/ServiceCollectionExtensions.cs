@@ -1,8 +1,5 @@
-using FluentValidation;
 using IranJob.BuildingBlocks.Infrastructure.Configuration;
 using IranJob.Modules.Payments.Application.Abstractions;
-using IranJob.Modules.Payments.Application.Contracts;
-using IranJob.Modules.Payments.Application.Validators;
 using IranJob.Modules.Payments.Infrastructure.Configuration;
 using IranJob.Modules.Payments.Infrastructure.Integrations.ZarinPal;
 using IranJob.Modules.Payments.Infrastructure.Persistence;
@@ -35,8 +32,6 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpClient<IZarinPalClient, ZarinPalClient>();
         services.AddScoped<IPaymentService, PaymentService>();
-        services.AddValidatorsFromAssemblyContaining<CreatePaymentRequestValidator>();
-
         return services;
     }
 }

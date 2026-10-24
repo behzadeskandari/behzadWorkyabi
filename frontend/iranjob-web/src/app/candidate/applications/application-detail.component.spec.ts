@@ -4,10 +4,12 @@ import { of, throwError } from 'rxjs';
 import { ApplicationDetailComponent } from './application-detail.component';
 import { JobApplication } from './job-application.models';
 import { JobApplicationService } from './job-application.service';
+import { MessagesService } from '../../messages/messages.service';
 
 describe('ApplicationDetailComponent', () => {
   let fixture: ComponentFixture<ApplicationDetailComponent>;
   let service: jasmine.SpyObj<JobApplicationService>;
+  let messages: jasmine.SpyObj<MessagesService>;
   const application: JobApplication = {
     id: 'application-1', jobId: 'job-1', jobTitle: 'Developer', companyName: 'Example Co',
     status: 'Applied', appliedAt: '2026-09-01T00:00:00Z', updatedAt: null
@@ -16,11 +18,17 @@ describe('ApplicationDetailComponent', () => {
   beforeEach(() => {
     service = jasmine.createSpyObj<JobApplicationService>('JobApplicationService', ['getMyApplication', 'withdrawApplication']);
     service.getMyApplication.and.returnValue(of(application));
+    messages = jasmine.createSpyObj<MessagesService>('MessagesService', ['create']);
+    messages.create.and.returnValue(of({
+      id: 'conversation-1', subject: '', jobPostingId: null, jobTitle: null,
+      lastMessagePreview: null, lastMessageAt: null, unreadCount: 0, otherParticipantName: null
+    }));
     TestBed.configureTestingModule({
       imports: [ApplicationDetailComponent],
       providers: [
         provideRouter([]),
         { provide: JobApplicationService, useValue: service },
+        { provide: MessagesService, useValue: messages },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: application.id }) } } }
       ]
     });

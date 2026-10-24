@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="appsettings.Testing.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\IranJob.Modules.EmployerProfile.Presentation\IranJob.Modules.EmployerProfile.Presentation.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
@@ -33,6 +37,8 @@
     <ProjectReference Include="..\..\Modules\Payments\IranJob.Modules.Payments.Presentation\IranJob.Modules.Payments.Presentation.csproj" />
     <ProjectReference Include="..\..\Modules\Notifications\IranJob.Modules.Notifications.Infrastructure\IranJob.Modules.Notifications.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Notifications\IranJob.Modules.Notifications.Presentation\IranJob.Modules.Notifications.Presentation.csproj" />
+    <ProjectReference Include="..\..\Modules\Messages\IranJob.Modules.Messages.Infrastructure\IranJob.Modules.Messages.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Messages\IranJob.Modules.Messages.Presentation\IranJob.Modules.Messages.Presentation.csproj" />
   </ItemGroup>
 
 </Project>

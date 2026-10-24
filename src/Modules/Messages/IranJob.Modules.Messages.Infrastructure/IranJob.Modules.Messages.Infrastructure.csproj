@@ -7,8 +7,8 @@
     <ProjectReference Include="..\..\Candidates\IranJob.Modules.Candidates.Infrastructure\IranJob.Modules.Candidates.Infrastructure.csproj" />
     <ProjectReference Include="..\..\JobPostings\IranJob.Modules.JobPostings.Domain\IranJob.Modules.JobPostings.Domain.csproj" />
     <ProjectReference Include="..\..\JobPostings\IranJob.Modules.JobPostings.Infrastructure\IranJob.Modules.JobPostings.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\EmployerProfile\IranJob.Modules.EmployerProfile.Domain\IranJob.Modules.EmployerProfile.Domain.csproj" />
-    <ProjectReference Include="..\..\EmployerProfile\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Domain\IranJob.Modules.EmployerProfile.Domain.csproj" />
+    <ProjectReference Include="..\..\..\..\IranJob.Modules.EmployerProfile.Infrastructure\IranJob.Modules.EmployerProfile.Infrastructure.csproj" />
     <ProjectReference Include="..\IranJob.Modules.Messages.Application\IranJob.Modules.Messages.Application.csproj" />
     <ProjectReference Include="..\IranJob.Modules.Messages.Domain\IranJob.Modules.Messages.Domain.csproj" />
     <ProjectReference Include="..\..\Notifications\IranJob.Modules.Notifications.Application\IranJob.Modules.Notifications.Application.csproj" />

@@ -1,0 +1,17 @@
+.notifications { max-width: 900px; margin: 2rem auto; padding: 0 1rem; color: #172033; }
+.notifications__header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+h1 { margin: 0; font-size: 1.6rem; }
+.notifications__header p { margin: .4rem 0 0; color: #64748b; }
+.list { display: grid; gap: .75rem; }
+.notification { display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; border-radius: .75rem; background: white; padding: .9rem 1rem; }
+.notification--unread { border-color: #7dd3fc; background: #f0f9ff; }
+.notification__body { display: grid; gap: .45rem; flex: 1; text-align: right; color: inherit; border: 0; background: transparent; font: inherit; cursor: pointer; }
+.notification__title { font-weight: 700; }
+.notification__message, time { color: #475569; }
+time { font-size: .85rem; }
+.secondary, .read-button, .load-more { border: 1px solid #0284c7; border-radius: .5rem; color: #0369a1; background: white; padding: .5rem .8rem; font: inherit; cursor: pointer; }
+.load-more { display: block; margin: 1.25rem auto; }
+.state { padding: 2rem; text-align: center; color: #64748b; }
+.error { color: #b91c1c; }
+button:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
+@media (max-width: 600px) { .notifications__header { align-items: flex-start; } .notification { align-items: flex-start; } .read-button { white-space: nowrap; } }

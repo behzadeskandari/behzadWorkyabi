@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://localhost:5158'
+  // Production web and API are served behind the same origin/reverse proxy.
+  apiBaseUrl: ''
 };

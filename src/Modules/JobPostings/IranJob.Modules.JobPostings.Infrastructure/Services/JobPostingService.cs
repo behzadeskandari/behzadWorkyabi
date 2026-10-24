@@ -20,6 +20,7 @@ public sealed class JobPostingService(
     EmployerDbContext employerDbContext,
     ReferenceDataDbContext referenceDataDbContext,
     IPaymentService paymentService,
+    IJobAlertMatcher alertMatcher,
     IValidator<CreateJobPostingRequest> createValidator,
     IValidator<UpdateJobPostingRequest> updateValidator) : IJobPostingService
 {
@@ -85,6 +86,7 @@ public sealed class JobPostingService(
                 if (posting.Status != JobPostingStatus.Published)
                     posting.Publish();
                 await jobDbContext.SaveChangesAsync(cancellationToken);
+                await alertMatcher.NotifyMatchesAsync(posting.Id, cancellationToken);
                 return (await MapAsync([posting], cancellationToken))[0] with { PaymentInfo = ToPaymentInfo(initiation) };
             }
 
@@ -123,8 +125,12 @@ public sealed class JobPostingService(
             .SingleOrDefaultAsync(posting => posting.Id == jobPostingId, cancellationToken)
             ?? throw new NotFoundException("Job posting was not found.");
 
+        if (posting.Status == JobPostingStatus.Published)
+            return (await MapAsync([posting], cancellationToken))[0];
+
         posting.Publish();
         await jobDbContext.SaveChangesAsync(cancellationToken);
+        await alertMatcher.NotifyMatchesAsync(posting.Id, cancellationToken);
         return (await MapAsync([posting], cancellationToken))[0];
     }
 

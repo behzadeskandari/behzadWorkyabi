@@ -107,6 +107,67 @@ namespace IranJob.Modules.JobPostings.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobAlert", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CandidateProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("WorkArrangement")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("CandidateProfileId", "IsEnabled");
+
+                    b.HasIndex("IsEnabled", "CategoryId", "CityId", "WorkArrangement");
+
+                    b.ToTable("JobAlerts", "jobs");
+                });
+
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobAlertSkill", b =>
+                {
+                    b.Property<Guid>("JobAlertId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SkillId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("JobAlertId", "SkillId");
+
+                    b.HasIndex("SkillId");
+
+                    b.ToTable("JobAlertSkills", "jobs");
+                });
+
             modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobApplication", b =>
                 {
                     b.Property<Guid>("Id")
@@ -249,6 +310,33 @@ namespace IranJob.Modules.JobPostings.Infrastructure.Migrations
                     b.HasIndex("SkillId");
 
                     b.ToTable("JobPostingSkills", "jobs");
+                });
+
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.SavedJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CandidateProfileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("JobPostingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("SavedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobPostingId");
+
+                    b.HasIndex("CandidateProfileId", "JobPostingId")
+                        .IsUnique();
+
+                    b.HasIndex("CandidateProfileId", "SavedAt");
+
+                    b.ToTable("SavedJobs", "jobs");
                 });
 
             modelBuilder.Entity("IranJob.Modules.ReferenceData.Domain.Entities.City", b =>
@@ -430,6 +518,42 @@ namespace IranJob.Modules.JobPostings.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobAlert", b =>
+                {
+                    b.HasOne("IranJob.Modules.Candidates.Domain.Entities.CandidateProfile", null)
+                        .WithMany()
+                        .HasForeignKey("CandidateProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IranJob.Modules.ReferenceData.Domain.Entities.JobCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("IranJob.Modules.ReferenceData.Domain.Entities.City", null)
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobAlertSkill", b =>
+                {
+                    b.HasOne("IranJob.Modules.JobPostings.Domain.Entities.JobAlert", "JobAlert")
+                        .WithMany("Skills")
+                        .HasForeignKey("JobAlertId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IranJob.Modules.ReferenceData.Domain.Entities.Skill", null)
+                        .WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("JobAlert");
+                });
+
             modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobApplication", b =>
                 {
                     b.HasOne("IranJob.Modules.Candidates.Domain.Entities.CandidateProfile", null)
@@ -482,6 +606,21 @@ namespace IranJob.Modules.JobPostings.Infrastructure.Migrations
                     b.Navigation("JobPosting");
                 });
 
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.SavedJob", b =>
+                {
+                    b.HasOne("IranJob.Modules.Candidates.Domain.Entities.CandidateProfile", null)
+                        .WithMany()
+                        .HasForeignKey("CandidateProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IranJob.Modules.JobPostings.Domain.Entities.JobPosting", null)
+                        .WithMany()
+                        .HasForeignKey("JobPostingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IranJob.Modules.ReferenceData.Domain.Entities.City", b =>
                 {
                     b.HasOne("IranJob.Modules.ReferenceData.Domain.Entities.Province", "Province")
@@ -502,6 +641,11 @@ namespace IranJob.Modules.JobPostings.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobAlert", b =>
+                {
+                    b.Navigation("Skills");
                 });
 
             modelBuilder.Entity("IranJob.Modules.JobPostings.Domain.Entities.JobPosting", b =>

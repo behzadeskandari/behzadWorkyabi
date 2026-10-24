@@ -42,6 +42,9 @@
   color: #38bdf8;
 }
 
+.notification-link { display: inline-flex; align-items: center; gap: .35rem; }
+.notification-count { display: inline-grid; place-items: center; min-width: 1.25rem; height: 1.25rem; padding: 0 .2rem; border-radius: 999px; background: #ef4444; color: white; font-size: .72rem; font-weight: 700; }
+
 .nav-button {
   background: transparent;
   border: 1px solid #38bdf8;

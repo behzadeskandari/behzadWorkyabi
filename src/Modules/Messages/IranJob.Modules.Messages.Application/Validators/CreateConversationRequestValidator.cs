@@ -12,9 +12,11 @@ public sealed class CreateConversationRequestValidator : AbstractValidator<Creat
             .WithMessage("Job posting id is required.");
 
         RuleFor(x => x.JobApplicationId)
-            .GreaterThan(Guid.Empty)
-            .When(x => x.JobApplicationId.HasValue)
-            .WithMessage("Job application id must be a valid guid when supplied.");
+            .NotNull()
+            .WithMessage("A job application is required to start a conversation.");
+        RuleFor(x => x.JobApplicationId)
+            .Must(id => id.HasValue && id.Value != Guid.Empty)
+            .WithMessage("Job application id must be a valid guid.");
 
         RuleFor(x => x.Subject)
             .MaximumLength(280)

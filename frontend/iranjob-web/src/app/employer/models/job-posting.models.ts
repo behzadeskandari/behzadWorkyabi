@@ -31,6 +31,18 @@ export interface JobPosting {
   publishedAt: string | null;
   closedAt: string | null;
   closingAt: string | null;
+  paymentInfo?: PaymentInitiationInfo | null;
+}
+
+export interface PaymentInitiationInfo {
+  paymentId: string;
+  authority: string;
+  redirectUrl: string;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod: string;
+  isCompleted: boolean;
 }
 
 export interface SaveJobPostingRequest {

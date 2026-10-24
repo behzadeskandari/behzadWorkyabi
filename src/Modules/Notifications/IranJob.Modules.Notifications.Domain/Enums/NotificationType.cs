@@ -20,5 +20,11 @@ public enum NotificationType
     ApplicationAccepted = 4,
 
     /// <summary>The employer rejected an application.</summary>
-    ApplicationRejected = 5
+    ApplicationRejected = 5,
+
+    /// <summary>A participant received a new message in a conversation.</summary>
+    MessageReceived = 6,
+
+    /// <summary>A newly published job matched a candidate's saved alert.</summary>
+    JobAlertMatch = 7
 }

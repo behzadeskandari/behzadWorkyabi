@@ -132,7 +132,8 @@
         </div>
 
         <div *ngIf="!isLoading && !hasError && results.items.length" class="job-results">
-          <a *ngFor="let job of results.items" class="job-card" [routerLink]="['/jobs', job.id]" [attr.aria-label]="'جزئیات شغل ' + job.title + ' در ' + job.companyName">
+          <article *ngFor="let job of results.items" class="job-card">
+            <a class="job-card-link" [routerLink]="['/jobs', job.id]" [attr.aria-label]="'جزئیات شغل ' + job.title + ' در ' + job.companyName">
             <div class="card-topline">
               <img *ngIf="job.companyLogoUrl" [src]="job.companyLogoUrl" [alt]="'نشان ' + job.companyName" loading="lazy" />
               <div class="card-title"><h2>{{ job.title }}</h2><p>{{ job.companyName }}</p></div>
@@ -149,9 +150,14 @@
               <ul class="skill-list" aria-label="مهارت‌ها"><li *ngFor="let skill of job.skills">{{ skill }}</li></ul>
               <time [attr.datetime]="job.publishedAt">{{ formatDate(job.publishedAt) }}</time>
             </div>
-          </a>
+            </a>
+            <button *ngIf="canSaveJobs" type="button" class="save-job-button" (click)="toggleSaved(job.id)" [disabled]="savedStateLoading || saveError" [attr.aria-pressed]="isSaved(job.id)">
+              {{ savedStateLoading ? 'در حال بررسی…' : isSaved(job.id) ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره شغل' }}
+            </button>
+          </article>
         </div>
 
+        <p *ngIf="saveError" class="lookup-error" role="alert">وضعیت ذخیره‌سازی دریافت یا به‌روزرسانی نشد. <button type="button" (click)="retrySavedState()">تلاش دوباره</button></p>
         <nav *ngIf="!isLoading && !hasError && results.totalPages > 1" class="pagination" aria-label="صفحه‌های نتایج">
           <button type="button" [disabled]="results.page <= 1" (click)="goToPage(results.page - 1)">قبلی</button>
           <span>صفحهٔ {{ formatCount(results.page) }} از {{ formatCount(results.totalPages) }}</span>

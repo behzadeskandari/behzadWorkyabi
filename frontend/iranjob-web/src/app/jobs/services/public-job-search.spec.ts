@@ -150,7 +150,7 @@ describe('JobSearchComponent', () => {
       }], totalCount: 1, totalPages: 1
     });
     fixture.detectChanges();
-    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.job-card');
+    const link: HTMLAnchorElement = fixture.nativeElement.querySelector('.job-card-link');
     expect(link).not.toBeNull();
     expect(link.getAttribute('href')).toBe('/jobs/job-1');
     expect(link.getAttribute('aria-label')).toContain('فرصت توسعه‌دهنده');

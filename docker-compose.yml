@@ -4,13 +4,13 @@ services:
     container_name: iranjob-sqlserver
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "Your_strong_Password123"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in the environment}
     ports:
       - "1433:1433"
     volumes:
       - iranjob-sqlserver-data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Your_strong_Password123" -C -Q "SELECT 1" || exit 1
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -24,14 +24,28 @@ services:
       dockerfile: docker/api/Dockerfile
     container_name: iranjob-api
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=IranJob;User Id=sa;Password=Your_strong_Password123;TrustServerCertificate=True;Encrypt=False"
-      Database__ApplyMigrationsOnStartup: "true"
+      ConnectionStrings__DefaultConnection: ${IRANJOB_DB_CONNECTION_STRING:?Set IRANJOB_DB_CONNECTION_STRING in the environment}
+      Authentication__Jwt__SecretKey: ${IRANJOB_JWT_SIGNING_KEY:?Set IRANJOB_JWT_SIGNING_KEY in the environment}
+      Database__ApplyMigrationsOnStartup: ${DATABASE_APPLY_MIGRATIONS_ON_STARTUP:-false}
+      Cors__AllowedOrigins__0: ${CORS_ALLOWED_ORIGIN:?Set CORS_ALLOWED_ORIGIN to the exact browser origin}
+      Payment__PublishFeeAmount: ${PAYMENT_PUBLISH_FEE_AMOUNT:?Set PAYMENT_PUBLISH_FEE_AMOUNT explicitly; use 0 to disable paid publishing}
+      Payment__PublishFeeCurrency: ${PAYMENT_PUBLISH_FEE_CURRENCY:-IRR}
+      Payment__ZarinPal__MerchantId: ${ZARINPAL_MERCHANT_ID:-}
+      Payment__ZarinPal__CallbackUrl: ${ZARINPAL_CALLBACK_URL:-}
+      Payment__ZarinPal__Sandbox: ${ZARINPAL_SANDBOX:?Set ZARINPAL_SANDBOX explicitly to true or false}
+      Payment__ZarinPal__RequestUrl: ${ZARINPAL_REQUEST_URL:-https://api.zarinpal.com/pg/v4/payment/request.json}
+      Payment__ZarinPal__VerifyUrl: ${ZARINPAL_VERIFY_URL:-https://api.zarinpal.com/pg/v4/payment/verify.json}
+      Payment__ZarinPal__SandboxRequestUrl: ${ZARINPAL_SANDBOX_REQUEST_URL:-https://sandbox.zarinpal.com/pg/v4/payment/request.json}
+      Payment__ZarinPal__SandboxVerifyUrl: ${ZARINPAL_SANDBOX_VERIFY_URL:-https://sandbox.zarinpal.com/pg/v4/payment/verify.json}
+      Payment__ZarinPal__StartPayUrl: ${ZARINPAL_START_PAY_URL:-https://www.zarinpal.com/pg/StartPay/{0}}
+      Payment__ZarinPal__StartPaySandboxUrl: ${ZARINPAL_SANDBOX_START_PAY_URL:-https://sandbox.zarinpal.com/pg/StartPay/{0}}
     ports:
       - "5158:8080"
     volumes:
       - iranjob-api-uploads:/app/uploads
+      - iranjob-api-cv-storage:/app/cv-storage
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -51,4 +65,5 @@ services:
 volumes:
   iranjob-sqlserver-data:
   iranjob-api-uploads:
+  iranjob-api-cv-storage:
 

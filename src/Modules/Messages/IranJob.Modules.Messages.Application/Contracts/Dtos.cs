@@ -13,6 +13,7 @@ public sealed class ConversationListItem
     public DateTimeOffset? LastMessageAt { get; set; }
     public int UnreadCount { get; set; }
     public int ParticipantCount { get; set; }
+    public string? OtherParticipantName { get; set; }
 }
 
 public sealed class UnreadItem
@@ -29,7 +30,7 @@ public sealed class UnreadSummary
 
 public sealed class MessageDto
 {
-    public MessageDto(Guid id, Guid conversationId, Guid senderProfileId, string senderName, string content, DateTimeOffset sentAt, bool isRead)
+    public MessageDto(Guid id, Guid conversationId, Guid senderProfileId, string senderName, string content, DateTimeOffset sentAt, bool isRead, bool isMine)
     {
         Id = id;
         ConversationId = conversationId;
@@ -38,6 +39,7 @@ public sealed class MessageDto
         Content = content;
         SentAt = sentAt;
         IsRead = isRead;
+        IsMine = isMine;
     }
 
     public Guid Id { get; set; }
@@ -47,5 +49,6 @@ public sealed class MessageDto
     public string Content { get; set; } = string.Empty;
     public DateTimeOffset SentAt { get; set; }
     public bool IsRead { get; set; }
+    public bool IsMine { get; set; }
 }
 

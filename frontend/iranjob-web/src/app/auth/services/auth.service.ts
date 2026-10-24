@@ -102,7 +102,7 @@ export class AuthService {
         }),
         shareReplay(1)
       );
-  }
+    }
 
     return this.refreshInFlight$;
   }
@@ -131,12 +131,12 @@ export class AuthService {
     const body = response.body;
     if (!body) {
       throw new Error('Authentication response was empty.');
-  }
+    }
 
     const csrf = response.headers.get('X-CSRF-TOKEN');
     if (csrf) {
       this.csrfToken = csrf;
-  }
+    }
 
     this.accessTokenSignal.set(body.accessToken);
     this.currentUserSignal.set(body.user);
@@ -148,7 +148,7 @@ export class AuthService {
     let headers = new HttpHeaders();
     if (this.csrfToken) {
       headers = headers.set('X-CSRF-TOKEN', this.csrfToken);
-  }
+    }
     return headers;
   }
 
@@ -171,7 +171,7 @@ export class AuthService {
     if (!stored) {
       this.isAuthReadySignal.set(true);
       return;
-  }
+    }
 
     try {
       const session = JSON.parse(stored) as PersistedSession;
@@ -186,7 +186,7 @@ export class AuthService {
       this.csrfToken = session.csrfToken;
     } catch {
       sessionStorage.removeItem(USER_STORAGE_KEY);
-  }
+    }
 
     this.isAuthReadySignal.set(true);
   }

@@ -1,0 +1,22 @@
+<main class="alerts-page" dir="rtl">
+  <header><h1>هشدارهای شغلی</h1><p>برای فرصت‌های تازه مطابق معیارهای انتخابی‌تان اعلان دریافت کنید.</p></header>
+  <section class="editor">
+    <h2>{{ editingId ? 'ویرایش هشدار' : 'ساخت هشدار جدید' }}</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>نام هشدار<input formControlName="name" maxlength="100" required /></label>
+      <label>دسته‌بندی<select formControlName="categoryId"><option value="">همه دسته‌بندی‌ها</option>@for (x of categories; track x.id) { <option [value]="x.id">{{ x.name }}</option> }</select></label>
+      <label>کشور<select formControlName="countryId" (change)="countryChanged()"><option value="">همه کشورها</option>@for (x of countries; track x.id) { <option [value]="x.id">{{ x.name }}</option> }</select></label>
+      @if (form.controls.countryId.value) { <label>استان<select formControlName="provinceId" (change)="provinceChanged()"><option value="">همه استان‌ها</option>@for (x of provinces; track x.id) { <option [value]="x.id">{{ x.name }}</option> }</select></label> }
+      @if (form.controls.provinceId.value) { <label>شهر<select formControlName="cityId"><option value="">همه شهرها</option>@for (x of cities; track x.id) { <option [value]="x.id">{{ x.name }}</option> }</select></label> }
+      <label>شیوه انجام کار<select formControlName="workArrangement"><option value="">همه شیوه‌ها</option>@for (x of arrangements; track x.id) { <option [value]="x.value">{{ x.name }}</option> }</select></label>
+      <fieldset><legend>مهارت‌های موردنیاز (همه مهارت‌های انتخابی)</legend><div class="skills">@for (x of skills; track x.id) { <label><input type="checkbox" [checked]="selectedSkills.has(x.id)" (change)="toggleSkill(x.id, $any($event.target).checked)" />{{ x.name }}</label> }</div></fieldset>
+      <div class="actions"><button type="submit" [disabled]="saving">{{ saving ? 'در حال ذخیره…' : editingId ? 'ذخیره تغییرات' : 'ایجاد هشدار' }}</button>@if (editingId) { <button type="button" class="secondary" (click)="cancelEdit()">انصراف</button> }</div>
+    </form>
+  </section>
+  @if (error) { <p class="error" role="alert">عملیات انجام نشد. ورودی‌ها و اتصال را بررسی کنید.</p> }
+  @if (loading) { <p role="status">در حال بارگذاری هشدارها…</p> }
+  <section class="alert-list" aria-label="هشدارهای ثبت‌شده">
+    @for (alert of alerts; track alert.id) { <article><div><h2>{{ alert.name }}</h2><p>{{ alert.categoryId ? 'دسته‌بندی انتخاب شده' : 'همه دسته‌بندی‌ها' }} · {{ alert.cityId ? 'شهر انتخاب شده' : 'همه شهرها' }} · {{ alert.skillIds.length }} مهارت</p></div><div class="actions"><button type="button" (click)="toggle(alert)">{{ alert.isEnabled ? 'غیرفعال‌کردن' : 'فعال‌کردن' }}</button><button type="button" class="secondary" (click)="edit(alert)">ویرایش</button><button type="button" class="danger" (click)="remove(alert)">حذف</button></div></article> }
+    @if (!loading && !alerts.length) { <p>هنوز هشداری نساخته‌اید.</p> }
+  </section>
+</main>

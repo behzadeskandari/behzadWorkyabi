@@ -126,7 +126,16 @@ export class EmployerJobFormComponent implements OnInit {
     ).subscribe({
       next: job => {
         this.currentStatus = job.status;
-        void this.router.navigate(['/employer/jobs']);
+        const action = this.jobService.publicationAction(job);
+        if (action.kind === 'redirect') {
+          window.location.assign(action.url);
+        } else if (action.kind === 'check-status') {
+          void this.router.navigate(['/employer/payments/return'], { queryParams: { paymentId: action.paymentId } });
+        } else if (action.kind === 'published') {
+          void this.router.navigate(['/employer/jobs']);
+        } else {
+          this.errorMessage = 'انتشار آگهی انجام نشد یا اطلاعات پرداخت کامل نیست. وضعیت آگهی را بررسی کنید.';
+        }
       },
       error: error => this.handleError(error),
       complete: () => this.isSaving = false
