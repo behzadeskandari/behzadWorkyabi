@@ -12,7 +12,7 @@ namespace IranJob.Modules.Messages.Presentation.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/messages")]
-[Authorize(Roles = IdentityRoles.Candidate + "," + IdentityRoles.Employer + "," + IdentityRoles.Recruiter)]
+[Authorize(Roles = IdentityRoles.Candidate + "," + IdentityRoles.Employer + "," + IdentityRoles.Recruiter + "," + IdentityRoles.Admin + "," + IdentityRoles.SuperAdmin)]
 public sealed class MessagesController(IConversationService service, ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet("conversations")]

@@ -1,3 +1,5 @@
+using System.Data;
+using System.Security.Claims;
 using Asp.Versioning;
 using IranJob.Modules.Identity.Application.Abstractions;
 using IranJob.Modules.Identity.Infrastructure.Configuration;
@@ -10,7 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 
 namespace IranJob.Modules.Identity.Presentation.Controllers;
 
@@ -35,7 +36,7 @@ public sealed class AuthController(
                 request.Email,
                 request.PhoneNumber,
                 request.Password,
-                request.Role),
+                "SuperAdmin"),//
             cancellationToken);
 
         return NoContent();

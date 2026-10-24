@@ -1,0 +1,237 @@
+<div class="payments-page">
+  <!-- List View -->
+  <div *ngIf="viewMode === 'list'" class="payments__list">
+    <div class="payments__header">
+      <h1>مدیریت پرداخت‌ها</h1>
+      <p class="payments__subtitle">
+        مشاهده، جستجو و  تمام پرداخت‌های سامانه
+      </p>
+    </div>
+
+    @if (error()) {
+      <div class="error-state" role="alert">
+        <p>{{ error() }}</p>
+        <button type="button" (click)="loadData()" class="btn btn--secondary">
+          تلاش مجدد
+        </button>
+      </div>
+    }
+
+    <div class="payments__summary-cards" *ngIf="paymentSummary()">
+      <div class="summary-card">
+        <span class="summary-card__label">کل پرداخت‌ها</span>
+        <span class="summary-card__value">{{ formatAmount(paymentSummary()!.total) }}</span>
+      </div>
+      <div class="summary-card summary-card--success">
+        <span class="summary-card__label">موفق</span>
+        <span class="summary-card__value">{{ formatAmount(paymentSummary()!.successful) }}</span>
+      </div>
+      <div class="summary-card summary-card--warning">
+        <span class="summary-card__label">در انتظار</span>
+        <span class="summary-card__value">{{ formatAmount(paymentSummary()!.pending) }}</span>
+      </div>
+      <div class="summary-card summary-card--danger">
+        <span class="summary-card__label">ناموفق</span>
+        <span class="summary-card__value">{{ formatAmount(paymentSummary()!.failed) }}</span>
+      </div>
+      <div class="summary-card summary-card--info">
+        <span class="summary-card__label">مبلغ کل</span>
+        <span class="summary-card__value">{{ formatAmount(paymentSummary()!.totalAmount) }} ریال</span>
+      </div>
+    </div>
+
+    <div class="payments__filters">
+      <div class="filters__row">
+        <input
+          type="text"
+          class="input input--search"
+          placeholder="جستجو..."
+          [value]="filter().search ?? ''"
+          (input)="onSearchInput($event)"
+        />
+        <select class="input input--select" [value]="filter().status ?? ''" (change)="onFilterChange()">
+          <option value="">همه وضعیت‌ها</option>
+          <option *ngFor="let label of statusLabels | keyvalue" [value]="label.key">{{ label.value }}</option>
+        </select>
+        <select class="input input--select" [value]="filter().paymentMethod ?? ''" (change)="onFilterChange()">
+          <option value="">همه روش‌ها</option>
+          <option *ngFor="let label of methodLabels | keyvalue" [value]="label.key">{{ label.value }}</option>
+        </select>
+        <button type="button" class="btn btn--page" (click)="resetFilters()" [disabled]="isLoading()">
+          بازنشانی فیلترها
+        </button>
+      </div>
+    </div>
+
+    <div class="payments__table-wrapper" *ngIf="!isLoading()">
+      @if (hasPayments()) {
+        <table class="payments-table">
+          <thead>
+            <tr>
+              <th>شناسه پرداخت</th>
+              <th>مبلغ</th>
+              <th>واحد پولی</th>
+              <th>وضعیت</th>
+              <th>روش پرداخت</th>
+              <th>تاریخ ایجاد</th>
+              <th>تاریخ پرداخت</th>
+              <th class="payments-table__actions">عملیات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payment of paymentList()">
+              <td class="payments-table__id">{{ payment.id }}</td>
+              <td class="payments-table__amount">{{ formatAmount(payment.amount) }}</td>
+              <td>{{ payment.currency }}</td>
+              <td>
+                <span [class]="getStatusBadgeClass(payment.status)">
+                  {{ statusLabels[payment.status] || payment.status }}
+                </span>
+              </td>
+              <td>{{ methodLabels[payment.paymentMethod] || payment.paymentMethod }}</td>
+              <td>{{ formatDate(payment.createdAt) }}</td>
+              <td>{{ formatDate(payment.paidAt) }}</td>
+              <td class="payments-table__actions">
+                <button
+                  type="button"
+                  class="btn btn--action btn--action--view"
+                  (click)="openDetail(payment.id)"
+                  [attr.aria-label]="'مشاهده جزئیات پرداخت ' + payment.id"
+                >
+                  مشاهده
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      } @else {
+        <div class="payments__empty">
+          <p>هیچ پرداخت-y یافت نشد.</p>
+        </div>
+      }
+    </div>
+
+    <div class="payments__pagination" *ngIf="totalCount() > 0 && !isLoading()">
+      <span class="payments__count">{{ getPaginationRange() }}</span>
+      <div class="pagination-controls">
+        <select
+          class="input input--select--small"
+          [value]="pageSize()"
+          (change)="onPageSizeChange($any($event.target).value)"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} در صفحه</option>
+        </select>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() <= 1 || isLoading()"
+          (click)="onPageChange(1)"
+          aria-label="صفحه اول"
+        >|&lt;&lt;</button>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() <= 1 || isLoading()"
+          (click)="onPageChange(currentPage() - 1)"
+          aria-label="قبلی"
+        >&lt;</button>
+        <span class="pagination-controls__current">
+          صفحه {{ currentPage() }} از {{ totalPages() }}
+        </span>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() >= totalPages() || isLoading()"
+          (click)="onPageChange(currentPage() + 1)"
+          aria-label="بعدی"
+        >&gt;</button>
+        <button
+          class="btn btn--page"
+          [disabled]="currentPage() >= totalPages() || isLoading()"
+          (click)="onPageChange(totalPages())"
+          aria-label="صفحه آخر"
+        >&gt;&gt;|</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail View -->
+  <div *ngIf="viewMode === 'detail'" class="payments__detail">
+    <div class="payments__detail-header">
+      <button
+        type="button"
+        class="btn btn--back"
+        (click)="backToList()"
+        aria-label="بازگشت به لیست"
+      >
+        ↩ بازگشت
+      </button>
+      <h1>جزئیات پرداخت</h1>
+    </div>
+
+    @if (selectedPayment()) {
+      <div class="payments__detail-grid">
+        <div class="detail-field">
+          <label>شناسه پرداخت</label>
+          <span class="detail-value">{{ selectedPayment()!.id }}</span>
+        </div>
+        <div class="detail-field">
+          <label>شناسه کارفرما</label>
+          <span class="detail-value">{{ selectedPayment()!.employerProfileId }}</span>
+        </div>
+        <div class="detail-field">
+          <label>مبلغ</label>
+          <span class="detail-value">{{ formatAmount(selectedPayment()!.amount) }} {{ selectedPayment()!.currency }}</span>
+        </div>
+        <div class="detail-field">
+          <label>وضعیت</label>
+          <span [class]="getStatusBadgeClass(selectedPayment()!.status)">
+            {{ statusLabels[selectedPayment()!.status] || selectedPayment()!.status }}
+          </span>
+        </div>
+        <div class="detail-field">
+          <label>روش پرداخت</label>
+          <span class="detail-value">{{ methodLabels[selectedPayment()!.paymentMethod] || selectedPayment()!.paymentMethod }}</span>
+        </div>
+        <div class="detail-field">
+          <label>کدپرداخت (Authority)</label>
+          <span class="detail-value">{{ selectedPayment()!.authority }}</span>
+        </div>
+        <div class="detail-field">
+          <label>توضیحات</label>
+          <span class="detail-value">{{ selectedPayment()!.description || '-' }}</span>
+        </div>
+        <div class="detail-field">
+          <label>وضعیت انتشار</label>
+          <span class="detail-value">{{ selectedPayment()!.publicationStatus || '-' }}</span>
+        </div>
+        <div class="detail-field">
+          <label>تاریخ ایجاد</label>
+          <span class="detail-value">{{ formatDateTime(selectedPayment()!.createdAt) }}</span>
+        </div>
+        <div class="detail-field">
+          <label>تاریخ پرداخت</label>
+          <span class="detail-value">{{ formatDateTime(selectedPayment()!.paidAt) }}</span>
+        </div>
+        <div class="detail-field">
+          <label>تاریخ خطا</label>
+          <span class="detail-value">{{ formatDateTime(selectedPayment()!.failedAt) }}</span>
+        </div>
+        <div class="detail-field">
+          <label>دلیل خطا</label>
+          <span class="detail-value">{{ selectedPayment()!.failureReason || '-' }}</span>
+        </div>
+        <div class="detail-field">
+          <label>شناسه آگهی مرتبط</label>
+          <span class="detail-value">{{ selectedPayment()!.relatedJobPostingId || '-' }}</span>
+        </div>
+        <div class="detail-field">
+          <label>آدرس بازگشت</label>
+          <span class="detail-value">{{ selectedPayment()!.callbackUrl || '-' }}</span>
+        </div>
+      </div>
+    }
+
+    <div class="payments__loading" *ngIf="isLoading()">
+      <div class="spinner"></div>
+      <p>در حال بارگذاری...</p>
+    </div>
+  </div>
+</div>

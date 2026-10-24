@@ -32,6 +32,10 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpClient<IZarinPalClient, ZarinPalClient>();
         services.AddScoped<IPaymentService, PaymentService>();
+
+        // Settings: currently single-instance friendly in-memory locking.
+        services.AddSingleton<ILockService, MemoryLockService>();
+        services.AddScoped<ISettingsService, SettingsService>();
         return services;
     }
 }

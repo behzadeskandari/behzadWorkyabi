@@ -25,4 +25,27 @@ public interface IPaymentService
     Task<PaymentResponse?> GetForEmployerAsync(Guid paymentId, Guid employerProfileId, CancellationToken cancellationToken);
 
     Task<bool> HasCompletedPaymentForJobAsync(Guid jobPostingId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Super Admin: returns a paginated, filterable list of all payments.
+    /// </summary>
+    Task<(IReadOnlyList<PaymentListResponse> Items, int TotalCount)> GetAllPaymentsAsync(
+        int page,
+        int pageSize,
+        string? search,
+        string? status,
+        string? paymentMethod,
+        DateTimeOffset? fromDate,
+        DateTimeOffset? toDate,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Super Admin: returns payment summary statistics.
+    /// </summary>
+    Task<PaymentSummaryResponse> GetPaymentSummaryAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Super Admin: returns full detail for a single payment by ID.
+    /// </summary>
+    Task<PaymentDetailResponse?> GetPaymentDetailAsync(Guid paymentId, CancellationToken cancellationToken);
 }

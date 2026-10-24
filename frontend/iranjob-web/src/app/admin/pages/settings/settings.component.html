@@ -1,0 +1,156 @@
+<div class="settings-page">
+  <div class="settings__header">
+    <h1>تنظیمات سامانه</h1>
+    <p class="settings__subtitle">
+      مدیریت تنظیمات غیرم أجرای runtime از طریق پنل مدیر ارشد
+    </p>
+  </div>
+
+  @if (error()) {
+    <div class="error-state" role="alert">
+      <p>{{ error() }}</p>
+      <button type="button" (click)="loadSettings()" class="btn btn--secondary">
+        تلاش مجدد
+      </button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="settings__loading">
+      <div class="spinner"></div>
+      <p>در حال بارگذاری تنظیمات...</p>
+    </div>
+  }
+
+  @if (settings() && !isLoading()) {
+    <div class="save-notice" *ngIf="saveStatus().status !== 'idle' && saveStatus().message" [class]="'save-notice--' + saveStatus().status">
+      {{ saveStatus().message }}
+    </div>
+
+    <div class="settings-grid">
+      <!-- Payment Fee Section -->
+      <section class="settings-card">
+        <div class="settings-card__header">
+          <h2>{{ settings()!.paymentFee.label }}</h2>
+          <span class="settings-card__source">{{ settings()!.paymentFee.source }}</span>
+        </div>
+        <p class="settings-card__description">{{ settings()!.paymentFee.description }}</p>
+        <div class="settings-card__content">
+          <div class="setting-field">
+            <label>مبلغ payment fee</label>
+            <span class="setting-value">{{ getSectionValue(settings()!.paymentFee) }}</span>
+            @if (editState().paymentFee && !isReadOnly(settings()!.paymentFee)) {
+              <input
+                type="number"
+                class="input"
+                [(ngModel)]="workingPaymentFee.amount"
+                placeholder="مبلغ (ریال)"
+              />
+              <input
+                type="text"
+                class="input"
+                [(ngModel)]="workingPaymentFee.currency"
+                placeholder="واحد پولی"
+              />
+            }
+          </div>
+          <div class="setting-field">
+            <label>واحد پولی</label>
+            <span class="setting-value">{{ getPaymentFeeCurrency() }}</span>
+          </div>
+        </div>
+        <div class="settings-card__actions">
+          @if (editState().paymentFee && !isReadOnly(settings()!.paymentFee)) {
+            <button type="button" class="btn btn--secondary" (click)="cancelEdit('paymentFee')">لغو</button>
+            <button type="button" class="btn" (click)="savePaymentFee()" [disabled]="saveStatus().status === 'saving'">
+              ذخیره
+            </button>
+          } @else {
+            <button type="button" class="btn btn--action" (click)="toggleEdit('paymentFee')" [disabled]="isReadOnly(settings()!.paymentFee)">
+              {{ isReadOnly(settings()!.paymentFee) ? 'فقط خواندنی' : 'ویرایش' }}
+            </button>
+          }
+        </div>
+      </section>
+
+      <!-- Email Notifications Section -->
+      <section class="settings-card">
+        <div class="settings-card__header">
+          <h2>{{ settings()!.emailNotifications.label }}</h2>
+          <span class="settings-card__source">{{ settings()!.emailNotifications.source }}</span>
+        </div>
+        <p class="settings-card__description">{{ settings()!.emailNotifications.description }}</p>
+        <div class="settings-card__content">
+          <div class="setting-field">
+            <label>فعال بودن اعلان‌های ایمیل</label>
+            <span class="setting-value">{{ getEmailNotificationsEnabled() }}</span>
+          </div>
+          <div class="setting-field">
+            <label>آدرس فرستنده</label>
+            <span class="setting-value">{{ getEmailFromAddress() }}</span>
+          </div>
+        </div>
+        <div class="settings-card__actions">
+          @if (editState().emailNotifications) {
+            <button type="button" class="btn btn--secondary" (click)="cancelEdit('emailNotifications')">لغو</button>
+            <button type="button" class="btn" (click)="saveEmailNotifications()" [disabled]="saveStatus().status === 'saving'">
+              ذخیره
+            </button>
+          } @else {
+            <button type="button" class="btn btn--action" (click)="toggleEdit('emailNotifications')">ویرایش</button>
+          }
+        </div>
+      </section>
+
+      <!-- App Info Section -->
+      <section class="settings-card">
+        <div class="settings-card__header">
+          <h2>{{ settings()!.appInfo.label }}</h2>
+          <span class="settings-card__source">{{ settings()!.appInfo.source }}</span>
+        </div>
+        <p class="settings-card__description">{{ settings()!.appInfo.description }}</p>
+        <div class="settings-card__content">
+          <div class="setting-field">
+            <label>نام برنامه</label>
+            <span class="setting-value">{{ getAppName() }}</span>
+          </div>
+          <div class="setting-field">
+            <label>نسخه برنامه</label>
+            <span class="setting-value">{{ getAppVersion() }}</span>
+          </div>
+        </div>
+        <div class="settings-card__actions">
+          @if (editState().appInfo) {
+            <button type="button" class="btn btn--secondary" (click)="cancelEdit('appInfo')">لغو</button>
+            <button type="button" class="btn" (click)="saveAppInfo()" [disabled]="saveStatus().status === 'saving'">
+              ذخیره
+            </button>
+          } @else {
+            <button type="button" class="btn btn--action" (click)="toggleEdit('appInfo')">ویرایش</button>
+          }
+        </div>
+      </section>
+
+      <!-- Raw Settings Section -->
+      <section class="settings-card settings-card--raw">
+        <div class="settings-card__header">
+          <h2>تنظیمات خام</h2>
+          <span class="settings-card__source">پایگاه داده</span>
+        </div>
+        <div class="settings-card__content settings-card__raw-content">
+          <table class="raw-table">
+            <thead>
+              <tr><th>کلید</th><th>مقدار</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let entry of settings()!.all | keyvalue">
+                <td>{{ entry.key }}</td>
+                <td class="raw-value">{{ entry.value }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  }
+</div>

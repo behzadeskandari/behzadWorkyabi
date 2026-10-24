@@ -42,4 +42,24 @@ export const adminRoutes: Routes = [
         (m) => m.JobModerationComponent
       ),
   },
+  {
+    path: 'payments',
+    title: 'مدیریت پرداخت‌ها',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['SuperAdmin'] },
+    loadComponent: () =>
+      import('./pages/payments/payments.component').then(
+        (m) => m.PaymentsComponent
+      ),
+  },
+  {
+    path: 'settings',
+    title: 'تنظیمات سامانه',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['SuperAdmin'] },
+    loadComponent: () =>
+      import('./pages/settings/settings.component').then(
+        (m) => m.SettingsComponent
+      ),
+  },
 ];

@@ -38,17 +38,13 @@ export class AdminSidebarComponent {
   readonly superAdminNavItems: AdminNavItem[] = [
     {
       label: 'مدیریت پرداخت‌ها',
-      path: '/super-admin/payments',
+      path: '/admin/payments',
       icon: '💰',
-      comingSoon: true,
-      phase: 17,
     },
     {
       label: 'تنظیمات سامانه',
-      path: '/super-admin/settings',
+      path: '/admin/settings',
       icon: '⚙️',
-      comingSoon: true,
-      phase: 18,
     },
   ];
 

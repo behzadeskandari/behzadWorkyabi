@@ -169,6 +169,114 @@ public sealed class PaymentService(
     public Task<bool> HasCompletedPaymentForJobAsync(Guid jobPostingId, CancellationToken cancellationToken) =>
         dbContext.Payments.AnyAsync(payment => payment.RelatedJobPostingId == jobPostingId && payment.Status == PaymentStatus.Paid, cancellationToken);
 
+    public async Task<(IReadOnlyList<PaymentListResponse> Items, int TotalCount)> GetAllPaymentsAsync(
+        int page,
+        int pageSize,
+        string? search,
+        string? status,
+        string? paymentMethod,
+        DateTimeOffset? fromDate,
+        DateTimeOffset? toDate,
+        CancellationToken cancellationToken)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+        var query = dbContext.Payments.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim();
+            query = query.Where(p =>
+                p.Id.ToString().Contains(searchTerm) ||
+                (p.Description != null && p.Description.Contains(searchTerm)) ||
+                (p.Authority != null && p.Authority.Contains(searchTerm)) ||
+                p.EmployerProfileId.ToString().Contains(searchTerm));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(p => p.Status.ToString() == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(paymentMethod))
+        {
+            query = query.Where(p => p.PaymentMethod.ToString() == paymentMethod);
+        }
+
+        if (fromDate.HasValue)
+        {
+            query = query.Where(p => p.CreatedAt >= fromDate.Value);
+        }
+
+        if (toDate.HasValue)
+        {
+            query = query.Where(p => p.CreatedAt <= toDate.Value);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new PaymentListResponse(
+                p.Id,
+                p.Amount,
+                p.Currency.ToString(),
+                p.Status.ToString(),
+                p.PaymentMethod.ToString(),
+                p.Authority,
+                p.CreatedAt,
+                p.PaidAt,
+                p.FailedAt,
+                p.FailureReason,
+                p.RelatedJobPostingId,
+                p.EmployerProfileId))
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<PaymentSummaryResponse> GetPaymentSummaryAsync(CancellationToken cancellationToken)
+    {
+        var payments = await dbContext.Payments.AsNoTracking().ToListAsync(cancellationToken);
+
+        return new PaymentSummaryResponse(
+            Total: payments.Count,
+            Successful: payments.Count(p => p.Status == PaymentStatus.Paid),
+            Pending: payments.Count(p => p.Status == PaymentStatus.Pending),
+            Failed: payments.Count(p => p.Status == PaymentStatus.Failed),
+            TotalAmount: payments.Sum(p => p.Amount),
+            SuccessfulAmount: payments.Where(p => p.Status == PaymentStatus.Paid).Sum(p => p.Amount));
+    }
+
+    public async Task<PaymentDetailResponse?> GetPaymentDetailAsync(Guid paymentId, CancellationToken cancellationToken)
+    {
+        var payment = await dbContext.Payments
+            .AsNoTracking()
+            .SingleOrDefaultAsync(p => p.Id == paymentId, cancellationToken);
+        if (payment is null)
+            return null;
+
+        return new PaymentDetailResponse(
+            payment.Id,
+            payment.Amount,
+            payment.Currency.ToString(),
+            payment.Status.ToString(),
+            payment.PaymentMethod.ToString(),
+            payment.Authority,
+            payment.Description,
+            payment.CallbackUrl,
+            payment.RelatedJobPostingId,
+            payment.EmployerProfileId,
+            payment.CreatedAt,
+            payment.PaidAt,
+            payment.FailedAt,
+            payment.FailureReason,
+            payment.PublicationStatus.ToString());
+    }
+
     private static Currency ParseCurrency(string value) => Enum.TryParse<Currency>(value, ignoreCase: true, out var c)
         ? c : throw new DomainException($"Unsupported payment currency '{value}'.");
 

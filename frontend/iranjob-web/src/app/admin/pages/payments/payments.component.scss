@@ -1,0 +1,361 @@
+.payments-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.payments__header {
+  margin-bottom: 1.5rem;
+}
+
+.payments__header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: #0f172a;
+}
+
+.payments__subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.error-state {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-state button {
+  margin-left: auto;
+}
+
+/* Summary Cards */
+.payments__summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.summary-card__label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.summary-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.summary-card--success .summary-card__value { color: #15803d; }
+.summary-card--warning .summary-card__value { color: #d97706; }
+.summary-card--danger .summary-card__value { color: #dc2626; }
+.summary-card--info .summary-card__value { color: #1e40af; }
+
+/* Filters */
+.payments__filters {
+  margin-bottom: 1.5rem;
+}
+
+.filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  min-width: 120px;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  ring: 1px solid #38bdf8;
+}
+
+/* Table */
+.payments__table-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.payments-table th,
+.payments-table td {
+  padding: 0.875rem 1rem;
+  text-align: right;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.payments-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.payments-table tr:last-child td {
+  border-bottom: none;
+}
+
+.payments-table__id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.payments-table__amount {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.payments-table__actions {
+  text-align: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.btn--page {
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd5e1;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.btn--page:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #38bdf8;
+}
+
+.btn--action {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #e2e8f0;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.btn--action:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #38bdf8;
+}
+
+.btn--action--view {
+  color: #1e40af;
+}
+
+.btn--back {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.btn--back:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge--success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge--warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.badge--danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Pagination */
+.payments__pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.payments__count {
+  font-weight: 500;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-controls__current {
+  padding: 0 0.5rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Empty state */
+.payments__empty {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+/* Detail View */
+.payments__detail {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.payments__detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.payments__detail-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.btn--back {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.btn--back:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.payments__detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detail-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: #0f172a;
+  word-break: break-all;
+}
+
+/* Loading */
+.payments__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.BuildingBlocks.Infrastructure\IranJob.BuildingBlocks.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\IranJob.SharedKernel\IranJob.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Identity\IranJob.Modules.Identity.Domain\IranJob.Modules.Identity.Domain.csproj" />
     <ProjectReference Include="..\IranJob.Modules.Notifications.Application\IranJob.Modules.Notifications.Application.csproj" />
     <ProjectReference Include="..\IranJob.Modules.Notifications.Infrastructure\IranJob.Modules.Notifications.Infrastructure.csproj" />
   </ItemGroup>

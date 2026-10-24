@@ -199,8 +199,8 @@ export class EmployerProfileComponent implements OnInit {
     return this.validationErrors[controlName] ?? [];
   }
 
-  formatDate(value: string): string {
-    return this.jalaliDate.formatDisplay(value);
+  formatDate(value: string | null | undefined): string {
+    return this.jalaliDate.formatDisplay(value as string);
   }
 
   industryLabel(value: string): string {

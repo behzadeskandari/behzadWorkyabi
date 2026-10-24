@@ -103,6 +103,36 @@ namespace IranJob.Modules.Payments.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Payments", "payments");
                 });
+
+            modelBuilder.Entity("IranJob.Modules.Payments.Domain.Settings.Settings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Settings", "payments");
+                });
 #pragma warning restore 612, 618
         }
     }

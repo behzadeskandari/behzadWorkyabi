@@ -151,7 +151,7 @@ await app.ApplyMessagesMigrationsAsync();
 // Development-only seed for local developer UX (never runs in Production)
 if (app.Environment.IsDevelopment())
 {
-    await DevSeedData.SeedAsync(app.Services, app.Environment, app.Services.GetRequiredService<ILogger<Program>>());
+   // await DevSeedData.SeedAsync(app.Services, app.Environment, app.Services.GetRequiredService<ILogger<Program>>());
 }
 
 

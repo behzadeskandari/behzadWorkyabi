@@ -8,7 +8,7 @@ public sealed class JwtOptions
 
     public string Audience { get; set; } = "IranJob.Client";
 
-    public string SecretKey { get; set; } = string.Empty;
+    public string SecretKey { get; set; } = "asdaskpwqruiapmczxwqeriotprtogcjvshdfbcxvclkoertwerpsplvxcknvjbnsvhoweofd";
 
     public int AccessTokenExpirationMinutes { get; set; } = 15;
 }

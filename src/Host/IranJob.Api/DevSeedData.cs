@@ -25,33 +25,33 @@ public static class DevSeedData
     public const string DevPassword = "DevPass!123";
 
     private static readonly Guid DevCandidate1UserId = new("11111111-1111-1111-1111-111111111111");
-    private static readonly Guid DevEmployer1UserId  = new("33333333-3333-3333-3333-333333333333");
+    private static readonly Guid DevEmployer1UserId = new("33333333-3333-3333-3333-333333333333");
     private static readonly Guid DevCandidate2UserId = new("22222222-2222-2222-2222-222222222222");
-    private static readonly Guid DevEmployer2UserId  = new("44444444-4444-4444-4444-444444444444");
+    private static readonly Guid DevEmployer2UserId = new("44444444-4444-4444-4444-444444444444");
 
     // Reference-data GUIDs seeded by migration 20261007 (Iran locations)
-    private static readonly Guid TehranCityId  = new("C0A80100-0003-0001-0000-000000000001");
+    private static readonly Guid TehranCityId = new("C0A80100-0003-0001-0000-000000000001");
     private static readonly Guid IsfahanCityId = new("C0A80100-0003-0004-0000-000000000401");
     private static readonly Guid MashhadCityId = new("C0A80100-0003-0005-0000-000000000501");
-    private static readonly Guid ShirazCityId  = new("C0A80100-0003-0006-0000-000000000001");
+    private static readonly Guid ShirazCityId = new("C0A80100-0003-0006-0000-000000000001");
 
     // Stable GUIDs for categories and skills created by this seed
-    private static readonly Guid CategoryItId     = new("A1000000-0001-0001-0001-000000000001");
+    private static readonly Guid CategoryItId = new("A1000000-0001-0001-0001-000000000001");
     private static readonly Guid CategoryDesignId = new("A1000000-0001-0001-0001-000000000002");
 
-    private static readonly Guid SkillCSharpId   = new("A2000000-0001-0001-0001-000000000001");
-    private static readonly Guid SkillJsId       = new("A2000000-0001-0001-0001-000000000002");
-    private static readonly Guid SkillAngularId  = new("A2000000-0001-0001-0001-000000000003");
-    private static readonly Guid SkillReactId    = new("A2000000-0001-0001-0001-000000000004");
-    private static readonly Guid SkillPythonId   = new("A2000000-0001-0001-0001-000000000005");
-    private static readonly Guid SkillSqlId      = new("A2000000-0001-0001-0001-000000000006");
-    private static readonly Guid SkillDockerId   = new("A2000000-0001-0001-0001-000000000007");
-    private static readonly Guid SkillAwsId      = new("A2000000-0001-0001-0001-000000000008");
-    private static readonly Guid SkillFigmaId    = new("A2000000-0001-0001-0001-000000000009");
-    private static readonly Guid SkillUxId       = new("A2000000-0001-0001-0001-000000000010");
+    private static readonly Guid SkillCSharpId = new("A2000000-0001-0001-0001-000000000001");
+    private static readonly Guid SkillJsId = new("A2000000-0001-0001-0001-000000000002");
+    private static readonly Guid SkillAngularId = new("A2000000-0001-0001-0001-000000000003");
+    private static readonly Guid SkillReactId = new("A2000000-0001-0001-0001-000000000004");
+    private static readonly Guid SkillPythonId = new("A2000000-0001-0001-0001-000000000005");
+    private static readonly Guid SkillSqlId = new("A2000000-0001-0001-0001-000000000006");
+    private static readonly Guid SkillDockerId = new("A2000000-0001-0001-0001-000000000007");
+    private static readonly Guid SkillAwsId = new("A2000000-0001-0001-0001-000000000008");
+    private static readonly Guid SkillFigmaId = new("A2000000-0001-0001-0001-000000000009");
+    private static readonly Guid SkillUxId = new("A2000000-0001-0001-0001-000000000010");
 
-    private static readonly Guid Employer1ProfileId  = new("E1000000-0001-0001-0001-000000000001");
-    private static readonly Guid Employer2ProfileId  = new("E1000000-0002-0001-0001-000000000001");
+    private static readonly Guid Employer1ProfileId = new("E1000000-0001-0001-0001-000000000001");
+    private static readonly Guid Employer2ProfileId = new("E1000000-0002-0001-0001-000000000001");
     private static readonly Guid Candidate1ProfileId = new("E2000000-0001-0001-0001-000000000001");
     private static readonly Guid Candidate2ProfileId = new("E2000000-0002-0001-0001-000000000001");
 
@@ -101,8 +101,8 @@ public static class DevSeedData
 
         await using var scope = services.CreateAsyncScope();
 
-        var userManager  = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager  = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
         var refDbContext = scope.ServiceProvider.GetRequiredService<ReferenceDataDbContext>();
         var empDbContext = scope.ServiceProvider.GetRequiredService<EmployerDbContext>();
         var canDbContext = scope.ServiceProvider.GetRequiredService<CandidateDbContext>();
@@ -110,19 +110,19 @@ public static class DevSeedData
 
         await SeedRolesAsync(roleManager, logger);
 
-        await SeedUserAsync(userManager, DevCandidate1UserId, "candidate1@test.ir", "رامین",  "احمدی",  IdentityRoles.Candidate, logger);
-        await SeedUserAsync(userManager, DevEmployer1UserId,  "employer1@test.ir",  "سیاوش", "مظاهری", IdentityRoles.Employer, logger);
-        await SeedUserAsync(userManager, DevCandidate2UserId, "candidate2@test.ir", "لیلا",   "حسینی",  IdentityRoles.Candidate, logger);
-        await SeedUserAsync(userManager, DevEmployer2UserId,  "employer2@test.ir",  "نگار",   "کریمی",  IdentityRoles.Employer, logger);
+        await SeedUserAsync(userManager, DevCandidate1UserId, "candidate1@test.ir", "رامین", "احمدی", IdentityRoles.Candidate, logger);
+        await SeedUserAsync(userManager, DevEmployer1UserId, "employer1@test.ir", "سیاوش", "مظاهری", IdentityRoles.Employer, logger);
+        await SeedUserAsync(userManager, DevCandidate2UserId, "candidate2@test.ir", "لیلا", "حسینی", IdentityRoles.Candidate, logger);
+        await SeedUserAsync(userManager, DevEmployer2UserId, "employer2@test.ir", "نگار", "کریمی", IdentityRoles.Employer, logger);
 
         await SeedReferenceDataAsync(refDbContext, logger);
 
-        await SeedEmployerProfileAsync(empDbContext, Employer1ProfileId,  DevEmployer1UserId, "تک‌نوا سولوشن‌ها",  "تهران", logger);
-        await SeedEmployerProfileAsync(empDbContext, Employer2ProfileId,  DevEmployer2UserId, "دیتا‌فلو سیستمز",  "اصفهان", logger);
+        await SeedEmployerProfileAsync(empDbContext, Employer1ProfileId, DevEmployer1UserId, "تک‌نوا سولوشن‌ها", "تهران", logger);
+        await SeedEmployerProfileAsync(empDbContext, Employer2ProfileId, DevEmployer2UserId, "دیتا‌فلو سیستمز", "اصفهان", logger);
         await empDbContext.SaveChangesAsync();
 
         await SeedCandidateProfileAsync(canDbContext, Candidate1ProfileId, DevCandidate1UserId, "مهندس نرم‌افزار ارشد", logger);
-        await SeedCandidateProfileAsync(canDbContext, Candidate2ProfileId, DevCandidate2UserId, "طراح رابط کاربری",  logger);
+        await SeedCandidateProfileAsync(canDbContext, Candidate2ProfileId, DevCandidate2UserId, "طراح رابط کاربری", logger);
         await canDbContext.SaveChangesAsync();
 
         await SeedJobPostingsAsync(jobDbContext, logger);
@@ -131,7 +131,38 @@ public static class DevSeedData
         logger.LogInformation("Development seed data initialised successfully.");
     }
 
-   
+    private static async Task SeedEmployerProfileAsync(
+       EmployerDbContext db,
+       Guid profileId,
+       Guid userId,
+       string companyName,
+       string industry,
+       ILogger logger)
+    {
+        await db.Database.ExecuteSqlRawAsync(
+            """
+        INSERT INTO employers.EmployerProfiles
+            (Id, UserId, CompanyName, Industry, Province, City, CompanySize, CreatedAt, UpdatedAt)
+        VALUES
+            (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8)
+        """,
+            profileId,
+            userId,
+            companyName,
+            industry,
+            "تهران",
+            "تهران",
+            "11-50",          // ← example value for CompanySize (adjust to a valid value in your system)
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow);
+
+        logger.LogInformation(
+            "Created dev employer profile: {CompanyName} for user {UserId}",
+            companyName,
+            userId);
+    }
+
+
 
     // ─── Roles ───
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager, ILogger logger)
@@ -159,7 +190,8 @@ public static class DevSeedData
                 await userManager.AddToRoleAsync(user, role);
             return;
         }
-
+        var random = new Random();
+        string phoneNumber = $"+98912{random.Next(0, 100_000_000):D8}";
         user = new ApplicationUser
         {
             Id = userId,
@@ -170,7 +202,7 @@ public static class DevSeedData
             EmailConfirmed = true,
             FirstName = firstName,
             LastName = lastName,
-            PhoneNumber = "+989120000000",
+            PhoneNumber = phoneNumber,
             SecurityStamp = Guid.NewGuid().ToString("N"),
             ConcurrencyStamp = Guid.NewGuid().ToString("N"),
         };
@@ -182,47 +214,75 @@ public static class DevSeedData
 
     // ─── Reference data (categories + skills) ───
 
-    private static async Task SeedReferenceDataAsync(ReferenceDataDbContext db, ILogger logger)
+    private static async Task SeedReferenceDataAsync(
+  ReferenceDataDbContext db,
+  ILogger logger)
     {
-        if (!await db.JobCategories.AnyAsync(c => c.Id == CategoryItId))
-            db.JobCategories.Add(JobCategory.Create("فناوری اطلاعات", "دسته‌بندی شغل‌های فناوری اطلاعات"));
-
-        if (!await db.JobCategories.AnyAsync(c => c.Id == CategoryDesignId))
-            db.JobCategories.Add(JobCategory.Create("طراحی و تجربه کاربری", "دسته‌بندی شغل‌های طراحی"));
-
-        var skills = new (Guid id, string name)[]
+        var categories = new[]
         {
-            (SkillCSharpId,  "C#"),          (SkillJsId,      "JavaScript"),
-            (SkillAngularId, "Angular"),      (SkillReactId,   "React"),
-            (SkillPythonId,  "Python"),       (SkillSqlId,     "SQL"),
-            (SkillDockerId,  "Docker"),       (SkillAwsId,     "AWS"),
-            (SkillFigmaId,   "Figma"),        (SkillUxId,      "UX Design"),
+(
+Id: CategoryItId,
+Name: "فناوری اطلاعات",
+Description: "دسته‌بندی شغل‌های فناوری اطلاعات"
+),
+(
+Id: CategoryDesignId,
+Name: "طراحی و تجربه کاربری",
+Description: "دسته‌بندی شغل‌های طراحی"
+)
+};
+
+        foreach (var category in categories)
+        {
+            var exists = await db.JobCategories.AnyAsync(c =>
+                c.Id == category.Id ||
+                c.NormalizedName == category.Name);
+
+            if (!exists)
+            {
+                db.JobCategories.Add(
+                    JobCategory.Create(category.Name, category.Description));
+            }
+        }
+
+        await db.SaveChangesAsync();
+
+        var skills = new (Guid Id, string Name)[]
+        {
+                (SkillCSharpId,  "C#"),
+                (SkillJsId,      "JavaScript"),
+                (SkillAngularId, "Angular"),
+                (SkillReactId,   "React"),
+                (SkillPythonId,  "Python"),
+                (SkillSqlId,     "SQL"),
+                (SkillDockerId,  "Docker"),
+                (SkillAwsId,     "AWS"),
+                (SkillFigmaId,   "Figma"),
+                (SkillUxId,      "UX Design")
         };
 
         foreach (var (id, name) in skills)
-            if (!await db.Skills.AnyAsync(s => s.Id == id))
+        {
+            var exists = await db.Skills.AnyAsync(s =>
+                s.Id == id ||
+                s.NormalizedName == name);
+
+            if (!exists)
+            {
                 db.Skills.Add(Skill.Create(name, null));
+            }
+        }
 
         await db.SaveChangesAsync();
-        logger.LogInformation("Seeded reference data: 2 categories + 10 skills.");
+
+        logger.LogInformation(
+            "Reference data seeding completed. Ensured 2 categories and 10 skills exist.");
+
     }
 
     // ─── Employer profiles ───
 
-    private static async Task SeedEmployerProfileAsync(
-        EmployerDbContext db, Guid profileId, Guid userId, string companyName, string industry, ILogger logger)
-    {
-        // Insert directly via SQL to avoid EF entity/constructor constraints on the
-        // persisted EmployerProfile type (read-only properties, no parameterless ctor).
-        await db.Database.ExecuteSqlRawAsync(
-            """
-            INSERT INTO employers.EmployerProfiles (Id, UserId, CompanyName, Industry, JobTitle, Biography, Province, City, LinkedInUrl, PortfolioUrl, CompanyDescription, WebsiteUrl, LogoUrl, CreatedAt, UpdatedAt)
-            VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14)
-            """,
-            profileId, userId, companyName, industry, "Use", null, "تهران", "تهران", null, null, null, null, null,
-            DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
-        logger.LogInformation("Created dev employer profile: {CompanyName} for user {UserId}", companyName, userId);
-    }
+
 
     // ─── Candidate profiles ───
 

@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using IranJob.BuildingBlocks.Infrastructure.CurrentService;
+using IranJob.Modules.Identity.Domain.Constants;
 using IranJob.Modules.Notifications.Application.Abstractions;
 using IranJob.Modules.Notifications.Application.Contracts;
 using IranJob.SharedKernel.Exceptions;
@@ -17,7 +18,8 @@ namespace IranJob.Modules.Notifications.Presentation.Controllers;
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/notifications")]
-[Authorize]
+[Authorize(Roles = IdentityRoles.Candidate + "," + IdentityRoles.Employer + "," + IdentityRoles.Recruiter + "," + IdentityRoles.Admin + "," + IdentityRoles.SuperAdmin)]
+
 public sealed class NotificationsController(
     INotificationService notificationService,
     ICurrentUserService currentUser) : ControllerBase
