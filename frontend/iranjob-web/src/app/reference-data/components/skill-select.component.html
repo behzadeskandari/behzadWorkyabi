@@ -1,11 +1,75 @@
-<label class="select-field">
-  <span>{{ label }}</span>
-  <select multiple [disabled]="isLoading || !!errorMessage" (change)="onSelectionChange($event)">
-    <option *ngFor="let skill of skills" [value]="skill.id" [selected]="valueIds.includes(skill.id)">{{ skill.name }}</option>
-  </select>
-</label>
-<p *ngIf="isLoading" role="status">در حال بارگذاری...</p>
-<div *ngIf="errorMessage" role="alert" class="load-error">
-  <span>{{ errorMessage }}</span>
-  <button type="button" class="retry-button" (click)="loadSkills()">دوباره تلاش کن</button>
+<div class="skill-select" dir="rtl">
+  <div class="skill-select__header">
+    <label class="skill-select__label">{{ label }}</label>
+    <span class="skill-select__count" aria-live="polite">
+      {{ valueIds.length }} انتخاب‌شده
+    </span>
+  </div>
+
+  <!-- تگ‌های انتخاب‌شده -->
+  <div *ngIf="valueIds.length" class="skill-select__chips">
+    <button
+      *ngFor="let skill of selectedSkills"
+      type="button"
+      class="skill-chip"
+      (click)="removeSkill(skill.id)"
+      [attr.aria-label]="'حذف ' + skill.name"
+    >
+      {{ skill.name }}
+      <span aria-hidden="true">×</span>
+    </button>
+    <button type="button" class="skill-select__clear" (click)="clearAll()">
+      پاک کردن همه
+    </button>
+  </div>
+
+  <!-- جست‌وجو -->
+  <div class="skill-select__search">
+    <input
+      type="search"
+      class="skill-select__search-input"
+      placeholder="جست‌وجوی مهارت…"
+      [value]="searchTerm"
+      (input)="onSearch($event)"
+      [disabled]="isLoading || !!errorMessage"
+      aria-label="جست‌وجوی مهارت"
+    />
+  </div>
+
+  <!-- لیست چک‌باکس -->
+  <div
+    class="skill-select__list"
+    role="group"
+    [attr.aria-label]="label"
+    [attr.aria-busy]="isLoading"
+  >
+    <p *ngIf="isLoading" class="skill-select__hint" role="status">
+      در حال بارگذاری مهارت‌ها…
+    </p>
+
+    <div *ngIf="errorMessage" class="skill-select__error" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="skill-select__retry" (click)="loadSkills()">
+        تلاش دوباره
+      </button>
+    </div>
+
+    <ng-container *ngIf="!isLoading && !errorMessage">
+      <label *ngFor="let skill of visibleSkills" class="skill-option">
+        <input
+          type="checkbox"
+          [checked]="isSelected(skill.id)"
+          (change)="toggleSkill(skill.id, $event)"
+        />
+        <span>{{ skill.name }}</span>
+      </label>
+
+      <p *ngIf="visibleSkills.length === 0" class="skill-select__hint">
+        مهارتی یافت نشد.
+        <button *ngIf="searchTerm" type="button" class="skill-select__retry" (click)="clearSearch()">
+          پاک کردن جست‌وجو
+        </button>
+      </p>
+    </ng-container>
+  </div>
 </div>

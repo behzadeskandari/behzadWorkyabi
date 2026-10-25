@@ -14,7 +14,7 @@ import { JobPostingService } from '../../services/job-posting.service';
 @Component({
   selector: 'app-employer-job-form',
   standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, RouterLink, JobCategorySelectComponent, SkillSelectComponent, LocationSelectComponent, JalaliDatepickerComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, JobCategorySelectComponent, SkillSelectComponent, LocationSelectComponent, JalaliDatepickerComponent],
   templateUrl: './job-form.component.html',
   styleUrl: './job-form.component.scss'
 })
@@ -22,8 +22,8 @@ export class EmployerJobFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-    private readonly jobService = inject(JobPostingService);
-  private readonly jalaliDate = inject(JalaliDateService);
+  private readonly jobService = inject(JobPostingService);
+  public readonly jalaliDate = inject(JalaliDateService);
 
   readonly currencyOptions: Array<{ value: string; label: string }> = [
     { value: 'IRR', label: 'تومان (IRR)' },
@@ -42,10 +42,10 @@ export class EmployerJobFormComponent implements OnInit {
     cityId: this.fb.control<string | null>(null),
     salaryMinimum: this.fb.control<number | null>(null),
     salaryMaximum: this.fb.control<number | null>(null),
-        salaryCurrency: this.fb.nonNullable.control('IRR'),
+    salaryCurrency: this.fb.nonNullable.control('IRR'),
     salaryPeriod: this.fb.nonNullable.control<SalaryPeriod | ''>(''),
-        closingAt: this.fb.control<string | null>(null)
-  }, { validators: salaryRangeValidator() });
+    closingAt: this.fb.control<string | null>(null)
+  }, { validators: salaryRangeValidator(this.jalaliDate) });
 
   readonly employmentTypes: Array<{ value: EmploymentType; label: string }> = [
     { value: 'FullTime', label: 'تمام‌وقت' },
@@ -173,7 +173,7 @@ export class EmployerJobFormComponent implements OnInit {
       salaryMaximum: value.salaryMaximum,
       salaryCurrency: value.salaryMinimum !== null || value.salaryMaximum !== null ? value.salaryCurrency.trim() : null,
       salaryPeriod: value.salaryMinimum !== null || value.salaryMaximum !== null ? value.salaryPeriod || null : null,
-            closingAt: value.closingAt ? this.jalaliDate.parseJalaliDate(value.closingAt)?.toISOString() ?? null : null
+      closingAt: value.closingAt ? this.jalaliDate.parseJalaliDate(value.closingAt)?.toISOString() ?? null : null
     };
   }
 
@@ -191,7 +191,7 @@ export class EmployerJobFormComponent implements OnInit {
       salaryMaximum: job.salaryMaximum,
       salaryCurrency: job.salaryCurrency ?? '',
       salaryPeriod: job.salaryPeriod ?? '',
-            closingAt: job.closingAt ? this.jalaliDate.toJalaliString(job.closingAt) : ''
+      closingAt: job.closingAt ? this.jalaliDate.toJalaliString(job.closingAt) : ''
     });
   }
 
@@ -212,14 +212,14 @@ export class EmployerJobFormComponent implements OnInit {
   }
 }
 
-function salaryRangeValidator(): ValidatorFn {
+function salaryRangeValidator(jalaliDate: JalaliDateService): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const minimum = control.get('salaryMinimum')?.value as number | null;
     const maximum = control.get('salaryMaximum')?.value as number | null;
-        const currency = (control.get('salaryCurrency')?.value as string).trim();
+    const currency = ((control.get('salaryCurrency')?.value as string) ?? '').trim();
     const period = control.get('salaryPeriod')?.value as string;
     const cityId = control.get('cityId')?.value as string | null;
-        const closingAt = control.get('closingAt')?.value as string | null;
+    const closingAt = control.get('closingAt')?.value as string | null;
     const errors: ValidationErrors = {};
 
     if (!cityId) errors['missingCity'] = true;
@@ -234,11 +234,18 @@ function salaryRangeValidator(): ValidatorFn {
     }
 
     if (closingAt) {
-      const closingTimestamp = new Date(`${closingAt}T23:59:59`).getTime();
-      if (!Number.isFinite(closingTimestamp) || closingTimestamp <= Date.now()) errors['invalidClosingDate'] = true;
+      const closingDate = jalaliDate.parseJalaliDate(closingAt);  // ✅ بدون this
+      if (!closingDate) {
+        errors['invalidClosingDate'] = true;
+      } else {
+        closingDate.setHours(23, 59, 59, 999);
+        const closingTimestamp = closingDate.getTime();
+        if (!Number.isFinite(closingTimestamp) || closingTimestamp <= Date.now()) {
+          errors['invalidClosingDate'] = true;
+        }
+      }
     }
 
     return Object.keys(errors).length ? errors : null;
   };
 }
-

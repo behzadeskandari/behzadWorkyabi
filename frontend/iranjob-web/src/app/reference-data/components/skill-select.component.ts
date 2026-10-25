@@ -8,14 +8,17 @@ import { SkillService } from '../services/skill.service';
   selector: 'app-skill-select',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './skill-select.component.html'
+  templateUrl: './skill-select.component.html',
+  styleUrl: './skill-select.component.scss'
 })
 export class SkillSelectComponent implements OnInit {
   @Input() valueIds: string[] = [];
-  @Input() label = 'Skills';
+  @Input() label = 'مهارت‌ها';
   @Output() readonly valueIdsChange = new EventEmitter<string[]>();
 
   skills: Skill[] = [];
+  visibleSkills: Skill[] = [];
+  searchTerm = '';
   isLoading = false;
   errorMessage = '';
 
@@ -26,21 +29,66 @@ export class SkillSelectComponent implements OnInit {
     this.loadSkills();
   }
 
+  get selectedSkills(): Skill[] {
+    const set = new Set(this.valueIds);
+    return this.skills.filter(s => set.has(s.id));
+  }
+
   loadSkills(): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.skillService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: skills => this.skills = skills,
+      next: skills => {
+        this.skills = skills;
+        this.applyFilter();
+      },
       error: () => {
-        this.errorMessage = 'Unable to load skills.';
+        this.errorMessage = 'بارگذاری مهارت‌ها انجام نشد.';
         this.isLoading = false;
       },
-      complete: () => this.isLoading = false
+      complete: () => {
+        this.isLoading = false;
+      }
     });
   }
 
-  onSelectionChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    this.valueIdsChange.emit(Array.from(select.selectedOptions, option => option.value));
+  onSearch(event: Event): void {
+    this.searchTerm = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.applyFilter();
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.applyFilter();
+  }
+
+  isSelected(id: string): boolean {
+    return this.valueIds.includes(id);
+  }
+
+  toggleSkill(id: string, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const next = checked
+      ? (this.valueIds.includes(id) ? this.valueIds : [...this.valueIds, id])
+      : this.valueIds.filter(x => x !== id);
+    this.valueIdsChange.emit(next);
+  }
+
+  removeSkill(id: string): void {
+    this.valueIdsChange.emit(this.valueIds.filter(x => x !== id));
+  }
+
+  clearAll(): void {
+    this.valueIdsChange.emit([]);
+  }
+
+  private applyFilter(): void {
+    if (!this.searchTerm) {
+      this.visibleSkills = [...this.skills];
+      return;
+    }
+    this.visibleSkills = this.skills.filter(s =>
+      s.name.toLowerCase().includes(this.searchTerm)
+    );
   }
 }

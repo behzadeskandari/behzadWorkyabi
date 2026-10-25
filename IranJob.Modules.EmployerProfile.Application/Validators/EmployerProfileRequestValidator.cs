@@ -67,7 +67,7 @@ public sealed class EmployerProfileRequestValidator : AbstractValidator<Employer
             .WithMessage("Logo URL must be 500 characters or less.");
 
         RuleFor(x => x.FoundedYear)
-            .InclusiveBetween(1800, DateTime.UtcNow.Year)
+            .InclusiveBetween(1300, DateTime.UtcNow.Year)
             .When(x => x.FoundedYear.HasValue)
             .WithMessage("Founded year must be a valid year.");
 

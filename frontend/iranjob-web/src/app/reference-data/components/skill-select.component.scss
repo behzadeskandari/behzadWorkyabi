@@ -1,0 +1,134 @@
+.skill-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.skill-select__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skill-select__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.skill-select__count {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.skill-select__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+  background: #f0f9ff;
+  color: #0369a1;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.skill-chip:hover {
+  background: #e0f2fe;
+}
+
+.skill-select__clear {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.skill-select__search-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.6rem;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.skill-select__search-input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.skill-select__list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.6rem;
+  background: #fff;
+  padding: 0.35rem;
+}
+
+.skill-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.skill-option:hover {
+  background: #f8fafc;
+}
+
+.skill-option input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #0ea5e9;
+}
+
+.skill-select__hint {
+  margin: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.skill-select__error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 0.85rem;
+}
+
+.skill-select__retry {
+  margin-right: auto;
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}

@@ -29,7 +29,7 @@ export class EmployerProfileComponent implements OnInit {
     websiteUrl: ['', [Validators.maxLength(500), Validators.pattern(/^https?:\/\/[^\s]+$/)]],
     linkedInUrl: ['', [Validators.maxLength(500), Validators.pattern(/^https?:\/\/[^\s]+$/)]],
     logoUrl: ['', [Validators.maxLength(500), Validators.pattern(/^https?:\/\/[^\s]+$/)]],
-    foundedYear: [null as number | null, [Validators.min(1800), Validators.max(new Date().getFullYear())]],
+    foundedYear: [null as number | null, [Validators.min(1200), Validators.max(new Date().getFullYear())]],
     address: ['', [Validators.maxLength(500)]],
     postalCode: ['', [Validators.maxLength(20)]],
     contactEmail: ['', [Validators.email, Validators.maxLength(255)]],

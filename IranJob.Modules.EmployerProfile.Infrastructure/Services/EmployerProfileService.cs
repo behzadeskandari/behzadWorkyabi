@@ -183,11 +183,11 @@ public sealed class EmployerProfileService(
             if (request is not null)
             {
                 //{request.Scheme}://{request.Host}
-                logoUrl = $"{entity.LogoUrl}";
+                logoUrl = $"https://localhost:7042{entity.LogoUrl}";
             }
             else
             {
-                logoUrl = entity.LogoUrl; // fallback
+                logoUrl = "https://localhost:7042"+entity.LogoUrl; // fallback
             }
         }
 

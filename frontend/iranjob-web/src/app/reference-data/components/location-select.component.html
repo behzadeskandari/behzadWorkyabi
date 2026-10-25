@@ -1,29 +1,91 @@
-<fieldset class="location-fieldset">
-  <legend>{{ labelPrefix }}</legend>
-  <label class="select-field">
-    <span>کشور</span>
-    <select [disabled]="isLoadingCountries || !!errorMessage" (change)="onCountryChange($event)">
-      <option value="">انتخاب کنید</option>
-      <option *ngFor="let country of countries" [value]="country.id" [selected]="country.id === selectedCountryId">{{ country.name }}</option>
-    </select>
-  </label>
-  <label class="select-field" *ngIf="selectedCountryId">
-    <span>استان</span>
-    <select [disabled]="isLoadingProvinces || !!errorMessage" (change)="onProvinceChange($event)">
-      <option value="">انتخاب کنید</option>
-      <option *ngFor="let province of provinces" [value]="province.id" [selected]="province.id === selectedProvinceId">{{ province.name }}</option>
-    </select>
-  </label>
-  <label class="select-field" *ngIf="selectedProvinceId">
-    <span>شهر</span>
-    <select [disabled]="isLoadingCities || !!errorMessage" (change)="onCityChange($event)">
-      <option value="">انتخاب کنید</option>
-      <option *ngFor="let city of cities" [value]="city.id" [selected]="city.id === cityId">{{ city.name }}</option>
-    </select>
-  </label>
-</fieldset>
-<p *ngIf="isLoadingCountries || isLoadingProvinces || isLoadingCities" role="status">در حال بارگذاری مکان‌ها...</p>
-<div *ngIf="errorMessage" role="alert" class="load-error">
-  <span>{{ errorMessage }}</span>
-  <button type="button" class="retry-button" (click)="retry()">دوباره تلاش کن</button>
+<div class="location-select" dir="rtl">
+  <p class="location-select__title">{{ labelPrefix }}</p>
+
+  <div class="location-select__grid">
+    <!-- کشور -->
+    <div class="location-field">
+      <label class="location-field__label" [attr.for]="countrySelectId">کشور</label>
+      <div class="location-field__control" [class.is-loading]="isLoadingCountries">
+        <select
+          [id]="countrySelectId"
+          class="location-field__input"
+          [disabled]="isLoadingCountries"
+          (change)="onCountryChange($event)"
+        >
+          <option value="">انتخاب کشور…</option>
+          <option
+            *ngFor="let country of countries"
+            [value]="country.id"
+            [selected]="country.id === selectedCountryId"
+          >
+            {{ country.name }}
+          </option>
+        </select>
+        <span class="location-field__chevron" aria-hidden="true">▾</span>
+      </div>
+    </div>
+
+    <!-- استان -->
+    <div class="location-field">
+      <label class="location-field__label" [attr.for]="provinceSelectId">استان</label>
+      <div
+        class="location-field__control"
+        [class.is-loading]="isLoadingProvinces"
+        [class.is-disabled]="!selectedCountryId"
+      >
+        <select
+          [id]="provinceSelectId"
+          class="location-field__input"
+          [disabled]="!selectedCountryId || isLoadingProvinces"
+          (change)="onProvinceChange($event)"
+        >
+          <option value="">{{ selectedCountryId ? 'انتخاب استان…' : 'ابتدا کشور را انتخاب کنید' }}</option>
+          <option
+            *ngFor="let province of provinces"
+            [value]="province.id"
+            [selected]="province.id === selectedProvinceId"
+          >
+            {{ province.name }}
+          </option>
+        </select>
+        <span class="location-field__chevron" aria-hidden="true">▾</span>
+      </div>
+    </div>
+
+    <!-- شهر -->
+    <div class="location-field">
+      <label class="location-field__label" [attr.for]="citySelectId">شهر</label>
+      <div
+        class="location-field__control"
+        [class.is-loading]="isLoadingCities"
+        [class.is-disabled]="!selectedProvinceId"
+      >
+        <select
+          [id]="citySelectId"
+          class="location-field__input"
+          [disabled]="!selectedProvinceId || isLoadingCities"
+          (change)="onCityChange($event)"
+        >
+          <option value="">{{ selectedProvinceId ? 'انتخاب شهر…' : 'ابتدا استان را انتخاب کنید' }}</option>
+          <option
+            *ngFor="let city of cities"
+            [value]="city.id"
+            [selected]="city.id === cityId"
+          >
+            {{ city.name }}
+          </option>
+        </select>
+        <span class="location-field__chevron" aria-hidden="true">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <p *ngIf="isLoadingCountries || isLoadingProvinces || isLoadingCities" class="location-select__hint" role="status">
+    در حال بارگذاری…
+  </p>
+
+  <div *ngIf="errorMessage" class="location-select__error" role="alert">
+    <span>{{ errorMessage }}</span>
+    <button type="button" class="location-select__retry" (click)="retry()">تلاش دوباره</button>
+  </div>
 </div>
